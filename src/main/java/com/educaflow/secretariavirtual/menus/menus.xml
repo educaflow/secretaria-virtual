@@ -18,7 +18,7 @@
     <menuitem name="firmas-todas-menuitem" parent="firmas-menuitem" title="Todas" action="subsysFirmas.Todos@TareaFirma-action" groups="admins" order="5"/>
 
 <menuitem name="tramitacion-menuitem" title="Tramitación" groups="admins,users" order="30"/>
-    <menuitem name="tramitacion-nuevoTramite-menuitem" parent="tramitacion-menuitem" title="Nuevo trámite" action="sysVentanilla.ElegirCentro@AsistenteNuevoExpedientePresentadoEnPapel-action" groups="admins,users" order="1"/>
+    <menuitem name="tramitacion-tramiteEnPapel-menuitem" parent="tramitacion-menuitem" title="Trámite en papel" action="sysVentanilla.ElegirCentro@AsistenteNuevoExpedientePresentadoEnPapel-action" groups="admins,users" order="1"/>
     <menuitem name="tramitacion-pendientesDeMi-menuitem" parent="tramitacion-menuitem" title="Pendientes de mí" action="sysVentanilla.PendientesDeMi@Expediente-action" tag-count="true" tag-count-hide-at-zero="true" groups="admins,users" order="2"/>
     <menuitem name="tramitacion-jefaturaDeEstudios-menuitem" parent="tramitacion-menuitem" title="Jefatura de estudios" groups="admins,users" order="3"/>
         <menuitem name="tramitacion-jefaturaDeEstudios-abiertos-menuitem" parent="tramitacion-jefaturaDeEstudios-menuitem" title="Abiertos" action="sysVentanilla.JefaturaAbiertos@Expediente-action" groups="admins,users" order="1"/>

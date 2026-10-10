@@ -61,9 +61,15 @@ async function desplegarGruposDeTramites(page: Page): Promise<void> {
   }
 }
 
-/** Abre «<grupo>» → «Nuevo trámite»; el grupo solo se despliega si la entrada no se ve. */
-async function abrirNuevoTramite(page: Page, grupo: 'misTramites' | 'tramitacion'): Promise<void> {
-  const entrada = page.getByTestId(`item:${grupo}-nuevoTramite-menuitem`);
+// Entrada de cada grupo con la que se crea un expediente.
+const ENTRADA_NUEVO_TRAMITE = {
+  misTramites: 'misTramites-nuevoTramite-menuitem',
+  tramitacion: 'tramitacion-tramiteEnPapel-menuitem',
+} as const;
+
+/** Abre «Mis trámites» → «Nuevo trámite» o «Tramitación» → «Trámite en papel»; el grupo solo se despliega si la entrada no se ve. */
+async function abrirNuevoTramite(page: Page, grupo: keyof typeof ENTRADA_NUEVO_TRAMITE): Promise<void> {
+  const entrada = page.getByTestId(`item:${ENTRADA_NUEVO_TRAMITE[grupo]}`);
   if (!(await entrada.isVisible())) {
     await page.getByTestId(`item:${grupo}-menuitem`).getByTestId('title').first().click();
   }
@@ -134,7 +140,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // Paso 4: Cuando pulsa "Atrás" y "Cancelar".
       await cerrarAsistente(page);
 
-      // Paso 5: Y abre "Tramitación" → "Nuevo trámite" y pulsa la misma fila.
+      // Paso 5: Y abre "Tramitación" → "Trámite en papel" y pulsa la misma fila.
       await abrirNuevoTramite(page, 'tramitacion');
       await elegirElTramite(page);
 

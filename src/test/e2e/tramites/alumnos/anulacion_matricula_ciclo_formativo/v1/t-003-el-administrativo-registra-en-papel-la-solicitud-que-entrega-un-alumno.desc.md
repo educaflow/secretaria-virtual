@@ -32,7 +32,7 @@ id: T-003
 | `administrativo2@mislata.es` | `demo1234` | tipos de usuario `ADMINISTRATIVO` **y** `ALUMNO` | CIPFP Mislata | `TRAMITADOR` **y** `CREADOR` | security `AceProfileTipoUsuarioTramite` (las dos filas anteriores le alcanzan a la vez) |
 
 El perfil con el que nace el expediente sale de cómo se presenta: telemáticamente actúa el `CREADOR`, y en papel el `TRAMITADOR`.
-La forma de presentar la fija la entrada de menú por la que se abre el asistente, que nunca pregunta «¿Cómo se presenta?»: «Mis trámites» → «Nuevo trámite» es la del propio usuario (`CREADOR`) y «Tramitación» → «Nuevo trámite» la de registrar en papel (`TRAMITADOR`).
+La forma de presentar la fija la entrada de menú por la que se abre el asistente, que nunca pregunta «¿Cómo se presenta?»: «Mis trámites» → «Nuevo trámite» es la del propio usuario (`CREADOR`) y «Tramitación» → «Trámite en papel» la de registrar en papel (`TRAMITADOR`).
 Por eso `administrativo2@mislata.es`, que tiene los dos perfiles de inicio en el centro, presenta lo suyo por «Mis trámites» y registra lo que le entregan en papel por «Tramitación».
 La pregunta «¿Para quién es el expediente?» solo se hace cuando, para la forma de presentar, valen las dos respuestas: registrando en papel siempre; presentándolo uno mismo, nunca a estos actores (el alumno solo puede «Para la persona que lo presenta» y el familiar solo «en representación», y el asistente lo fija sin preguntar).
 Cómo funciona el asistente está en `src/main/java/com/educaflow/system/ventanilla/views/nuevoexpediente/CLAUDE.md`.
@@ -42,7 +42,7 @@ Cómo funciona el asistente está en `src/main/java/com/educaflow/system/ventani
 Estado previo del que parten **todos** los tests: la carga de demo (`data.import.demo-data = true`) con sus centros, usuarios y tipos de usuario, más el data-init del trámite y de los perfiles.
 Ningún test puede presuponer más estado que este.
 
-Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente («Mis trámites» o «Tramitación» → «Nuevo trámite») se salta la elección de centro y en la pantalla de alta el campo «Centro» ya viene relleno con «CIPFP Mislata» y de solo lectura: no hay que elegir centro en ningún test.
+Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente («Mis trámites» o «Tramitación» → «Trámite en papel») se salta la elección de centro y en la pantalla de alta el campo «Centro» ya viene relleno con «CIPFP Mislata» y de solo lectura: no hay que elegir centro en ningún test.
 
 #### Configuración que los tests dan por hecha
 
@@ -64,8 +64,8 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 ## Pasos
 
 - **Given** que `administrativo1@mislata.es` (contraseña `demo1234`) es administrativo de CIPFP Mislata y solo tiene el perfil `TRAMITADOR` sobre los trámites de alumno, y que un alumno le ha entregado en ventanilla su solicitud de anulación firmada en papel.
-- **When** inicia sesión, abre «Tramitación» → «Nuevo trámite», despliega «Trámites para el alumno» y pulsa sobre «Anulación de matrícula en ciclo formativo».
-- **Then** se abre la pantalla «Nuevo expediente» con «Centro» = «CIPFP Mislata» de solo lectura y **sin** la pregunta «¿Cómo se presenta?»: la presentación en papel la fija la entrada «Tramitación» → «Nuevo trámite».
+- **When** inicia sesión, abre «Tramitación» → «Trámite en papel», despliega «Trámites para el alumno» y pulsa sobre «Anulación de matrícula en ciclo formativo».
+- **Then** se abre la pantalla «Nuevo expediente» con «Centro» = «CIPFP Mislata» de solo lectura y **sin** la pregunta «¿Cómo se presenta?»: la presentación en papel la fija la entrada «Tramitación» → «Trámite en papel».
 - **And** se muestra la pregunta «¿Para quién es el expediente?» («Para la persona que lo presenta» es para la persona que ha entregado el papel), con las opciones «Para la persona que lo presenta» y «Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)» y ninguna marcada.
 - **When** marca «Para la persona que lo presenta» —la solicitud es del propio alumno que la ha entregado—, elige el idioma «Castellano» y pulsa «Crear expediente».
 - **Then** se abre el expediente en la fase `ENTRADA`, estado `PENDIENTE_DOCUMENTO_ESCANEADO`, con la cabecera «Entrada» / «Pendiente de adjuntar la solicitud en papel escaneada».

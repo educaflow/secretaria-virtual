@@ -11,7 +11,7 @@ Hay dos entradas, y **la entrada fija la forma de presentar** (`presentadoEnPape
 | Menú | Grupo (`data-testid`) | Entrada (`data-testid`) | Forma de presentar | Perfil con el que se inicia |
 |---|---|---|---|---|
 | «Mis trámites» → «Nuevo trámite» | `item:misTramites-menuitem` | `item:misTramites-nuevoTramite-menuitem` | lo presenta el propio usuario | CREADOR |
-| «Tramitación» → «Nuevo trámite» | `item:tramitacion-menuitem` | `item:tramitacion-nuevoTramite-menuitem` | registra un trámite recibido en papel | TRAMITADOR |
+| «Tramitación» → «Trámite en papel» | `item:tramitacion-menuitem` | `item:tramitacion-tramiteEnPapel-menuitem` | registra un trámite recibido en papel | TRAMITADOR |
 
 Los pasos 1 y 2 solo ofrecen los centros y trámites que el usuario puede iniciar **con el perfil de la entrada elegida**, así que la misma persona puede ver listas distintas por cada entrada.
 «Atrás» conserva la forma de presentar: siempre vuelve a la entrada por la que se entró.
@@ -19,8 +19,13 @@ Los pasos 1 y 2 solo ofrecen los centros y trámites que el usuario puede inicia
 El grupo se pliega y despliega al pulsarlo: solo se pulsa si la entrada no está visible, porque si ya venía abierto se cerraría.
 
 ```ts
-async function abrirNuevoTramite(page: Page, grupo: 'misTramites' | 'tramitacion') {
-  const entrada = page.getByTestId(`item:${grupo}-nuevoTramite-menuitem`);
+const ENTRADA_NUEVO_TRAMITE = {
+  misTramites: 'misTramites-nuevoTramite-menuitem',
+  tramitacion: 'tramitacion-tramiteEnPapel-menuitem',
+} as const;
+
+async function abrirNuevoTramite(page: Page, grupo: keyof typeof ENTRADA_NUEVO_TRAMITE) {
+  const entrada = page.getByTestId(`item:${ENTRADA_NUEVO_TRAMITE[grupo]}`);
   if (!(await entrada.isVisible())) {
     await page.getByTestId(`item:${grupo}-menuitem`).getByTestId('title').first().click();
   }

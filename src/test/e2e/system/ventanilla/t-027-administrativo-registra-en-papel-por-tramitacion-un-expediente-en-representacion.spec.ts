@@ -18,7 +18,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
  */
 
 // administrativo1@mislata.es solo tiene el perfil TRAMITADOR sobre los trámites del alumno:
-// los registra en papel, entrando por «Tramitación» → «Nuevo trámite».
+// los registra en papel, entrando por «Tramitación» → «Trámite en papel».
 const USUARIO = 'administrativo1@mislata.es';
 const CONTRASENA = 'demo1234';
 const ADMINISTRATIVO_NOMBRE_COMPLETO = 'Administrativo1 CIPFP Mislata';
@@ -185,14 +185,14 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     let numeroExpediente = '';
 
     try {
-      // Paso 2: Cuando abre el menú "Tramitación" y pulsa "Nuevo trámite" (es la primera
+      // Paso 2: Cuando abre el menú "Tramitación" y pulsa "Trámite en papel" (es la primera
       // entrada del grupo).
       await page.getByTestId('item:tramitacion-menuitem').getByTestId('title').first().click();
       const entradas = page
         .getByTestId('item:tramitacion-menuitem')
         .locator('[data-testid^="item:tramitacion-"][data-testid$="-menuitem"]');
-      await expect(entradas.first()).toHaveAttribute('data-testid', 'item:tramitacion-nuevoTramite-menuitem');
-      await abrirEntradaDeMenu(page, 'tramitacion-menuitem', 'tramitacion-nuevoTramite-menuitem');
+      await expect(entradas.first()).toHaveAttribute('data-testid', 'item:tramitacion-tramiteEnPapel-menuitem');
+      await abrirEntradaDeMenu(page, 'tramitacion-menuitem', 'tramitacion-tramiteEnPapel-menuitem');
 
       // Paso 3: Entonces se abre directamente "Nuevo expediente: elija el trámite" (un solo
       // centro) con "CIPFP Mislata" y únicamente "Trámites para el alumno" → "Anulación de

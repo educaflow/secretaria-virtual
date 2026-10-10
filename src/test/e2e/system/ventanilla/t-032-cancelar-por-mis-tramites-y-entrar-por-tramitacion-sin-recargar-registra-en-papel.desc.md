@@ -43,7 +43,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 **Entradas del asistente** (la forma de presentar la fija la entrada de menú; el asistente nunca pregunta «¿Cómo se presenta?»):
 - «Mis trámites» → «Nuevo trámite»: lo presenta el propio usuario (perfil CREADOR).
-- «Tramitación» → «Nuevo trámite»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
+- «Tramitación» → «Trámite en papel»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
 
 ## Precondiciones
 - Estado inicial de la base de datos.
@@ -53,7 +53,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 2. **Cuando** abre el menú "Mis trámites", pulsa "Nuevo trámite" y, en "Nuevo expediente: elija el trámite" (con el centro "CIPFP Mislata" y únicamente "Trámites para el alumno" → "Anulación de matrícula en ciclo formativo"), pulsa la fila del trámite.
 3. **Entonces** "Nuevo expediente" no pregunta "¿Para quién es el expediente?" (presentándolo él mismo, como alumno que no es familiar, solo puede ser para él).
 4. **Cuando** pulsa "Atrás" y, en "elija el trámite", "Cancelar", el asistente se cierra.
-5. **Y**, sin recargar la aplicación, abre el menú "Tramitación", pulsa "Nuevo trámite" y, en "elija el trámite" (con el mismo centro y el mismo trámite), pulsa la fila del trámite.
+5. **Y**, sin recargar la aplicación, abre el menú "Tramitación", pulsa "Trámite en papel" y, en "elija el trámite" (con el mismo centro y el mismo trámite), pulsa la fila del trámite.
 6. **Entonces** "Nuevo expediente" sí pregunta "¿Para quién es el expediente?", con "Para la persona que lo presenta" y "Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)" sin marcar.
 7. **Cuando** marca "Para la persona que lo presenta", elige el idioma "Castellano" y pulsa "Crear expediente".
 

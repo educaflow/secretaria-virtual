@@ -44,7 +44,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 **Entradas del asistente** (la forma de presentar la fija la entrada de menú; el asistente nunca pregunta «¿Cómo se presenta?»):
 - «Mis trámites» → «Nuevo trámite»: lo presenta el propio usuario (perfil CREADOR).
-- «Tramitación» → «Nuevo trámite»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
+- «Tramitación» → «Trámite en papel»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
 
 ## Precondiciones
 - Estado inicial de la base de datos.

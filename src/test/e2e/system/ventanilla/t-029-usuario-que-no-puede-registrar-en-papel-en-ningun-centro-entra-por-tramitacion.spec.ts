@@ -52,9 +52,15 @@ async function desplegarGruposDeTramites(page: Page): Promise<void> {
   }
 }
 
-/** Abre «<grupo>» → «Nuevo trámite»; el grupo solo se despliega si la entrada no se ve. */
-async function abrirNuevoTramite(page: Page, grupo: 'misTramites' | 'tramitacion'): Promise<void> {
-  const entrada = page.getByTestId(`item:${grupo}-nuevoTramite-menuitem`);
+// Entrada de cada grupo con la que se crea un expediente.
+const ENTRADA_NUEVO_TRAMITE = {
+  misTramites: 'misTramites-nuevoTramite-menuitem',
+  tramitacion: 'tramitacion-tramiteEnPapel-menuitem',
+} as const;
+
+/** Abre «Mis trámites» → «Nuevo trámite» o «Tramitación» → «Trámite en papel»; el grupo solo se despliega si la entrada no se ve. */
+async function abrirNuevoTramite(page: Page, grupo: keyof typeof ENTRADA_NUEVO_TRAMITE): Promise<void> {
+  const entrada = page.getByTestId(`item:${ENTRADA_NUEVO_TRAMITE[grupo]}`);
   if (!(await entrada.isVisible())) {
     await page.getByTestId(`item:${grupo}-menuitem`).getByTestId('title').first().click();
   }
@@ -88,7 +94,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await page.getByTestId('panel:buttons-panel').getByRole('button', { name: 'Cancelar' }).click();
       await expect(page.getByRole('tab', { name: PANTALLA_TRAMITE, exact: true })).toHaveCount(0);
 
-      // Paso 5: Y abre "Tramitación" → "Nuevo trámite".
+      // Paso 5: Y abre "Tramitación" → "Trámite en papel".
       await abrirNuevoTramite(page, 'tramitacion');
 
       // Resultado esperado: el sistema muestra el aviso "No puede crear expedientes en

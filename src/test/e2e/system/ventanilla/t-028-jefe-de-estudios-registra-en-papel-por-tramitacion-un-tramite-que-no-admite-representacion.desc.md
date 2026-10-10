@@ -9,7 +9,7 @@ id: T-028
 # T-028 — Jefe de estudios registra en papel por «Tramitación» un trámite que no admite representación
 
 **Origen ESC:** —
-**Verifica:** la entrada «Tramitación» → «Nuevo trámite» registra en papel sin hacer ninguna pregunta cuando el trámite no admite representación
+**Verifica:** la entrada «Tramitación» → «Trámite en papel» registra en papel sin hacer ninguna pregunta cuando el trámite no admite representación
 **Pantalla principal:** screen-nuevo-expediente.md
 **Tipo:** happy
 
@@ -43,14 +43,14 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 **Entradas del asistente** (la forma de presentar la fija la entrada de menú; el asistente nunca pregunta «¿Cómo se presenta?»):
 - «Mis trámites» → «Nuevo trámite»: lo presenta el propio usuario (perfil CREADOR).
-- «Tramitación» → «Nuevo trámite»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
+- «Tramitación» → «Trámite en papel»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
 
 ## Precondiciones
 - Estado inicial de la base de datos.
 
 ## Pasos
 1. **Dado** que el jefe de estudios `jefeestudios1@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
-2. **Cuando** abre el menú "Tramitación" y pulsa "Nuevo trámite".
+2. **Cuando** abre el menú "Tramitación" y pulsa "Trámite en papel".
 3. **Entonces** se abre directamente "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata", únicamente "Trámites para el profesor" con "Justificación de falta del profesorado" y "Trámite de prueba" por orden alfabético, y un único botón debajo, "Cancelar".
 4. **Cuando** pulsa la fila "Justificación de falta del profesorado".
 5. **Entonces** se abre "Nuevo expediente" con ese trámite, su ayuda y el centro en solo lectura; no se ve "¿Cómo se presenta?" (la forma la fija la entrada de menú) ni "¿Para quién es el expediente?" (el trámite no admite representación).

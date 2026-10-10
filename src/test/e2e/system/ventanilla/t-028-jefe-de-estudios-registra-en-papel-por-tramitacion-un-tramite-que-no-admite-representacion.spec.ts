@@ -26,7 +26,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 // Credenciales del usuario de la precondición (tabla «Usuarios de acceso» del .desc.md).
 // jefeestudios1@mislata.es: sobre los trámites del profesor tiene AMBAS formas de
 // iniciarlos —como profesor puede presentarlos él mismo y como jefe de estudios puede
-// registrarlos en papel—. Entra por «Tramitación» → «Nuevo trámite», la entrada que fija
+// registrarlos en papel—. Entra por «Tramitación» → «Trámite en papel», la entrada que fija
 // que se registra en papel (perfil TRAMITADOR), así que el asistente no le pregunta cómo
 // se presenta; y como el trámite no admite representación, tampoco para quién es.
 const USUARIO = 'jefeestudios1@mislata.es';
@@ -250,8 +250,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     let numeroExpediente = '';
 
     try {
-      // Paso 2: Cuando abre el menú "Tramitación" y pulsa "Nuevo trámite".
-      await abrirEntradaDeMenu(page, 'tramitacion-menuitem', 'tramitacion-nuevoTramite-menuitem');
+      // Paso 2: Cuando abre el menú "Tramitación" y pulsa "Trámite en papel".
+      await abrirEntradaDeMenu(page, 'tramitacion-menuitem', 'tramitacion-tramiteEnPapel-menuitem');
 
       // Paso 3: Entonces se abre DIRECTAMENTE "Nuevo expediente: elija el trámite"…
       await expect(page.getByRole('tab', { name: PANTALLA_TRAMITE, exact: true })).toBeVisible();

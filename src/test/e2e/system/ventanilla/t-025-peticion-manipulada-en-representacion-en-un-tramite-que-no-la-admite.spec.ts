@@ -19,7 +19,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 // Credenciales del usuario de la precondición (tabla «Usuarios de acceso» del .desc.md):
 // el jefe de estudios, que sobre los trámites del profesor SÍ tiene permiso de
 // registrarlos en papel (a diferencia del alumno de T-017/T-015), así que puede entrar por
-// «Tramitación» → «Nuevo trámite», la entrada que fija que el expediente se registra en
+// «Tramitación» → «Trámite en papel», la entrada que fija que el expediente se registra en
 // papel. Es la vía por la que este test llega a una petición de alta EN PAPEL antes de
 // manipularla.
 const USUARIO = 'jefeestudios1@mislata.es';
@@ -49,12 +49,12 @@ const MENSAJE_REPRESENTACION_NO_ADMITIDA =
   'Este trámite no permite presentar la solicitud en representación de otra persona';
 
 /**
- * Abre el asistente desde el menú «Tramitación» → «Nuevo trámite» (registrar en papel). El grupo se pliega
+ * Abre el asistente desde el menú «Tramitación» → «Trámite en papel» (registrar en papel). El grupo se pliega
  * y despliega al pulsarlo, así que solo se despliega si la entrada no se ve: pulsarlo a
  * ciegas lo cerraría cuando ya venía abierto.
  */
 async function abrirNuevoExpediente(page: Page): Promise<void> {
-  const entrada = page.getByTestId('item:tramitacion-nuevoTramite-menuitem');
+  const entrada = page.getByTestId('item:tramitacion-tramiteEnPapel-menuitem');
   if (!(await entrada.isVisible())) {
     await page.getByTestId('item:tramitacion-menuitem').getByTestId('title').first().click();
   }

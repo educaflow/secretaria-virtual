@@ -50,7 +50,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Pasos
 1. **Dado** que el jefe de estudios `jefeestudios1@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
-2. **Y** ha llegado a "Nuevo expediente" para el trámite "Justificación de falta del profesorado" en el centro "CIPFP Mislata" entrando por el menú "Tramitación" → "Nuevo trámite" (registrar en papel).
+2. **Y** ha llegado a "Nuevo expediente" para el trámite "Justificación de falta del profesorado" en el centro "CIPFP Mislata" entrando por el menú "Tramitación" → "Trámite en papel" (registrar en papel).
 3. **Entonces** no se ve "¿Cómo se presenta?" (la forma la fija la entrada de menú) ni "¿Para quién es el expediente?", porque el trámite no admite representación.
 4. **Cuando** elige el idioma "Castellano" y pulsa "Crear expediente" con la petición manipulada para indicar que el expediente es en representación de otra persona, dejando el resto como está en la pantalla: el centro "CIPFP Mislata", el trámite "Justificación de falta del profesorado" y registrado como recibido en papel.
 

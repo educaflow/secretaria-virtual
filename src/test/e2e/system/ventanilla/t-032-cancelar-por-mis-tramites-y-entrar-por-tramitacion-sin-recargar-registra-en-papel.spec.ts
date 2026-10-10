@@ -256,11 +256,11 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // La causa del fallo: la URL se quedaba en la acción de la entrada "Mis trámites".
       await expect(page).not.toHaveURL(new RegExp(ACCION_ENTRADA_MIS_TRAMITES));
 
-      // Paso 5: Y, SIN recargar la aplicación, abre "Tramitación" → "Nuevo trámite" y pulsa
+      // Paso 5: Y, SIN recargar la aplicación, abre "Tramitación" → "Trámite en papel" y pulsa
       // la fila del trámite (con una sola pestaña del asistente cada vez: no se ha reabierto
       // la entrada anterior).
       capturando = true;
-      await abrirEntradaDeMenu(page, 'tramitacion-menuitem', 'tramitacion-nuevoTramite-menuitem');
+      await abrirEntradaDeMenu(page, 'tramitacion-menuitem', 'tramitacion-tramiteEnPapel-menuitem');
       await elegirElTramite(page);
 
       // Paso 6: Entonces "Nuevo expediente" SÍ pregunta "¿Para quién es el expediente?", con

@@ -69,9 +69,15 @@ function presentadoEnPapelDelOnNew(request: Request): boolean | undefined | null
   return cuerpo.data?.context?._presentadoEnPapel as boolean | undefined;
 }
 
-/** Abre «<grupo>» → «Nuevo trámite»; el grupo solo se despliega si la entrada no se ve. */
-async function abrirNuevoTramite(page: Page, grupo: 'misTramites' | 'tramitacion'): Promise<void> {
-  const entrada = page.getByTestId(`item:${grupo}-nuevoTramite-menuitem`);
+// Entrada de cada grupo con la que se crea un expediente.
+const ENTRADA_NUEVO_TRAMITE = {
+  misTramites: 'misTramites-nuevoTramite-menuitem',
+  tramitacion: 'tramitacion-tramiteEnPapel-menuitem',
+} as const;
+
+/** Abre «Mis trámites» → «Nuevo trámite» o «Tramitación» → «Trámite en papel»; el grupo solo se despliega si la entrada no se ve. */
+async function abrirNuevoTramite(page: Page, grupo: keyof typeof ENTRADA_NUEVO_TRAMITE): Promise<void> {
+  const entrada = page.getByTestId(`item:${ENTRADA_NUEVO_TRAMITE[grupo]}`);
   if (!(await entrada.isVisible())) {
     await page.getByTestId(`item:${grupo}-menuitem`).getByTestId('title').first().click();
   }
@@ -120,7 +126,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // La causa del fallo: la URL se quedaba en la acción de la entrada "Mis trámites".
       await expect(page).not.toHaveURL(new RegExp(ACCION_ENTRADA_MIS_TRAMITES));
 
-      // Paso 4: Y, SIN recargar la aplicación, abre "Tramitación" → "Nuevo trámite".
+      // Paso 4: Y, SIN recargar la aplicación, abre "Tramitación" → "Trámite en papel".
       capturando = true;
       await abrirNuevoTramite(page, 'tramitacion');
 

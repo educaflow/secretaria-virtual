@@ -38,7 +38,7 @@ const TIPO_TRAMITE = 'Trámites para el alumno';
 const PANTALLA_ALTA = 'Nuevo expediente';
 
 /**
- * Abre el asistente «Tramitación» → «Nuevo trámite» (la entrada con la que se registra en papel
+ * Abre el asistente «Tramitación» → «Trámite en papel» (la entrada con la que se registra en papel
  * un trámite recibido en ventanilla: la forma de presentar la fija la entrada) y elige el trámite hasta llegar a su
  * último paso, «Nuevo expediente». Cómo funciona el asistente (pantallas, testids y cuándo
  * pregunta cada cosa) está en `system/ventanilla/views/nuevoexpediente/CLAUDE.md`.
@@ -47,7 +47,7 @@ const PANTALLA_ALTA = 'Nuevo expediente';
  */
 async function abrirAltaDelTramite(page: Page): Promise<void> {
   // El grupo del menú se pliega al pulsarlo: solo se despliega si la entrada no se ve.
-  const entrada = page.getByTestId('item:tramitacion-nuevoTramite-menuitem');
+  const entrada = page.getByTestId('item:tramitacion-tramiteEnPapel-menuitem');
   if (!(await entrada.isVisible())) {
     await page.getByTestId('item:tramitacion-menuitem').getByTestId('title').first().click();
   }
@@ -86,7 +86,7 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       await ensureLoggedOut(page);
       await login(page, 'administrativo1@mislata.es', 'demo1234');
 
-      // When: inicia sesión, abre «Tramitación» → «Nuevo trámite», despliega «Trámites para el alumno»
+      // When: inicia sesión, abre «Tramitación» → «Trámite en papel», despliega «Trámites para el alumno»
       // y pulsa sobre «Anulación de matrícula en ciclo formativo».
       await abrirAltaDelTramite(page);
 
@@ -95,7 +95,7 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       await expect(campoCentro).toHaveValue('CIPFP Mislata');
       await expect(campoCentro).toBeDisabled();
       // … y SIN ninguna pregunta sobre cómo se presenta: la forma (en papel) la fija la entrada
-      // «Tramitación» → «Nuevo trámite».
+      // «Tramitación» → «Trámite en papel».
       await expect(page.getByText('¿Cómo se presenta?')).toHaveCount(0);
 
       // And: se muestra la pregunta «¿Para quién es el expediente?» («Para la persona que lo presenta» es para la persona

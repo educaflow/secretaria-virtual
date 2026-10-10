@@ -9,7 +9,7 @@ id: T-027
 # T-027 — Administrativo registra en papel por «Tramitación» un expediente en representación
 
 **Origen ESC:** —
-**Verifica:** la entrada «Tramitación» → «Nuevo trámite» registra en papel; en un trámite que admite representación pregunta solo «¿Para quién es el expediente?»
+**Verifica:** la entrada «Tramitación» → «Trámite en papel» registra en papel; en un trámite que admite representación pregunta solo «¿Para quién es el expediente?»
 **Pantalla principal:** screen-nuevo-expediente.md
 **Tipo:** happy
 
@@ -43,14 +43,14 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 **Entradas del asistente** (la forma de presentar la fija la entrada de menú; el asistente nunca pregunta «¿Cómo se presenta?»):
 - «Mis trámites» → «Nuevo trámite»: lo presenta el propio usuario (perfil CREADOR).
-- «Tramitación» → «Nuevo trámite»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
+- «Tramitación» → «Trámite en papel»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
 
 ## Precondiciones
 - Estado inicial de la base de datos.
 
 ## Pasos
 1. **Dado** que el administrativo `administrativo1@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
-2. **Cuando** abre el menú "Tramitación" y pulsa "Nuevo trámite", que es la primera entrada del grupo.
+2. **Cuando** abre el menú "Tramitación" y pulsa "Trámite en papel", que es la primera entrada del grupo.
 3. **Entonces** se abre directamente "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata", únicamente "Trámites para el alumno" con "Anulación de matrícula en ciclo formativo" dentro, y un único botón debajo, "Cancelar".
 4. **Cuando** pulsa la fila "Anulación de matrícula en ciclo formativo".
 5. **Entonces** se abre "Nuevo expediente" con el trámite y el centro en solo lectura; no se ve "¿Cómo se presenta?"; sí se ve "¿Para quién es el expediente?" con "Para la persona que lo presenta" y "Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)", sin ninguna marcada.

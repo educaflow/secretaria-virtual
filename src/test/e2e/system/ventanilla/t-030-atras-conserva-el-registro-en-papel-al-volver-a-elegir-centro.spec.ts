@@ -211,8 +211,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     let numeroExpediente = '';
 
     try {
-      // Paso 2: Cuando abre "Tramitación" → "Nuevo trámite".
-      await abrirEntradaDeMenu(page, `${GRUPO}-menuitem`, `${GRUPO}-nuevoTramite-menuitem`);
+      // Paso 2: Cuando abre "Tramitación" → "Trámite en papel".
+      await abrirEntradaDeMenu(page, `${GRUPO}-menuitem`, `${GRUPO}-tramiteEnPapel-menuitem`);
 
       // Paso 3: Entonces se abre "Nuevo expediente: elija el centro" con "CIPFP Batoi" y
       // "CIPFP Mislata".

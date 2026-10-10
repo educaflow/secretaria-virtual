@@ -43,7 +43,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 **Entradas del asistente** (la forma de presentar la fija la entrada de menú; el asistente nunca pregunta «¿Cómo se presenta?»):
 - «Mis trámites» → «Nuevo trámite»: lo presenta el propio usuario (perfil CREADOR).
-- «Tramitación» → «Nuevo trámite»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
+- «Tramitación» → «Trámite en papel»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
 
 ## Precondiciones
 - Estado inicial de la base de datos.
@@ -53,7 +53,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 2. **Cuando** abre el menú "Mis trámites" y pulsa "Nuevo trámite".
 3. **Entonces** se abre "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata" y únicamente "Trámites para el profesor" con "Justificación de falta del profesorado" y "Trámite de prueba".
 4. **Cuando** pulsa "Cancelar".
-5. **Y**, sin recargar la aplicación, abre el menú "Tramitación" y pulsa "Nuevo trámite".
+5. **Y**, sin recargar la aplicación, abre el menú "Tramitación" y pulsa "Trámite en papel".
 
 **Nota.**
 Un alumno (p. ej. `alumno1@mislata.es`) no sirve para este caso: no ve el grupo "Tramitación".

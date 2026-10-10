@@ -28,7 +28,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 // y como jefe de estudios puede registrarlos en papel—. El asistente ya no le pregunta
 // cómo se presenta: la forma la fija la entrada de menú. Este test entra por «Mis
 // trámites» → «Nuevo trámite» (lo presenta él mismo); la entrada complementaria,
-// «Tramitación» → «Nuevo trámite» (registrarlo en papel), la cubre T-028.
+// «Tramitación» → «Trámite en papel» (registrarlo en papel), la cubre T-028.
 const USUARIO = 'jefeestudios1@mislata.es';
 const CONTRASENA = 'demo1234';
 

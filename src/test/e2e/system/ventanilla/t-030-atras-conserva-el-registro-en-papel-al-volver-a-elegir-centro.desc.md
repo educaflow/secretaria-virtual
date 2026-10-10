@@ -44,14 +44,14 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 **Entradas del asistente** (la forma de presentar la fija la entrada de menú; el asistente nunca pregunta «¿Cómo se presenta?»):
 - «Mis trámites» → «Nuevo trámite»: lo presenta el propio usuario (perfil CREADOR).
-- «Tramitación» → «Nuevo trámite»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
+- «Tramitación» → «Trámite en papel»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
 
 ## Precondiciones
 - Estado inicial de la base de datos.
 
 ## Pasos
 1. **Dado** que `administrativo3@mislata.es` (Administrativo, Alumno y Familiar en CIPFP Mislata y en CIPFP Batoi) ha iniciado sesión con la contraseña `demo1234`.
-2. **Cuando** abre el menú "Tramitación" y pulsa "Nuevo trámite" (registra un trámite recibido en papel).
+2. **Cuando** abre el menú "Tramitación" y pulsa "Trámite en papel" (registra un trámite recibido en papel).
 3. **Entonces** se abre "Nuevo expediente: elija el centro" con "CIPFP Batoi" y "CIPFP Mislata", y un único botón, "Cancelar".
 4. **Cuando** pulsa "CIPFP Mislata" y, en "Nuevo expediente: elija el trámite" (con "CIPFP Mislata" y únicamente "Trámites para el alumno" → "Anulación de matrícula en ciclo formativo"), pulsa la fila del trámite.
 5. **Entonces** "Nuevo expediente" no pregunta "¿Cómo se presenta?" y sí "¿Para quién es el expediente?", sin marcar.

@@ -43,7 +43,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 **Entradas del asistente** (la forma de presentar la fija la entrada de menú; el asistente nunca pregunta «¿Cómo se presenta?»):
 - «Mis trámites» → «Nuevo trámite»: lo presenta el propio usuario (perfil CREADOR).
-- «Tramitación» → «Nuevo trámite»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
+- «Tramitación» → «Trámite en papel»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
 
 ## Precondiciones
 - Estado inicial de la base de datos.
@@ -52,7 +52,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 1. **Dado** que el director `director@mislata.es` (Profesor con cargo de Director: ve el grupo "Tramitación", pero no puede registrar en papel ningún trámite en ninguno de sus centros) ha iniciado sesión con la contraseña `demo1234`.
 2. **Cuando** abre el menú "Mis trámites" y pulsa "Nuevo trámite", se abre "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata".
 3. **Cuando** pulsa "Cancelar", el asistente se cierra.
-4. **Y**, sin recargar la aplicación, abre el menú "Tramitación" y pulsa "Nuevo trámite".
+4. **Y**, sin recargar la aplicación, abre el menú "Tramitación" y pulsa "Trámite en papel".
 5. **Entonces** el sistema muestra el aviso "No puede crear expedientes en ninguno de sus centros".
 6. **Cuando** lo acepta.
 
