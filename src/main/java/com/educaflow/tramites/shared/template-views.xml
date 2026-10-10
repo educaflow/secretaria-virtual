@@ -215,9 +215,8 @@
         <panel name="subsysExpedientes-template-notas-panel" title="Notas internas" colSpan="12"
                hideIf="usuarioRegistrador.id == $userId &amp;&amp; !presentadoEnPapel">
             <field name="notas" showTitle="false" readonly="true" colSpan="12"/>
-            <field name="nuevaNota" type="string" widget="Text" title="Nueva nota" colSpan="10"/>
-            <button name="add-note" title="Añadir nota" outline="true" colSpan="2"
-                    onClick="subsysExpedientes-btnAddNote-action"/>
+            <field name="nuevaNota" type="string" widget="Text" title="Nueva nota" colSpan="12"/>
+            <button name="add-note" title="Añadir nota" outline="true" colSpan="2" colOffset="10" onClick="subsysExpedientes-btnAddNote-action"/>
             <field name="usuarioRegistrador" hidden="true"/>
             <field name="presentadoEnPapel" hidden="true"/>
         </panel>
