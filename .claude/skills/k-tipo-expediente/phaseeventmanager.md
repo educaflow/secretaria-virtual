@@ -260,16 +260,19 @@ expediente.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumentoResguar
 
 El registro devuelve el **resguardo de presentación** sellado, que se guarda en la entidad para mostrarlo.
 
-**MUST NOT** escribir esas dos líneas para presentar la solicitud en la fase `ENTRADA`: ya las hace `EntradaHelper.presentar(expediente, CAMPOS_ENTRADA, anexos, eventContext)`, que además borra la subsanación atendida. El camino entero está en la receta `recetas/presentacion.md`.
+**MUST NOT** escribir esas dos líneas para presentar la solicitud en la fase `ENTRADA`: ya las hace `EntradaHelper.presentar(expediente, CAMPOS_ENTRADA, anexos, eventContext)`, que además envía el resguardo al solicitante por correo y SMS y borra la subsanación atendida. El camino entero está en la receta `recetas/presentacion.md`.
 
 ### 6.3 Registro de salida (la administración emite un documento)
 
 ```java
 RegistroSalida registroSalida = eventContext.createRegistroSalida(pdfResolucionFirmada, List.of());
 expediente.setPdfResolucion(registroSalida.getDocumento());
+avisoRegistroHelper.avisarDeRegistroSalida(expediente, registroSalida);
 ```
 
 El registro devuelve el **documento registrado** (`getDocumento()`), que es el que se guarda y se muestra al usuario.
+
+**MUST** avisar al solicitante de todo registro de salida con `AvisoRegistroHelper.avisarDeRegistroSalida` (`tramites/util/registro`, inyectado con `@Inject`): le envía el documento por correo y el número por SMS, y si le falta el correo o el móvil omite ese canal sin abortar el evento.
 
 ### 6.4 Firmar documentos
 

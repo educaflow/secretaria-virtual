@@ -25,6 +25,7 @@ import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.WhenEvent;
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.AnulacionMatriculaCicloFormativoV1Util;
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.States;
 
+import com.educaflow.tramites.util.registro.AvisoRegistroHelper;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,9 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
 
     @Inject
     TramitadorService tramitadorService;
+
+    @Inject
+    AvisoRegistroHelper avisoRegistroHelper;
 
     @Inject
     public PhaseEventManagerImpl(AnulacionMatriculaCicloFormativoV1Repository repository) {
@@ -105,11 +109,12 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
         eventContext.updateState(States.Firma.PENDIENTE_FIRMA_DIRECTOR);
     }
 
-    private static void registrarDeSalidaYCerrar(AnulacionMatriculaCicloFormativoV1 expediente, EventContext eventContext) throws BusinessException {
+    private void registrarDeSalidaYCerrar(AnulacionMatriculaCicloFormativoV1 expediente, EventContext eventContext) throws BusinessException {
         // El documento que llega es el de la tarea de firma, no del expediente: se registra de salida una copia.
         MetaFile resolucionFirmada = MetaFileUtil.cloneMetaFile(expediente.getPdfResolucionFirmada());
         RegistroSalida registroSalida = eventContext.createRegistroSalida(resolucionFirmada, List.of());
         expediente.setPdfResolucionFirmada(registroSalida.getDocumento());
+        avisoRegistroHelper.avisarDeRegistroSalida(expediente, registroSalida);
 
         expediente.setPdfResolucion(null);
 

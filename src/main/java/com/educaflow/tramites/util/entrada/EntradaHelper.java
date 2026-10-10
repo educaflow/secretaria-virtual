@@ -12,6 +12,7 @@ import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.EventContext;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.State;
 import com.educaflow.tramites.util.firma.FirmaServidorHelper;
+import com.educaflow.tramites.util.registro.AvisoRegistroHelper;
 import com.google.inject.Inject;
 
 import java.util.List;
@@ -28,6 +29,9 @@ public class EntradaHelper {
 
     @Inject
     private ModelServiceFactory modelServiceFactory;
+
+    @Inject
+    private AvisoRegistroHelper avisoRegistroHelper;
 
     /**
      * Firma en el servidor la solicitud generada si a quien presenta le corresponde firmar así. Con AutoFirma no
@@ -53,11 +57,13 @@ public class EntradaHelper {
 
     /**
      * Asienta en el registro de entrada la solicitud que hay en {@code pdfSolicitudFirmada} (la firmada o, en
-     * papel, la escaneada), guarda el resguardo y da por atendida la subsanación que se hubiera pedido.
+     * papel, la escaneada), guarda el resguardo, se lo envía al solicitante por correo y SMS y da por atendida la
+     * subsanación que se hubiera pedido.
      */
     public <T extends Expediente> void presentar(T expediente, CamposEntrada<T> campos, List<MetaFile> anexos, EventContext eventContext) {
         RegistroEntrada registroEntrada = eventContext.createRegistroEntrada(campos.getPdfSolicitudFirmada().apply(expediente), anexos);
         campos.setPdfJustificanteRegistroEntrada().accept(expediente, registroEntrada.getDocumentoResguardoPresentacion());
+        avisoRegistroHelper.avisarDeRegistroEntrada(expediente, registroEntrada);
 
         campos.borrarSubsanacion().accept(expediente);
     }

@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -25,6 +26,7 @@ import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.EventContext;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.Phase;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.State;
 import com.educaflow.tramites.util.firma.FirmaServidorHelper;
+import com.educaflow.tramites.util.registro.AvisoRegistroHelper;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +58,9 @@ class EntradaHelperTest {
 
     @Mock
     private CertificadoDigitalService certificadoDigitalService;
+
+    @Mock
+    private AvisoRegistroHelper avisoRegistroHelper;
 
     @InjectMocks
     private EntradaHelper entradaHelper;
@@ -119,7 +124,7 @@ class EntradaHelperTest {
     }
 
     @Test
-    void presentar_registraLaSolicitudFirmadaGuardaElResguardoYBorraLaSubsanacion() {
+    void presentar_registraLaSolicitudFirmadaGuardaElResguardoAvisaAlSolicitanteYBorraLaSubsanacion() {
         MetaFile anexo = new MetaFile();
         MetaFile resguardo = new MetaFile();
         RegistroEntrada registroEntrada = new RegistroEntrada();
@@ -133,6 +138,7 @@ class EntradaHelperTest {
         assertAll(
                 () -> assertSame(resguardo, pdfJustificanteRegistroEntrada),
                 () -> assertTrue(subsanacionBorrada));
+        verify(avisoRegistroHelper).avisarDeRegistroEntrada(expediente, registroEntrada);
     }
 
     @Test

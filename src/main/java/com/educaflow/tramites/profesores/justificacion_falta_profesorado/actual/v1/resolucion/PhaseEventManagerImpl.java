@@ -22,6 +22,7 @@ import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.States;
 
 import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
+import com.educaflow.tramites.util.registro.AvisoRegistroHelper;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,9 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
 
     @Inject
     ModelServiceFactory modelServiceFactory;
+
+    @Inject
+    AvisoRegistroHelper avisoRegistroHelper;
 
     @Inject
     public PhaseEventManagerImpl(JustificacionFaltaProfesoradoV1Repository repository) {
@@ -83,7 +87,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
         }
     }
 
-    /** Genera la resolución, la firma con el certificado de la dirección del centro y la registra de salida. */
+    /** Genera la resolución, la firma con el certificado de la dirección del centro, la registra de salida y se la envía al solicitante. */
     private void emitirResolucion(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, EventContext eventContext) {
         justificacionFaltaProfesorado.setMotivoDevolucion(null);
 
@@ -95,6 +99,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
 
         RegistroSalida registroSalida = eventContext.createRegistroSalida(pdfResolucion, List.of(justificacionFaltaProfesorado.getJustificante()));
         justificacionFaltaProfesorado.setPdfResolucion(registroSalida.getDocumento());
+        avisoRegistroHelper.avisarDeRegistroSalida(justificacionFaltaProfesorado, registroSalida);
     }
 
 

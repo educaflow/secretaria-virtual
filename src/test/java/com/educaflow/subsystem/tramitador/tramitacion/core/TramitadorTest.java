@@ -91,7 +91,10 @@ class TramitadorTest {
         @BeforeEach
         void preparar() {
             Tramite tramite = new Tramite();
+            tramite.setName("Justificación de faltas");
             tramite.setDefaultTipoExpediente(tipoExpediente);
+            tipoExpediente.setName("Justificación de faltas V1");
+            tipoExpediente.setTramite(tramite);
             Centro centro = new Centro();
             centro.setCode("46000001");
             contextoTramitacion = new ContextoTramitacion(tramite, centro, Profile.CREADOR, false, false, null);
@@ -129,6 +132,15 @@ class TramitadorTest {
 
             assertSame(fallo, ex.getCause());
             verifyNoInteractions(numeradorRepository);
+        }
+
+        @Test
+        void eventoInicialSinErrores_elNombreDelExpedienteEsElDelTramiteNoElDelTipo() throws Exception {
+            try (MockedStatic<JPA> jpa = mockStatic(JPA.class)) {
+                Expediente expediente = tramitador.triggerInitialEvent(contextoTramitacion);
+
+                assertEquals("Justificación de faltas", expediente.getName());
+            }
         }
 
         @Test
