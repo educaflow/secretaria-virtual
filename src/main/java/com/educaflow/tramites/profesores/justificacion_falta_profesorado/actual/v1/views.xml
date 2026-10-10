@@ -5,8 +5,8 @@
 
     <form name="exp-JustificacionFaltaProfesoradoV1-Templates" width="large" title="Justificación de falta del profesorado" model="com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1" groups="admins,users">
         <panel name="datos-profesor" title="Datos del profesor interesado">
-            <field name="personaInteresada.apellidos" colSpan="4" readonly="true"/>
             <field name="personaInteresada.nombre" colSpan="4" readonly="true"/>
+            <field name="personaInteresada.apellidos" colSpan="4" readonly="true"/>
             <field name="personaInteresada.dni" title="DNI" colSpan="4" readonly="true"/>
         </panel>
 
@@ -16,8 +16,8 @@
             <field name="personaInteresada" showTitle="false" colSpan="12"
                    canNew="false" canSelect="false" canRemove="false" x-show-icons="false">
                 <editor x-show-titles="true">
-                    <field name="apellidos" colSpan="5" required="true"/>
                     <field name="nombre"    colSpan="4" required="true"/>
+                    <field name="apellidos" colSpan="5" required="true"/>
                     <field name="dni" title="DNI/NIE" colSpan="3" required="true"/>
                 </editor>
             </field>

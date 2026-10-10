@@ -21,8 +21,8 @@
                 <editor x-show-titles="true">
 
                     <panel name="alumno" title="Alumno/a al que se refiere la solicitud" colSpan="12" showFrame="true">
-                        <field name="apellidos" colSpan="5" required="true"/>
                         <field name="nombre"    colSpan="4" required="true"/>
+                        <field name="apellidos" colSpan="5" required="true"/>
                         <field name="dni" title="DNI/NIE" colSpan="3" required="true"/>
                     </panel>
 
