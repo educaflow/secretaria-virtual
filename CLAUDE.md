@@ -3,6 +3,7 @@
 La secretaría virtual es un proyecto de gestión de expedientes administrativos con tramitación electrónica, firmado digital y gestión documental. Está construido sobre el framework Axelor, que proporciona una base sólida de JPA/ORM, vistas XML, seguridad y DI.
 
 El framework Axelor se llama **AOP (Axelor Open Platform)** y su código fuente está disponible en la carpeta hermana `../axelor-open-platform` (fuera de este repositorio). Consúltalo cuando necesites entender el comportamiento interno del framework (backend Java en `axelor-core`/`axelor-web`, frontend en `axelor-front`).
+Antes de investigar nada en AOP, **MUST** leer `../axelor-open-platform/CLAUDE.md` y consultar `../axelor-open-platform/preguntas/README.md`: las preguntas ya contestadas están ahí, y toda respuesta nueva sobre AOP **MUST** guardarse allí.
 
 Las herramientas de build propias del proyecto (generadores y procesadores que el `build.gradle` invoca como tareas `JavaExec`) están en **EFBT** (EducaFlowBuildTools), en la carpeta hermana `../EducaFlowBuildTools` (fuera de este repositorio). Tras cambiar algo en EFBT hay que instalarlo con `mvn install` en esa carpeta para que el build lo recoja.
 
