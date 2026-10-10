@@ -72,11 +72,11 @@ En el atributo `state` va el **nombre del estado** tal cual, igual que en el `Ti
 
 | Panel / acción | Qué es |
 |---|---|
-| `persona-solicitante` | Nombre, apellidos y DNI de quien presenta, de solo lectura; solo se ve si `presentadoEnRepresentacion` |
+| `persona-solicitante` | Nombre, apellidos, DNI, email y teléfono de quien presenta, de solo lectura; solo se ve si `presentadoEnRepresentacion` |
 | `persona-solicitante-editable` | Lo mismo en un `<editor>`, para el estado en que se teclea: en papel y en representación nadie más lo rellena |
 | `persona-interesada` | Un `<editor>` sobre `personaInteresada` con su identificación y sus datos de contacto (email, teléfono, dirección, municipio, CP) |
 | `subsysExpedientes-persona-interesada-onLoad-action` | Pone de solo lectura nombre, apellidos y DNI del interesado salvo en representación o en papel |
-| `subsysExpedientes-persona-solicitante-onLoad-action` | Pone de solo lectura nombre, apellidos y DNI del solicitante salvo en papel |
+| `subsysExpedientes-persona-solicitante-onLoad-action` | Pone de solo lectura nombre, apellidos, DNI, email y teléfono del solicitante salvo en papel |
 
 - La acción de cada persona editable **MUST** estar en el `onLoad` del form en el que se edita (en un `<action-group>` si el form ya tenía `onLoad`).
 - Qué persona nace vacía en cada modo, y por tanto qué hay que pedir: `modelo.md` §2.1.

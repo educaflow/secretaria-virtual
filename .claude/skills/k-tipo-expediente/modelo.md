@@ -48,8 +48,11 @@ Los datos de una persona (nombre, apellidos, DNI, NIA, email, teléfono, direcci
 | Telemático, en representación | datos del usuario | **vacía** |
 | En papel (lo registra el `TRAMITADOR`) | **vacía** | **vacía** |
 
+- «Datos del usuario» son su nombre, apellidos, DNI, email y teléfono (los de `User`).
 - Lo que nace vacío **MUST** pedirse y validarse en el estado de entrada de datos (nombre, apellidos y DNI como mínimo): si no, el registro de entrada sale sin interesado o sin solicitante.
-  En papel y «para mí» solo se teclea el interesado: el motor copia su identificación en el solicitante.
+  En papel y «para mí» solo se teclea el interesado: el motor copia su identificación y su contacto (email y teléfono) en el solicitante.
+- El email y el teléfono de `personaSolicitante` son a donde se le avisa del expediente (correos y SMS de `tramites/util`).
+  En papel **MUST** pedirse también (sin `Required`: no todo el mundo los tiene) y validarse el teléfono con `Phone()`; en papel y «para mí» se piden en el interesado.
 - Para validar o completar datos de una persona, el validador los declara **anidados** sobre la relación, y así entran en la whitelist del evento:
 
 ```kotlin
@@ -60,7 +63,7 @@ field(model::getPersonaInteresada) {
 ```
 
 - Una `Lambda` dentro de un campo anidado recibe la `Persona`, no el expediente: la función de `<Code>Util` **MUST** tomar una `Persona`.
-- La identificación que el modo no deja teclear la restaura el motor en cada evento, y rechaza que la petición cambie la `Persona` por otra: no hace falta protegerla en el tipo.
+- La identificación que el modo no deja teclear —y, si presenta el usuario, el contacto del solicitante— la restaura el motor en cada evento, y rechaza que la petición cambie la `Persona` por otra: no hace falta protegerla en el tipo.
 - Las vistas de las personas: `vistas.md` §3.1.
 
 ## 3. Enums propios

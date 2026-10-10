@@ -50,7 +50,7 @@ La regla de arquitectura **C2** lo verifica para `base.infrastructure`.
   Depende de `subsystem/notificaciones`.
 - **`registro/`** — el aviso al solicitante de cada documento de su expediente que se asienta en el registro de entrada o de salida.
   `AvisoRegistroHelper`: un correo con el documento registrado adjunto y un SMS con el número de registro (`avisarDeRegistroEntrada`, que llama `EntradaHelper.presentar`, y `avisarDeRegistroSalida`, que **MUST** llamar todo `trigger*` justo después de `createRegistroSalida`).
-  Es una cortesía: cada canal que no supera su validación (sin correo o sin móvil, p. ej. en papel) no se envía y no bloquea el evento.
+  Es una cortesía: cada canal que no supera su validación (sin correo o sin móvil, p. ej. en papel si no se indicaron) no se envía y no bloquea el evento.
   No está en `subsystem/registroentradasalida` porque `notificaciones` depende de `expedientes`, que depende de `registroentradasalida`: sería un ciclo (regla C7).
   Depende de `subsystem/notificaciones` y de `subsystem/registroentradasalida`.
 

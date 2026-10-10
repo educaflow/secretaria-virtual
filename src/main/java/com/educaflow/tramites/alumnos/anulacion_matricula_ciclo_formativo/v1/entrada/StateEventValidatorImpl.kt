@@ -29,7 +29,7 @@ class StateEventValidatorImpl: StateEventValidator {
     fun getForStateEntradaDatosInEventGuardarDatos(): BeanValidationRules {
         return rules {
             // Solo se teclea en papel y en representación. En los demás modos el Tramitador restaura (o copia
-            // del interesado) su identificación, así que estos field(...) solo le abren la whitelist.
+            // del interesado) su identificación y su contacto, así que estos field(...) solo le abren la whitelist.
             field(model::getPersonaSolicitante) {
                 +ifLambda(util::esPresentadoEnPapelEnRepresentacion) {
                     +Lambda(util::tieneIdentificadoAlSolicitante, "Indique los apellidos, el nombre y un DNI o NIE válido de la persona que presenta la solicitud")
@@ -41,6 +41,12 @@ class StateEventValidatorImpl: StateEventValidator {
                     +MaxLength(100)
                 }
                 field(Persona::getDni) {
+                }
+                field(Persona::getEmail) {
+                    +MaxLength(255)
+                }
+                field(Persona::getTelefono) {
+                    +Phone()
                 }
             }
             field(model::getPersonaInteresada) {

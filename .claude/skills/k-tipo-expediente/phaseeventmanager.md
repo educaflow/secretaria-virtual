@@ -300,7 +300,7 @@ if (correoService.validateInsert(correo).isPresent()) {
 correoService.insert(correo);
 ```
 
-- `insert` lanza si el correo no supera `validateInsert`, que exige entre otras cosas un `dniDestinatario` válido y al menos una dirección válida en `para`. Cuando el correo es **una cortesía y no parte del trámite**, pregunta antes con `validateInsert` y no lo envíes si no se puede: en papel, por ejemplo, no hay correo del solicitante. **MUST NOT** dejar que un aviso aborte el evento.
+- `insert` lanza si el correo no supera `validateInsert`, que exige entre otras cosas un `dniDestinatario` válido y al menos una dirección válida en `para`. Cuando el correo es **una cortesía y no parte del trámite**, pregunta antes con `validateInsert` y no lo envíes si no se puede: en papel, por ejemplo, puede no haberse indicado correo del solicitante. **MUST NOT** dejar que un aviso aborte el evento.
 - El correo no se puede modificar ni borrar después de crearlo.
 - Para avisar de una subsanación **MUST** usarse `verificacionHelper.avisarDeSubsanacion(expediente, textoSubsanacion)`, no una copia de este patrón (`recetas/presentacion.md` §6.3).
 

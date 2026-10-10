@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * registro de entrada o de salida. El correo lleva adjunto el documento registrado; el SMS, solo el número.
  *
  * <p>El aviso es una cortesía, no parte del trámite: el documento queda en el expediente. Por eso cada canal se
- * valida por separado y, si no lo supera (p. ej. en papel no hay correo ni móvil del solicitante), no se envía, se
+ * valida por separado y, si no lo supera (p. ej. en papel no se indicó correo o móvil del solicitante), no se envía, se
  * registra el motivo y el evento sigue adelante.
  */
 public class AvisoRegistroHelper {

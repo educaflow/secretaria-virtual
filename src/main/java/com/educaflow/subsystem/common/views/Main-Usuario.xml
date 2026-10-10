@@ -25,6 +25,7 @@
         <field name="nombre"/>
         <field name="apellidos"/>
         <field name="email"/>
+        <field name="telefono"/>
         <field name="language"/>
         <field name="active"/>
     </grid>
@@ -40,6 +41,7 @@
             <field name="apellidos"    colSpan="5" required="true"/>
             <field name="name"         colSpan="9" readonly="true"/>
             <field name="language"     colSpan="3"/>
+            <field name="telefono"     colSpan="4"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
             <button name="btnDelete" title="Borrar" onClick="subsysCommon.Main@Usuario-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id != null) || (cid != null)"/>

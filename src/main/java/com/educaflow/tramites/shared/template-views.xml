@@ -31,11 +31,13 @@
             <field name="personaSolicitante.nombre"    title="Nombre"    colSpan="4" readonly="true"/>
             <field name="personaSolicitante.apellidos" title="Apellidos" colSpan="5" readonly="true"/>
             <field name="personaSolicitante.dni"       title="DNI/NIE"   colSpan="3" readonly="true"/>
+            <field name="personaSolicitante.email"     title="Correo electrónico" colSpan="6" readonly="true"/>
+            <field name="personaSolicitante.telefono"  title="Teléfono"  colSpan="6" readonly="true"/>
             <field name="presentadoEnRepresentacion" hidden="true"/>
         </panel>
 
         <!-- Versión editable de persona-solicitante, para el estado en el que se teclean los datos: en papel y en
-             representación nadie más rellena al solicitante. La identificación la bloquea
+             representación nadie más rellena al solicitante. La identificación y el contacto los bloquea
              subsysExpedientes-persona-solicitante-onLoad-action en los demás modos, por lo mismo que se explica
              en persona-interesada. -->
         <panel name="persona-solicitante-editable" title="Persona que presenta la solicitud" colSpan="12"
@@ -46,6 +48,8 @@
                     <field name="nombre"    colSpan="4" required="true"/>
                     <field name="apellidos" colSpan="5" required="true"/>
                     <field name="dni" title="DNI/NIE" colSpan="3" required="true"/>
+                    <field name="email"    colSpan="6"/>
+                    <field name="telefono" colSpan="6"/>
                 </editor>
             </field>
             <field name="presentadoEnRepresentacion" hidden="true"/>
@@ -230,6 +234,8 @@
         <attribute for="personaSolicitante.apellidos" name="readonly" expr="eval: presentadoEnPapel != true"/>
         <attribute for="personaSolicitante.nombre"    name="readonly" expr="eval: presentadoEnPapel != true"/>
         <attribute for="personaSolicitante.dni"       name="readonly" expr="eval: presentadoEnPapel != true"/>
+        <attribute for="personaSolicitante.email"     name="readonly" expr="eval: presentadoEnPapel != true"/>
+        <attribute for="personaSolicitante.telefono"  name="readonly" expr="eval: presentadoEnPapel != true"/>
     </action-attrs>
 
 

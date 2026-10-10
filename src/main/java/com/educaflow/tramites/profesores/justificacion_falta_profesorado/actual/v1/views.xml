@@ -10,8 +10,9 @@
             <field name="personaInteresada.dni" title="DNI" colSpan="4" readonly="true"/>
         </panel>
 
-        <!-- En papel el profesor no ha entrado en la aplicación: su identificación la teclea quien registra la
-             solicitud. Mismo patrón que el panel común persona-interesada, solo con la identificación. -->
+        <!-- En papel el profesor no ha entrado en la aplicación: su identificación y su contacto los teclea quien
+             registra la solicitud. Mismo patrón que el panel común persona-interesada, solo con la identificación
+             y el contacto, que el Tramitador copia al solicitante para avisarle. -->
         <panel name="datos-profesor-editable" title="Datos del profesor interesado" colSpan="12">
             <field name="personaInteresada" showTitle="false" colSpan="12"
                    canNew="false" canSelect="false" canRemove="false" x-show-icons="false">
@@ -19,6 +20,8 @@
                     <field name="nombre"    colSpan="4" required="true"/>
                     <field name="apellidos" colSpan="5" required="true"/>
                     <field name="dni" title="DNI/NIE" colSpan="3" required="true"/>
+                    <field name="email"    colSpan="6"/>
+                    <field name="telefono" colSpan="6"/>
                 </editor>
             </field>
             <field name="presentadoEnRepresentacion" hidden="true"/>

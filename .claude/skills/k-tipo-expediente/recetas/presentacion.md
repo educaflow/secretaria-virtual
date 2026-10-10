@@ -515,7 +515,7 @@ public void triggerVerificar(MiTramiteV1 exp, MiTramiteV1 original, EventContext
 }
 ```
 
-- `avisarDeSubsanacion(expediente, textoSubsanacion)` avisa por correo al solicitante (`personaSolicitante`) de lo que tiene que subsanar. Es una cortesía: si no hay a quién escribir (en papel no hay correo del solicitante) no envía nada, devuelve `false` y la verificación sigue. **MUST NOT** condicionar la transición a su resultado.
+- `avisarDeSubsanacion(expediente, textoSubsanacion)` avisa por correo al solicitante (`personaSolicitante`) de lo que tiene que subsanar. Es una cortesía: si no hay a quién escribir (p. ej. en papel no se indicó correo del solicitante) no envía nada, devuelve `false` y la verificación sigue. **MUST NOT** condicionar la transición a su resultado.
 - Con `SUBSANAR`, `resultadoVerificacion` y `textoSubsanacion` **se conservan**: el panel `-subsanacion` de la fase `ENTRADA` enseña el texto, y los vacía `borrarSubsanacion` cuando se vuelve a presentar (§5.3).
 - Con `CORRECTO` se vacía el texto que hubiera quedado tecleado.
 - El switch **MUST** quedarse en cada tipo: el destino de `CORRECTO` es un estado de su fase propia, y solo él puede nombrar su `States`.

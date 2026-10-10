@@ -31,7 +31,7 @@ public class VerificacionHelper {
      * Avisa por correo a quien presentó la solicitud de que tiene que subsanarla.
      *
      * <p>El aviso es una cortesía, no parte del trámite: lo que hay que subsanar queda en el expediente, que es
-     * donde se subsana. Por eso, si el correo no supera la validación (p. ej. en papel no hay correo del
+     * donde se subsana. Por eso, si el correo no supera la validación (p. ej. en papel no se indicó correo del
      * solicitante), no se envía nada, se registra el motivo y la verificación sigue adelante.
      *
      * @return si se ha creado el correo

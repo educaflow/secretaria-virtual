@@ -187,6 +187,78 @@ class TramitadorTest {
     }
 
     @Nested
+    class ContactoDelSolicitante {
+
+        @Test
+        void crearPersona_copiaElCorreoYElTelefonoDelUsuario() throws Throwable {
+            User usuario = new User();
+            usuario.setEmail("ana@example.org");
+            usuario.setTelefono("600111222");
+
+            Persona persona = crearPersona(usuario);
+
+            assertEquals("ana@example.org", persona.getEmail());
+            assertEquals("600111222", persona.getTelefono());
+        }
+
+        @Test
+        void presentadoPorElUsuario_restauraElContactoDelSolicitanteYNoElDelInteresado() throws Throwable {
+            Expediente original = expediente(false, false,
+                    contacto(1L, "ana@example.org", "600111222"), contacto(2L, "ana@example.org", "600111222"));
+            Expediente peticion = expediente(false, false,
+                    contacto(1L, "otro@example.org", "699999999"), contacto(2L, "interesado@example.org", "711222333"));
+
+            restaurarPersonas(peticion, original);
+
+            assertEquals("ana@example.org", peticion.getPersonaSolicitante().getEmail());
+            assertEquals("600111222", peticion.getPersonaSolicitante().getTelefono());
+            assertEquals("interesado@example.org", peticion.getPersonaInteresada().getEmail());
+            assertEquals("711222333", peticion.getPersonaInteresada().getTelefono());
+        }
+
+        @Test
+        void enPapelParaMi_copiaAlSolicitanteElContactoTecleadoDelInteresado() throws Throwable {
+            Expediente original = expediente(true, false, contacto(1L, null, null), contacto(2L, null, null));
+            Expediente peticion = expediente(true, false,
+                    contacto(1L, null, null), contacto(2L, "interesado@example.org", "711222333"));
+
+            restaurarPersonas(peticion, original);
+
+            assertEquals("interesado@example.org", peticion.getPersonaSolicitante().getEmail());
+            assertEquals("711222333", peticion.getPersonaSolicitante().getTelefono());
+        }
+
+        @Test
+        void enPapelEnRepresentacion_conservaElContactoTecleadoDelSolicitante() throws Throwable {
+            Expediente original = expediente(true, true, contacto(1L, null, null), contacto(2L, null, null));
+            Expediente peticion = expediente(true, true,
+                    contacto(1L, "padre@example.org", "600111222"), contacto(2L, "hijo@example.org", "711222333"));
+
+            restaurarPersonas(peticion, original);
+
+            assertEquals("padre@example.org", peticion.getPersonaSolicitante().getEmail());
+            assertEquals("600111222", peticion.getPersonaSolicitante().getTelefono());
+        }
+
+        private static Persona contacto(Long id, String email, String telefono) {
+            Persona persona = persona(id);
+            persona.setEmail(email);
+            persona.setTelefono(telefono);
+            return persona;
+        }
+
+        private static Expediente expediente(boolean presentadoEnPapel, boolean presentadoEnRepresentacion,
+                                             Persona solicitante, Persona interesada) {
+            Expediente expediente = new PruebaV1();
+            expediente.setPresentadoEnPapel(presentadoEnPapel);
+            expediente.setPresentadoEnRepresentacion(presentadoEnRepresentacion);
+            expediente.setPersonaSolicitante(solicitante);
+            expediente.setPersonaInteresada(interesada);
+            return expediente;
+        }
+    }
+
+    @Nested
     class ExigeMismaPersona {
 
         @Test
@@ -433,6 +505,26 @@ class TramitadorTest {
         method.setAccessible(true);
         try {
             method.invoke(null, expediente);
+        } catch (InvocationTargetException ex) {
+            throw ex.getCause();
+        }
+    }
+
+    private static Persona crearPersona(User user) throws Throwable {
+        Method method = Tramitador.class.getDeclaredMethod("crearPersona", User.class);
+        method.setAccessible(true);
+        try {
+            return (Persona) method.invoke(null, user);
+        } catch (InvocationTargetException ex) {
+            throw ex.getCause();
+        }
+    }
+
+    private static void restaurarPersonas(Expediente expediente, Expediente expedienteOriginal) throws Throwable {
+        Method method = Tramitador.class.getDeclaredMethod("restaurarPersonas", Expediente.class, Expediente.class);
+        method.setAccessible(true);
+        try {
+            method.invoke(null, expediente, expedienteOriginal);
         } catch (InvocationTargetException ex) {
             throw ex.getCause();
         }

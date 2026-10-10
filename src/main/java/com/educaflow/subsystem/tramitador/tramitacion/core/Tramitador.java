@@ -246,6 +246,7 @@ public class Tramitador {
         persona.setApellidos(user.getApellidos());
         persona.setDni(user.getDni());
         persona.setEmail(user.getEmail());
+        persona.setTelefono(user.getTelefono());
 
         return persona;
     }
@@ -261,6 +262,10 @@ public class Tramitador {
      *   <li>la del solicitante, en papel. En papel y «para mí» solicitante e interesado son la misma
      *       persona, así que solo se teclea el interesado y se copia en el solicitante.</li>
      * </ul>
+     *
+     * <p>El contacto (correo y teléfono) del solicitante es a donde se le avisa del expediente. Si presenta el
+     * usuario es el suyo y se restaura como la identificación; en papel se teclea, y en papel y «para mí» se copia
+     * también del interesado. El del interesado no se restaura nunca: es un dato más de la solicitud.
      */
     private static void restaurarPersonas(Expediente expediente, Expediente expedienteOriginal) {
         exigeMismaPersona(expediente.getPersonaSolicitante(), expedienteOriginal.getPersonaSolicitante(), "personaSolicitante");
@@ -275,11 +280,13 @@ public class Tramitador {
 
         if (presentadoEnPapel == false) {
             copiarIdentificacion(expediente.getPersonaSolicitante(), expedienteOriginal.getPersonaSolicitante());
+            copiarContacto(expediente.getPersonaSolicitante(), expedienteOriginal.getPersonaSolicitante());
             if (presentadoEnRepresentacion == false) {
                 copiarIdentificacion(expediente.getPersonaInteresada(), expedienteOriginal.getPersonaInteresada());
             }
         } else if (presentadoEnRepresentacion == false) {
             copiarIdentificacion(expediente.getPersonaSolicitante(), expediente.getPersonaInteresada());
+            copiarContacto(expediente.getPersonaSolicitante(), expediente.getPersonaInteresada());
         }
     }
 
@@ -301,6 +308,15 @@ public class Tramitador {
         destino.setNombre(origen.getNombre());
         destino.setApellidos(origen.getApellidos());
         destino.setDni(origen.getDni());
+    }
+
+    private static void copiarContacto(Persona destino, Persona origen) {
+        if (destino == null) {
+            return;
+        }
+
+        destino.setEmail(origen.getEmail());
+        destino.setTelefono(origen.getTelefono());
     }
 
     private void updateName(Expediente expediente) {

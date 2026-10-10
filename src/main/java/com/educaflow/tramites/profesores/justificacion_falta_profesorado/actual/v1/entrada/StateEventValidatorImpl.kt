@@ -17,6 +17,7 @@ import com.educaflow.base.infrastructure.validation.rules.MinLength
 import com.educaflow.base.infrastructure.validation.rules.MinValue
 import com.educaflow.base.infrastructure.validation.rules.NoAllUpperCase
 import com.educaflow.base.infrastructure.validation.rules.PastOrToday
+import com.educaflow.base.infrastructure.validation.rules.Phone
 import com.educaflow.base.infrastructure.validation.rules.Required
 import com.educaflow.base.infrastructure.validation.rules.SizeUnit
 import com.educaflow.base.util.Convert
@@ -44,7 +45,7 @@ class StateEventValidatorImpl: StateEventValidator {
     public fun getForStateEntradaDatosInEventGuardarDatos(): BeanValidationRules {
         return rules {
             // Solo se teclea en papel. Telemáticamente el Tramitador restaura su identificación, así que
-            // estos field(...) solo le abren la whitelist.
+            // estos field(...) solo le abren la whitelist. El contacto lo copia al solicitante para avisarle.
             field(model::getPersonaInteresada) {
                 field(Persona::getApellidos) {
                     +Required()
@@ -57,6 +58,12 @@ class StateEventValidatorImpl: StateEventValidator {
                 field(Persona::getDni) {
                     +Required()
                     +Dni()
+                }
+                field(Persona::getEmail) {
+                    +MaxLength(255)
+                }
+                field(Persona::getTelefono) {
+                    +Phone()
                 }
             }
             field(model::getTipoJornadaFalta) {
