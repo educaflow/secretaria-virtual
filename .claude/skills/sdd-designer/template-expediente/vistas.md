@@ -145,10 +145,10 @@ Particularidades de un tipo de expediente:
         </include-panels>
         <footer>
             <buttons-left>
-                <button name="<EVENTO>" colSpan="2" title="…" onClick="subsysTramitador-event-action"/>
+                <button name="<EVENTO>" colSpan="3" title="…" onClick="subsysTramitador-event-action"/>
             </buttons-left>
             <buttons-right>
-                <button name="<EVENTO>" colSpan="2" title="…" onClick="subsysTramitador-event-action"/>
+                <button name="<EVENTO>" colSpan="3" title="…" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -160,7 +160,7 @@ Particularidades de un tipo de expediente:
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+                <button name="EXIT" colSpan="3" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -201,6 +201,7 @@ Particularidades de un tipo de expediente:
 - Los botones admiten los atributos Axelor normales: `title`, `colSpan`, `colOffset`, `prompt`, `css`, `outline`, `icon`.
 - El `colSpan` por defecto es el `itemSpan` del panel footer (default `1`).
 - Al **primer** botón de `<buttons-right>` se le asigna **siempre** `colOffset = 12 − suma de colSpan` de todos los botones, **sobrescribiendo** cualquier valor manual. Si la suma pasa de 12, el offset sale **negativo sin aviso**: la suma de los `colSpan` del footer **MUST NOT** pasar de 12.
+- Todo botón de `<buttons-left>`/`<buttons-right>` **MUST** llevar `colSpan="3"` (`k-tipo-expediente/vistas.md` §4): como mucho 4 huecos por footer (una pareja `showIf="x"`/`showIf="!x"` ocupa uno). Lo comprueba el test Y4.
 - Un bloque sin botones se escribe `<buttons-left/>` (vacío), no se omite.
 - `EXIT` y `DELETE` responden con `refresh-app`: recargan la aplicación entera, no navegan.
 
@@ -290,7 +291,7 @@ La pieza 2:
           method='firmarDocumentoEnCampo(id,"<campoOrigen>","<campoDestino>","<campoFirma>")'/>
 </action-method>
 
-<button name="<EVENTO>" title="…"
+<button name="<EVENTO>" colSpan="3" title="…"
         onClick="serial:exp-<Entidad>-<accion>-action,subsysTramitador-event-action"/>
 ```
 

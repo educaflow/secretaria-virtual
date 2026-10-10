@@ -137,11 +137,11 @@ public static void borrarSubsanacion(MiTramiteV1 expediente) {
     </include-panels>
     <footer>
         <buttons-left>
-            <button name="DELETE" colSpan="2" css="btn-danger" outline="true" icon="trash" title="Borrar el expediente"
+            <button name="DELETE" colSpan="3" css="btn-danger" outline="true" icon="trash" title="Borrar el expediente"
                     onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
         </buttons-left>
         <buttons-right>
-            <button name="GUARDAR_DATOS" colSpan="2" title="Siguiente" onClick="subsysTramitador-event-action"/>
+            <button name="GUARDAR_DATOS" colSpan="3" title="Siguiente" onClick="subsysTramitador-event-action"/>
         </buttons-right>
     </footer>
 </form>
@@ -158,7 +158,7 @@ public static void borrarSubsanacion(MiTramiteV1 expediente) {
     <footer>
         <buttons-left/>
         <buttons-right>
-            <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+            <button name="EXIT" colSpan="3" title="Salir" onClick="subsysTramitador-event-action"/>
         </buttons-right>
     </footer>
 </form>
@@ -354,11 +354,11 @@ El `TRAMITADOR` registra una solicitud entregada en papel (`perfiles.md`): el do
     </include-panels>
     <footer>
         <buttons-left>
-            <button name="DELETE" colSpan="2" css="btn-danger" outline="true" icon="trash" title="Borrar el expediente"
+            <button name="DELETE" colSpan="3" css="btn-danger" outline="true" icon="trash" title="Borrar el expediente"
                     onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
         </buttons-left>
         <buttons-right>
-            <button name="CONTINUAR" colSpan="2" title="Siguiente" onClick="subsysTramitador-event-action"/>
+            <button name="CONTINUAR" colSpan="3" title="Siguiente" onClick="subsysTramitador-event-action"/>
         </buttons-right>
     </footer>
 </form>
@@ -380,11 +380,11 @@ El `TRAMITADOR` registra una solicitud entregada en papel (`perfiles.md`): el do
 
     <footer>
         <buttons-left>
-            <button name="DELETE" showIf="presentadoEnPapel" .../>
-            <button name="BACK" showIf="presentadoEnPapel" colSpan="2" outline="true" title="Atrás" onClick="subsysTramitador-event-action"/>
+            <button name="DELETE" colSpan="3" showIf="presentadoEnPapel" .../>
+            <button name="BACK" showIf="presentadoEnPapel" colSpan="3" outline="true" title="Atrás" onClick="subsysTramitador-event-action"/>
         </buttons-left>
         <buttons-right>
-            <button name="GUARDAR_DATOS" showIf="presentadoEnPapel" colSpan="4" title="Presentar la solicitud" onClick="subsysTramitador-event-action"
+            <button name="GUARDAR_DATOS" showIf="presentadoEnPapel" colSpan="3" title="Presentar la solicitud" onClick="subsysTramitador-event-action"
                     prompt="Va a presentar la solicitud entregada en papel. Una vez presentada no podrá modificarla"/>
         </buttons-right>
     </footer>
@@ -438,7 +438,7 @@ Toda presentación acaba aquí. El `TRAMITADOR` comprueba la solicitud y dice un
     <footer>
         <buttons-left/>
         <buttons-right>
-            <button name="VERIFICAR" colSpan="2" title="Siguiente" onClick="subsysTramitador-event-action"/>
+            <button name="VERIFICAR" colSpan="3" title="Siguiente" onClick="subsysTramitador-event-action"/>
         </buttons-right>
     </footer>
 </form>
@@ -454,7 +454,7 @@ Toda presentación acaba aquí. El `TRAMITADOR` comprueba la solicitud y dice un
     <footer>
         <buttons-left/>
         <buttons-right>
-            <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+            <button name="EXIT" colSpan="3" title="Salir" onClick="subsysTramitador-event-action"/>
         </buttons-right>
     </footer>
 </form>

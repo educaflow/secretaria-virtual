@@ -30,11 +30,11 @@ El form plantilla está en la raíz y no en cada fase porque los paneles se comp
     </include-panels>
     <footer>
         <buttons-left>
-            <button name="DELETE" colSpan="2" css="btn-danger" outline="true" icon="trash" title="Borrar el expediente"
+            <button name="DELETE" colSpan="3" css="btn-danger" outline="true" icon="trash" title="Borrar el expediente"
                     onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
         </buttons-left>
         <buttons-right>
-            <button name="GUARDAR_DATOS" colSpan="2" title="Siguiente" onClick="subsysTramitador-event-action"/>
+            <button name="GUARDAR_DATOS" colSpan="3" title="Siguiente" onClick="subsysTramitador-event-action"/>
         </buttons-right>
     </footer>
 </form>
@@ -133,8 +133,15 @@ Si el tipo necesita otro conjunto de datos (p. ej. el NIA), declara en su form p
 
 - Se sustituye por el panel global `subsysExpedientes-template-footer-panel` (que además pinta los mensajes de error de validación) con tus botones dentro de `<buttons-left>`/`<buttons-right>`.
 - **El `name` de cada botón es el evento que dispara**; todos usan `onClick="subsysTramitador-event-action"`. Solo llevan botón los eventos de `events` y los comunes: un evento de `systemEvents` **MUST NOT** tener botón (test Y1, `SKILL.md` §2.1). Admiten atributos Axelor normales (`title`, `colSpan`, `prompt`, `css`, `outline`, `icon`).
-- El `colSpan` por defecto de cada botón es el `itemSpan` del panel footer (default 1).
-- Al primer botón de la derecha se le asigna **siempre** (sobrescribiendo cualquier valor manual) `colOffset = 12 − suma de colSpan` de todos los botones, para alinearlo al margen derecho. Si la suma pasa de 12, el offset sale negativo sin aviso.
+- **MUST**: todo botón de `<buttons-left>` y `<buttons-right>` lleva `colSpan="3"`, sea cual sea su texto, para que todos los botones de todos los trámites midan lo mismo.
+  Por eso un footer admite como mucho **4 huecos**: una pareja de gemelos con condiciones opuestas (`showIf="x"` y `showIf="!x"`) ocupa uno; cualquier otro par con `showIf` ocupa dos.
+  Lo comprueba el test Y4 (`SKILL.md` §3.3).
+  - ✅ CORRECTO: `<button name="EXIT" colSpan="3" title="Salir" onClick="subsysTramitador-event-action"/>`
+  - ❌ INCORRECTO: `<button name="EXIT" colSpan="2" .../>` o sin `colSpan` (tomaría el `itemSpan` del panel footer, default 1)
+- Al primer botón de la derecha se le asigna **siempre** (sobrescribiendo cualquier valor manual) `colOffset = 12 − suma de colSpan + colOffset` de los demás botones, para alinearlo al margen derecho. Si la suma pasa de 12, el offset sale negativo sin aviso.
+- Dos botones del mismo lado con condiciones opuestas (`showIf="x"` y `showIf="!x"`, o `hideIf`) se meten en un panel sin marco que ocupa **un solo hueco** del ancho del mayor.
+  Hace falta porque Axelor calcula la columna de cada botón sumando también la de los ocultos: dos gemelos sueltos ocuparían dos huecos.
+  Cualquier otra pareja con `showIf` ocupa dos huecos aunque nunca se vean juntos.
 - Los eventos comunes `EXIT` y `DELETE` responden al cliente con `refresh-app` (se recarga la aplicación entera, no se navega a otra vista).
 - Tras el footer de un `<form state=...>` el preprocesador añade siempre el panel global `subsysExpedientes-template-notas-panel`: las notas del expediente (`Expediente.notas`) y el botón «Añadir nota». No se declara ni se incluye: sale solo en todos los forms de estado, y se oculta él mismo al creador del expediente (salvo en papel).
   - El `<footer>` de un form que no es de estado (el de una entidad hija, §8) no lo lleva.
@@ -185,7 +192,7 @@ Si no se le explica nada, no sabe si el expediente está atascado, si le toca a 
     <footer>
         <buttons-left/>
         <buttons-right>
-            <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+            <button name="EXIT" colSpan="3" title="Salir" onClick="subsysTramitador-event-action"/>
         </buttons-right>
     </footer>
 </form>

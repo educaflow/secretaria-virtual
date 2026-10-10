@@ -17,9 +17,10 @@ public record FormDeEstado(Fase fase, Path fichero, String state, String profile
 
     /**
      * Un botón del {@code <footer>}. Su {@code name} <b>es</b> el evento que dispara y su
-     * {@code onClick} la acción que lo lleva al servidor.
+     * {@code onClick} la acción que lo lleva al servidor. El {@code colSpan} es el literal del
+     * atributo, o "" si no está.
      */
-    public record Boton(String name, String onClick) {}
+    public record Boton(String name, String onClick, String colSpan) {}
 
     /** El form de reserva, sin perfil: al que cae el runtime cuando no existe el del perfil actuante. */
     public boolean esGenerico() {

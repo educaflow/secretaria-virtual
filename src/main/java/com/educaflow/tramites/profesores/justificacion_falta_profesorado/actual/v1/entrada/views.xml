@@ -20,10 +20,10 @@
 
         <footer>
             <buttons-left>
-                <button name="DELETE" colSpan="2" css="btn-danger" outline="true" title="Borrar el expediente"  icon="trash"  onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
+                <button name="DELETE" colSpan="3" css="btn-danger" outline="true" title="Borrar el expediente"  icon="trash"  onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
             </buttons-left>
             <buttons-right>
-                <button name="CONTINUAR" colSpan="2" title="Siguiente" onClick="subsysTramitador-event-action"/>
+                <button name="CONTINUAR" colSpan="3" title="Siguiente" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -40,7 +40,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+                <button name="EXIT" colSpan="3" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -57,10 +57,11 @@
         </include-panels>
         <footer>
             <buttons-left>
-                <button name="DELETE" colSpan="2" css="btn-danger" outline="true" title="Borrar el expediente"  icon="trash"  onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
+                <button name="DELETE" colSpan="3" css="btn-danger" outline="true" title="Borrar el expediente"  showIf="!presentadoEnPapel" icon="trash"  onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
+                <button name="BACK"   colSpan="3"                  outline="true" title="Atrás"                 showIf="presentadoEnPapel"                onClick="subsysTramitador-event-action" />
             </buttons-left>
             <buttons-right>
-                <button name="GUARDAR_DATOS" colSpan="2" title="Siguiente" onClick="subsysTramitador-event-action"/>
+                <button name="GUARDAR_DATOS" colSpan="3" title="Siguiente" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -86,11 +87,11 @@
 
         <footer>
             <buttons-left>
-                <button name="DELETE" showIf="presentadoEnPapel" colSpan="2" css="btn-danger" outline="true" title="Borrar el expediente"  icon="trash"  onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
-                <button name="BACK" showIf="presentadoEnPapel" colSpan="2" outline="true" title="Atrás" onClick="subsysTramitador-event-action"/>
+                <button name="DELETE" showIf="presentadoEnPapel" colSpan="3" css="btn-danger" outline="true" title="Borrar el expediente"  icon="trash"  onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
+                <button name="BACK" showIf="presentadoEnPapel" colSpan="3" outline="true" title="Atrás" onClick="subsysTramitador-event-action"/>
             </buttons-left>
             <buttons-right>
-                <button name="GUARDAR_DATOS" showIf="presentadoEnPapel" colSpan="4" title="Presentar la solicitud" onClick="subsysTramitador-event-action"
+                <button name="GUARDAR_DATOS" showIf="presentadoEnPapel" colSpan="3" title="Presentar la solicitud" onClick="subsysTramitador-event-action"
                         prompt="Va a presentar la solicitud entregada en papel. Una vez presentada no podrá modificarla"/>
             </buttons-right>
         </footer>
@@ -110,7 +111,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+                <button name="EXIT" colSpan="3" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -126,14 +127,14 @@
 
         <footer>
             <buttons-left>
-                <button name="BACK" colSpan="2" outline="true" title="Atrás" onClick="subsysTramitador-event-action"/>
+                <button name="BACK" colSpan="3" outline="true" title="Atrás" onClick="subsysTramitador-event-action"/>
             </buttons-left>
             <buttons-right>
-                <button name="PRESENTAR" colSpan="4" title="Firmar con AutoFirma__!! y Presentar la solicitud"
+                <button name="PRESENTAR" colSpan="3" title="Firmar con AutoFirma__!! y Presentar la solicitud"
                         showIf="situacionFirma=='SIN_CERTIFICADO'"
                         onClick="serial:exp-JustificacionFaltaProfesoradoV1-firmarDocumentacionParaPresentar-action,subsysTramitador-event-action"
                         prompt="¿Esta seguro que desea presentar la documentación?&lt;br&gt;No podrá deshacer esta acción"/>
-                <button name="PRESENTAR" colSpan="4" title="Firmar y Presentar la solicitud"
+                <button name="PRESENTAR" colSpan="3" title="Firmar y Presentar la solicitud"
                         showIf="firmaEnServidor"
                         onClick="serial:subsysTramitador-event-action,exp-JustificacionFaltaProfesoradoV1-set-claveCertificado-null-action"
                         prompt="¿Esta seguro que desea presentar la documentación?&lt;br&gt;No podrá deshacer esta acción"/>
@@ -152,7 +153,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+                <button name="EXIT" colSpan="3" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>

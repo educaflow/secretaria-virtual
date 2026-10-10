@@ -13,10 +13,10 @@
         </include-panels>
         <footer>
             <buttons-left>
-                <button name="DELETE" css="btn-danger" outline="true" title="Borrar" onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
+                <button name="DELETE" colSpan="3" css="btn-danger" outline="true" title="Borrar" onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
             </buttons-left>
             <buttons-right>
-                <button name="PRESENTAR" title="Guardar" onClick="subsysTramitador-event-action"/>
+                <button name="PRESENTAR" colSpan="3" title="Guardar" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -29,7 +29,7 @@
             <buttons-left>
             </buttons-left>
             <buttons-right>
-                <button name="EXIT" colSpan="2"  title="Salir" onClick="subsysTramitador-event-action"/>
+                <button name="EXIT" colSpan="3"  title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>

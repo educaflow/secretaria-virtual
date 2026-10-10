@@ -44,6 +44,9 @@ import java.util.Set;
  * reparto normal es que los eventos vayan en la vista del perfil dueño y la genérica lleve solo
  * {@code EXIT}, pero un estado sin perfil (que lo hay) tiene que poder llevarlos en la genérica.
  *
+ * <p>Además todos los botones miden lo mismo (Y4): {@code colSpan="3"}, para que la barra de botones
+ * sea igual en todos los trámites.
+ *
  * <p>Los eventos comunes de {@link CommonEvent} son legales en cualquier estado sin declararlos —el
  * runtime los atiende gratis—, así que Y1 los admite siempre. La lista se deriva del enum, no se
  * escribe a mano, para que no pueda separarse de lo que hace el runtime.
@@ -60,6 +63,9 @@ class BotonesDelFooterTest {
      * botones del footer.
      */
     private static final String ACCION_EVENTO = "subsysTramitador-event-action";
+
+    /** El ancho de todos los botones del footer (Y4). */
+    private static final String COL_SPAN = "3";
 
     /** Prefijo de Axelor para encadenar acciones en un mismo onClick. */
     private static final String PREFIJO_SERIAL = "serial:";
@@ -142,7 +148,7 @@ class BotonesDelFooterTest {
                             + " form suyo tiene un botón que lo dispare, así que el usuario no puede llegar a"
                             + " él (aunque su trigger" + upperCamel(evento) + " exista, por la regla E1)."
                             + " Añade al form " + dondeVaElBoton(state) + ":\n"
-                            + "                <button name=\"" + evento + "\" colSpan=\"2\" title=\"" + evento
+                            + "                <button name=\"" + evento + "\" colSpan=\"" + COL_SPAN + "\" title=\"" + evento
                             + "\" onClick=\"" + ACCION_EVENTO + "\"/>"));
                 }
             }
@@ -180,6 +186,36 @@ class BotonesDelFooterTest {
 
         Violacion.assertNone("[Y3] El onClick de todo botón del <footer> debe incluir " + ACCION_EVENTO
                 + ", que es lo que lleva el evento a TramitadorController.triggerEvent.", violaciones);
+    }
+
+    // -----------------------------------------------------------------------------------------
+    // Y4 — todos los botones miden lo mismo
+    // -----------------------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Y4: cada botón del footer lleva colSpan=\"3\"")
+    void y4_cadaBotonLlevaColSpan3() {
+        List<Violacion> violaciones = new ArrayList<>();
+
+        for (Fase fase : TiposExpediente.todasLasFases()) {
+            for (FormDeEstado form : ViewsDeFase.forms(fase)) {
+                for (FormDeEstado.Boton boton : form.botones()) {
+                    if (boton.colSpan().equals(COL_SPAN)) {
+                        continue;
+                    }
+
+                    String tiene = boton.colSpan().isEmpty() ? "no tiene colSpan"
+                            : ("tiene colSpan=\"" + boton.colSpan() + "\"");
+                    violaciones.add(new Violacion(TiposExpediente.nombre(fase), ViewsDeFase.fichero(fase),
+                            form + ": el botón '" + boton.name() + "' " + tiene + ". Ponle colSpan=\""
+                            + COL_SPAN + "\""));
+                }
+            }
+        }
+
+        Violacion.assertNone("[Y4] Todo botón de <buttons-left> y <buttons-right> del <footer> de un form de"
+                + " estado debe llevar colSpan=\"" + COL_SPAN + "\", para que todos los botones de todos los"
+                + " trámites midan lo mismo.", violaciones);
     }
 
     // -----------------------------------------------------------------------------------------

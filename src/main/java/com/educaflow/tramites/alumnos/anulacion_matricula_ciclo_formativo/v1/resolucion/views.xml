@@ -22,11 +22,11 @@
 
         <footer>
             <buttons-left>
-                <button name="BACK" colSpan="2" outline="true" title="Atrás"
+                <button name="BACK" colSpan="3" outline="true" title="Atrás"
                         onClick="subsysTramitador-event-action"/>
             </buttons-left>
             <buttons-right>
-                <button name="RESOLVER" colSpan="4" title="Enviar a la firma"
+                <button name="RESOLVER" colSpan="3" title="Enviar a la firma"
                         onClick="subsysTramitador-event-action"
                         prompt="Va a generar la resolución y a enviarla a la firma del secretario y del director del centro"/>
             </buttons-right>
@@ -48,7 +48,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+                <button name="EXIT" colSpan="3" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>

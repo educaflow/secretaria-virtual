@@ -101,7 +101,7 @@ public final class ViewsDeFase {
         List<FormDeEstado.Boton> botones = new ArrayList<>();
         for (Element footer : byTag(form, "footer")) {
             for (Element boton : byTag(footer, "button")) {
-                botones.add(new FormDeEstado.Boton(attr(boton, "name"), attr(boton, "onClick")));
+                botones.add(new FormDeEstado.Boton(attr(boton, "name"), attr(boton, "onClick"), attr(boton, "colSpan")));
             }
         }
 

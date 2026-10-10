@@ -36,7 +36,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+                <button name="EXIT" colSpan="3" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -60,7 +60,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+                <button name="EXIT" colSpan="3" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -84,7 +84,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+                <button name="EXIT" colSpan="3" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>

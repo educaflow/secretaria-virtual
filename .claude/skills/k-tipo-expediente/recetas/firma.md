@@ -51,14 +51,14 @@ Los paneles son comunes: el visor `pdfSolicitud` y el panel `firma-solicitud` de
     <!-- Dos botones del mismo evento; se muestra uno u otro -->
     <footer>
         <buttons-left>
-            <button name="BACK" colSpan="2" outline="true" title="Atrás" onClick="subsysTramitador-event-action"/>
+            <button name="BACK" colSpan="3" outline="true" title="Atrás" onClick="subsysTramitador-event-action"/>
         </buttons-left>
         <buttons-right>
-            <button name="PRESENTAR" colSpan="4" title="Firmar con AutoFirma__!! y Presentar la solicitud"
+            <button name="PRESENTAR" colSpan="3" title="Firmar con AutoFirma__!! y Presentar la solicitud"
                     showIf="situacionFirma=='SIN_CERTIFICADO'"
                     onClick="serial:exp-MiTramiteV1-firmarDocumentacionParaPresentar-action,subsysTramitador-event-action"
                     prompt="¿Esta seguro que desea presentar la documentación?&lt;br&gt;No podrá deshacer esta acción"/>
-            <button name="PRESENTAR" colSpan="4" title="Firmar y Presentar la solicitud"
+            <button name="PRESENTAR" colSpan="3" title="Firmar y Presentar la solicitud"
                     showIf="firmaEnServidor"
                     onClick="serial:subsysTramitador-event-action,exp-MiTramiteV1-set-claveCertificado-null-action"
                     prompt="¿Esta seguro que desea presentar la documentación?&lt;br&gt;No podrá deshacer esta acción"/>
