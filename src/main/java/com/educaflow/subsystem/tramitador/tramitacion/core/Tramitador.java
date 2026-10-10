@@ -304,7 +304,7 @@ public class Tramitador {
     }
 
     private void updateName(Expediente expediente) {
-        expediente.setName(expediente.getTipoExpediente().getName());
+        expediente.setName(expediente.getTipoExpediente().getTramite().getName());
     }
 
     private void updateNumeroExpediente(Expediente expediente) {
