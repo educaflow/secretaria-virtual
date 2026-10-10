@@ -87,6 +87,7 @@ Vocabulario común para leer las reglas, del fichero a la PI:
     **Maestro abierto por código**: maestro que **ningún** `<action-view>` abre (ninguna `<view type="form">` con su `name`), porque lo abre en popup un controlador, p.ej. el alta de cada canal sobre la elección de canal (`Main@Correo` desde `NotificacionController`).
       Tampoco hay `grid` al que volver: `back`/`force-back` no hacen nada y lo que cierra es `close`, también tras guardar.
       El cierre del popup no refresca el listado de la pestaña de debajo, así que entre `save` y `close` va la acción global `remote-refreshTab-action` (`refresh-tab`).
+      El controlador lo abre con `ActionResponseHelper.doResponseViewFormEnPopup`, que ya pasa `popup.show-footer=false`: sus botones son los únicos del popup.
   - **detalle** (también llamado **hijo** o **modal**): se abre en modal desde el `<panel-related>` de su maestro y opera sobre la colección **en memoria** del padre (el walker valida los detalles en cascada al guardar el maestro).
     **Detalle de solo lectura**: form de detalle sin ningún `<button>` (p.ej. `Pendiente@TareaFirma.DocumentoFirma`); queda exento de las reglas de botones y de `onNew`.
   - **referencia** (`Ref-{Entidad}.xml`, `Ref@…-grid` / `Ref@…-form`): grid/form de **solo lectura** de una entidad relacionada, abiertos **embebidos** desde un `<field>` relacional de otro form; sin `action-view` ni entrada de menú, y su único botón es «Salir».

@@ -140,6 +140,14 @@ Guarda contra el servidor como cualquier maestro, pero **cierra como un detalle*
 
 Reglas verificables: `VAR-5.1` y `VAR-7.2` de `agent_docs/view-rules.md` (subtipo «maestro en popup» del glosario).
 
+**CRITICAL — ningún modal muestra el pie «Cerrar»/«Aceptar» de Axelor**: todo popup se cierra con los botones de nuestro `buttons-panel`, así que **MUST** ocultarse el pie según cómo se abra:
+
+- desde un `<panel-related>` → `showFooter="false"` en el `<panel-related>`;
+- desde un `<action-view>` con `popup=true` → `<view-param name="popup.show-footer" value="false"/>`;
+- desde un controlador → `ActionResponseHelper.doResponseViewFormEnPopup`, que ya pasa `popup.show-footer=false` (**MUST NOT** montar el `ActionView` a mano).
+
+Y por eso todo form que se abra en modal **MUST** tener su `buttons-panel` con al menos el botón que lo cierra (Salir/Cancelar con `close`).
+
 ## Botones principales y secundarios
 - Los botones principales (guardar, cancelar, etc) están a la derecha del todo
 - **MUST** — un botón principal queda pegado al borde derecho: su `colOffset + colSpan` **suma exactamente 12**. Cuando el panel tiene un único botón principal (p.ej. **Salir** en un `Ref@…-form` de solo lectura) con `colSpan="2"`, el `colOffset` **MUST** ser `10` (10+2=12), no 8.

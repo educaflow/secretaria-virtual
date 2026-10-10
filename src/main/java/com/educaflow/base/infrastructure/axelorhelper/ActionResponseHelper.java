@@ -37,7 +37,8 @@ public class ActionResponseHelper {
     public void doResponseViewFormEnPopup(String viewName, Class<? extends Model> modelClass, Long id, String title) {
         ActionView.ActionViewBuilder actionViewBuilder=vistaForm(viewName, modelClass, title)
                 .param("popup", "true")
-                .param("popup-save", "false");
+                .param("popup-save", "false")
+                .param("popup.show-footer", "false");
 
         if (id != null) {
             actionViewBuilder.context("_showRecord", id);

@@ -12,6 +12,7 @@
         <view type="form" name="subsysNotificaciones.Eleccion@Notificacion-form"/>
         <view-param name="popup" value="true"/>
         <view-param name="popup-save" value="false"/>
+        <view-param name="popup.show-footer" value="false"/>
         <view-param name="show-toolbar" value="false"/>
         <view-param name="show-toolbar-form" value="false"/>
         <view-param name="show-confirm" value="false"/>
