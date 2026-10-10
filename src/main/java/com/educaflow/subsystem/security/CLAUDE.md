@@ -45,7 +45,7 @@ Las consultas van en un repositorio propio por tabla (`db/repo/`), nunca en el s
 ## Borrado al arrancar
 
 El data-init de Axelor solo hace upsert: quitar una fila del XML no la borra de la base de datos.
-Por eso las cuatro tablas que salen de XML se vacían en cada arranque (`tablasIncluidas` de `DataBaseStartup`) y se vuelven a cargar enteras.
+Por eso las cuatro tablas que salen de XML se vacían en cada arranque (`TABLAS_INCLUIDAS` de `DataBaseStartup`) y se vuelven a cargar enteras.
 
 - **MUST NOT** añadir ahí `AceProfileCentro` ni `AceProfileExpediente`: se rellenan en tiempo de ejecución y se perderían en cada arranque.
 - Una tabla `AceProfile*` nueva que se cargue desde XML **MUST** añadirse a esa lista.

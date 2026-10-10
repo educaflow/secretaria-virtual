@@ -84,6 +84,9 @@ Cómo compilar, probar, arrancar la app y gestionar la base de datos en el entor
 - El esquema lo gestiona Axelor automáticamente (`db.default.ddl = update`), pero **además** `DataBaseStartup.startup()`
   ejecuta **Flyway** en cada arranque, sobre `classpath:com/educaflow/secretariavirtual/startup/database`. Hoy esa
   carpeta está vacía, así que no hay ninguna migración que aplicar; si necesitas una, ése es su sitio.
+- En cada arranque `DataBaseStartup.truncateTables()` vacía con `TRUNCATE ... CASCADE` las tablas `meta_*` y `auth_*` (salvo `auth_user`, `auth_group`, `meta_file`, `meta_sequence` y `meta_filter`) y las cuatro `security_ace_profile_*` que se cargan desde XML, para que los metadatos se regeneren limpios.
+  Los usuarios **no** se borran.
+  El `CASCADE` arrastra a toda tabla con una FK hacia una truncada, excluida o no: que ninguna entidad excluida apunte a una tabla truncada lo comprueba `TablasExcluidasDelTruncadoTest`.
 
 ### Puertos y BD por worktree (`ports.env`)
 

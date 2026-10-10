@@ -1,6 +1,9 @@
 package com.educaflow.base.infrastructure.db;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -9,26 +12,29 @@ import java.util.Set;
 
 public class BulkTables {
 
-    public void truncateTables(String dataBaseDriver, String dataBaseURL, String dataBaseUser, String dataBasePassword, String schemaName, Set<String> tablasExcluidas, Set<String> tablasIncluidas)  {
+    private static final Logger logger = LoggerFactory.getLogger(BulkTables.class);
+
+    public void truncateTables(String dataBaseDriver, String dataBaseURL, String dataBaseUser, String dataBasePassword, String schemaName, List<String> prefijosTruncados, Set<String> tablasExcluidas, Set<String> tablasIncluidas)  {
 
         try {
-            System.out.println("Conectando a la base de datos...");
+            logger.info("Conectando a la base de datos...");
             Class.forName(dataBaseDriver);
             try (Connection connection = DriverManager.getConnection(dataBaseURL, dataBaseUser, dataBasePassword)) {
                 connection.setAutoCommit(false);
 
-                System.out.println("Desactivando restricciones...");
+                logger.info("Desactivando restricciones...");
                 disableAllTriggers(connection, schemaName);
 
-                truncateTablesByLike(connection, schemaName, "meta\\_%", tablasExcluidas);
-                truncateTablesByLike(connection, schemaName, "auth\\_%", tablasExcluidas);
+                for (String prefijo : prefijosTruncados) {
+                    truncateTablesByLike(connection, schemaName, prefijo.replace("_", "\\_") + "%", tablasExcluidas);
+                }
                 truncateTablesByName(connection, schemaName, tablasIncluidas);
 
 
                 enableAllTriggers(connection, schemaName);
 
                 connection.commit();
-                System.out.println("Operación completada exitosamente.");
+                logger.info("Operación completada exitosamente.");
             } catch (Exception ex) {
                 throw new RuntimeException("Fallo al conectar a la base de datos:dataBaseURL="+dataBaseURL+",dataBaseUser="+dataBaseUser+",dataBasePassword="+dataBasePassword, ex);
             }
@@ -58,14 +64,14 @@ public class BulkTables {
 
 
     private void truncateTablesByLike(Connection connection, String schemaName, String like, Set<String> tablasExcluidas) {
-        System.out.println("Borrando contenido de las tablas que empiezan por '" + like + "' .....");
+        logger.info("Borrando contenido de las tablas que empiezan por '{}'", like);
         DatabaseSchema databaseSchema = new DatabaseSchema(connection, schemaName);
         List<Table> tables = databaseSchema.getTablesByLike(like);
 
         for (Table table : tables) {
             String tableName = table.getTableName();
             if (!tablasExcluidas.contains(tableName)) {
-                System.out.println("Borrando contenido de la tabla:" + tableName);
+                logger.info("Borrando contenido de la tabla {}", tableName);
                 table.truncate();
             }
         }
@@ -77,9 +83,9 @@ public class BulkTables {
 
         for (String tableName : tablasIncluidas) {
             databaseSchema.getTable(tableName).ifPresentOrElse(table -> {
-                System.out.println("Borrando contenido de la tabla:" + tableName);
+                logger.info("Borrando contenido de la tabla {}", tableName);
                 table.truncate();
-            }, () -> System.out.println("La tabla '" + tableName + "' no existe en el esquema '" + schemaName+"'"));
+            }, () -> logger.warn("La tabla '{}' no existe en el esquema '{}'", tableName, schemaName));
         }
     }
 
