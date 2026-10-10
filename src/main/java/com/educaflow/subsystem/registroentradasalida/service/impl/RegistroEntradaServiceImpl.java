@@ -159,7 +159,7 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
         String anyoActual= String.valueOf(ahora.getYear());
         String codigoCentro = centro.getCode();
         long numeroRegistroSinAnyo = numeradorRepository.getSiguienteNumeroRegistroEntrada(codigoCentro, anyoActual);
-        String numeroRegistro = String.format("%05d", numeroRegistroSinAnyo) + "/" + anyoActual;
+        String numeroRegistro = String.format("%05d", numeroRegistroSinAnyo) + "/" + anyoActual + "-" + codigoCentro;
 
         return numeroRegistro;
     }

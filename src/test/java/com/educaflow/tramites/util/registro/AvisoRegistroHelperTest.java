@@ -45,7 +45,7 @@ import org.mockito.quality.Strictness;
 class AvisoRegistroHelperTest {
 
     private static final String NUMERO_EXPEDIENTE = "00007/2026-46012345";
-    private static final String NUMERO_REGISTRO_ENTRADA = "00031/2026";
+    private static final String NUMERO_REGISTRO_ENTRADA = "00031/2026-46012345";
     private static final String NUMERO_REGISTRO_SALIDA = "00012/2026-46012345";
     private static final LocalDateTime T = LocalDateTime.of(2026, 10, 6, 12, 0);
 
