@@ -4,7 +4,7 @@
 
     <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
 
-    <entity name="AnulacionMatriculaCicloFormativoV1" extends="Expediente">
+    <entity name="AnulacionMatriculaCicloFormativoV1" extends="ExpedienteResoluble">
 
         <many-to-one name="ciclo" title="Ciclo formativo" ref="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" />
 
@@ -25,12 +25,9 @@
         <enum name="tipoResolucion" title="Tipo resolución" ref="TipoResolucionAnulacionMatriculaCicloFormativoV1" />
         <string name="motivoRechazo" title="Motivo del rechazo" large="true" />
 
-        <!-- Documentos -->
-        <many-to-one name="pdfSolicitud" title="Solicitud de anulación" ref="com.axelor.meta.db.MetaFile" />
-        <many-to-one name="pdfSolicitudFirmada" title="Solicitud de anulación firmada" ref="com.axelor.meta.db.MetaFile" />
-        <many-to-one name="pdfJustificanteRegistroEntrada" title="Justificante de presentación" ref="com.axelor.meta.db.MetaFile" />
-        <many-to-one name="pdfResolucion" title="Resolución sin firmar" ref="com.axelor.meta.db.MetaFile" />
-        <many-to-one name="pdfResolucionFirmada" title="Resolución" ref="com.axelor.meta.db.MetaFile" />
+        <!-- Los documentos del trámite (pdfSolicitud, pdfSolicitudFirmada,
+             pdfJustificanteRegistroEntrada, pdfResolucion y pdfResolucionFirmada) ya están en
+             ExpedienteResoluble, la base compartida de los trámites con resolución. -->
 
         <!-- Lo reescribe entero el build (RichDomainXmlTask): MUST NOT escribirse aquí nada propio. -->
         <extra-code-model>

@@ -3,7 +3,7 @@
 
 
     <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
-    <entity name="JustificacionFaltaProfesoradoV1" extends="Expediente" >
+    <entity name="JustificacionFaltaProfesoradoV1" extends="ExpedienteResoluble" >
 
         <!-- Periodo de la ausencia -->
         <enum name="tipoJornadaFalta" title="Tipo de jornada faltada" ref="TipoJornadaFaltaJustificacionFaltaProfesoradoV1" />
@@ -26,10 +26,9 @@
 
         <many-to-one name="justificante" title="Foto o PDF del justificante" ref="com.axelor.meta.db.MetaFile" />
 
-        <many-to-one name="pdfSolicitud" title="PDF de la solicitud" ref="com.axelor.meta.db.MetaFile" />
-        <many-to-one name="pdfSolicitudFirmada" title="PDF de la solicitud firmada" ref="com.axelor.meta.db.MetaFile" />
-        <many-to-one name="pdfJustificanteRegistroEntrada" title="Justificante del registro de entrada" ref="com.axelor.meta.db.MetaFile" />
-        <many-to-one name="pdfResolucion" title="Resolución" ref="com.axelor.meta.db.MetaFile" />
+        <!-- Los documentos del trámite (pdfSolicitud, pdfSolicitudFirmada,
+             pdfJustificanteRegistroEntrada y pdfResolucion) ya están en
+             ExpedienteResoluble, la base compartida de los trámites con resolución. -->
         <extra-code-model>
         <![CDATA[
 
