@@ -12,7 +12,7 @@ Entran: las vistas Axelor bajo `**/views/*.xml` y los `menus.xml`.
 - Modelos de dominio (`**/domains/*.xml`, `**/domains.xml`) → **STOP** y remite a `/developer-model-reviewer`.
 - Los `.java` de test bajo `src/test/java/com/educaflow/views`: son una proyección de `agent_docs/view-rules.md` y se regeneran con `/developer-create-view-tests`.
 - Ficheros cuya raíz es `<domain-models>` aunque la carpeta se llame `views-models/` o `view_models/`: **no son vistas**, son modelos → **STOP** y remite a `/developer-model-reviewer`. **MUST** mirar el elemento raíz, no el nombre de la carpeta.
-- Otros ficheros con raíz `<object-views>` que **no** están en una carpeta `views/`: los `views.xml` de los tipos de expediente, `shared/template-views.xml` y los `actions-*.xml` de controladores. Quedan fuera **a propósito**: el alcance normativo de `agent_docs/view-rules.md` y de sus tests es `**/views/*.xml` + `menus.xml`, y ampliarlo aquí desalinearía revisor y tests → **STOP** y dilo, sin remitir a ningún skill.
+- Otros ficheros con raíz `<object-views>` que **no** están en una carpeta `views/`: los `views.xml` de los tipos de expediente, `shared/common-template-views.xml` y los `actions-*.xml` de controladores. Quedan fuera **a propósito**: el alcance normativo de `agent_docs/view-rules.md` y de sus tests es `**/views/*.xml` + `menus.xml`, y ampliarlo aquí desalinearía revisor y tests → **STOP** y dilo, sin remitir a ningún skill.
 - Cualquier otro artefacto (properties, `data-init`, recursos): no hay revisor para ese tipo de fichero → **STOP** y dilo, sin remitir a ningún skill.
 
 ## Skills obligatorios

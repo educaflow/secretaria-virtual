@@ -22,7 +22,7 @@ Dependencias: §1 y §2 firman con `subsystem/criptografia` (a través de `trami
 - Con firma en servidor, el usuario teclea la clave de su certificado (PIN del dispositivo o contraseña del fichero) en `claveCertificado`, y el trigger firma con ella. Con AutoFirma, el usuario sube el PDF firmado y el validator comprueba la firma.
 - El código común vive en `tramites/util/firma/`: `FirmaServidorRules.kt` (reglas del validator) y `FirmaServidorHelper` (firmar en el trigger).
   Lo que la vista pregunta en el `onLoad` no es de los trámites: lo da `CertificadoDigitalController` del subsistema `criptografia`.
-- La firma de **la solicitud** en la fase común `ENTRADA` (`recetas/presentacion.md` §5) ya la tiene montada lo común: el panel `firma-solicitud` de `tramites/shared/template-views.xml` (§1.3) y `EntradaHelper.firmarSolicitudSiEsEnServidor` (§1.5). Esta sección explica cómo funciona por dentro y qué escribe cada tipo.
+- La firma de **la solicitud** en la fase común `ENTRADA` (`recetas/presentacion.md` §5) ya la tiene montada lo común: el panel `firma-solicitud` de `tramites/shared/common-template-views.xml` (§1.3) y `EntradaHelper.firmarSolicitudSiEsEnServidor` (§1.5). Esta sección explica cómo funciona por dentro y qué escribe cada tipo.
 
 ### 1.2 Documento y modelo (`documentospdf/` y `domains.xml`)
 
@@ -39,7 +39,7 @@ Dependencias: §1 y §2 firman con `subsystem/criptografia` (a través de `trami
 
 ### 1.3 Vista (`views.xml` de la fase)
 
-Los paneles son comunes: el visor `pdfSolicitud` y el panel `firma-solicitud` de `tramites/shared/template-views.xml` (`vistas.md` §3.2). Lo que escribe cada tipo, en el `views.xml` de la fase, son el form con sus botones y las acciones con prefijo `exp-<Code>-`: sus nombres son globales, y ponerlas junto a su botón hace que copiar la fase se lo lleve todo.
+Los paneles son comunes: el visor `pdfSolicitud` y el panel `firma-solicitud` de `tramites/shared/common-template-views.xml` (`vistas.md` §3.2). Lo que escribe cada tipo, en el `views.xml` de la fase, son el form con sus botones y las acciones con prefijo `exp-<Code>-`: sus nombres son globales, y ponerlas junto a su botón hace que copiar la fase se lo lleve todo.
 
 ```xml
 <form state="PENDIENTE_PRESENTACION" profile="CREADOR" onLoad="exp-MiTramiteV1-PENDIENTE_PRESENTACION-onLoad-action">
@@ -94,7 +94,7 @@ Los paneles son comunes: el visor `pdfSolicitud` y el panel `firma-solicitud` de
    - AutoFirma: `showIf="situacionFirma=='SIN_CERTIFICADO'"` y `serial:` con la `action-method` que llama a `FirmaClienteController.firmarDocumentoEnCampo(...)` **antes** del evento.
    - Servidor: `showIf="firmaEnServidor"` y `serial:` con el evento **y después** la `action-record` que pone `claveCertificado` a `null`, para que la clave no se quede en el formulario.
 4. `firmarDocumentoEnCampo(id, campoOrigen, campoDestino, nombreCampoFirma)` lanza AutoFirma sobre el `MetaFile` del campo origen, deja el firmado en el destino y exige firmar con el DNI del usuario autenticado (revienta con `RuntimeException` si no tiene DNI válido). El nombre del campo de firma **MUST** ser el mismo que use el trigger (§1.5), para que la firma caiga en el mismo sitio se firme donde se firme.
-5. Para firmar así **otro** documento que no sea la solicitud, el tipo declara en su form plantilla un panel propio con el mismo patrón que `firma-solicitud` (míralo en `tramites/shared/template-views.xml`) y su propio par de campos.
+5. Para firmar así **otro** documento que no sea la solicitud, el tipo declara en su form plantilla un panel propio con el mismo patrón que `firma-solicitud` (míralo en `tramites/shared/common-template-views.xml`) y su propio par de campos.
 
 - ✅ CORRECTO: `firma-solicitud` en el `<include-panels>` (sin guion)
 - ❌ INCORRECTO: `-firma-solicitud` (la clave del certificado queda de solo lectura)

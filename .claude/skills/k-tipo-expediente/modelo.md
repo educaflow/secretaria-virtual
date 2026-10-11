@@ -17,7 +17,10 @@ Entidad JPA del expediente de esta versión. Va en la **raíz de la carpeta de v
 
 - **MUST NOT** cambiar el `<module>`: todas las entidades de expediente se generan en `com.educaflow.subsystem.expedientes.db` y el código y los tests las buscan ahí.
 - El `name` de la entidad **MUST** ser exactamente el `code` del tipo (code del trámite + `VN`); si no, el build falla.
-- **MUST** mantener `extends="Expediente"`.
+- **MUST** mantener `extends="Expediente"` — o `extends="ExpedienteResoluble"` si el trámite se tramita con **resolución firmada y registro de salida**. `ExpedienteResoluble` (`tramites/shared/expedienteresoluble/domains.xml`) es la entidad base **compartida** de esos trámites: **no es un trámite** (no tiene `TipoExpedienteInstance`), y cada tipo "resoluble" declara `extends="ExpedienteResoluble"` en lugar de `extends="Expediente"` (p. ej. `tramites/profesores/justificacion_falta_profesorado/actual/v1/domains.xml` y `tramites/alumnos/anulacion_matricula_ciclo_formativo/v1/domains.xml`). Misma unidad de persistencia que `Expediente` (JOINED): el `<module>` es el mismo y la clase generada vive igualmente en `com.educaflow.subsystem.expedientes.db`, aunque el XML esté en `tramites/shared/`.
+  - Con `extends="ExpedienteResoluble"` el tipo **hereda y MUST NOT redeclarar** sus 12 campos: los 6 `many-to-one` a `MetaFile` `pdfSolicitud`, `pdfSolicitudFirmada`, `pdfJustificanteRegistroEntrada`, `pdfResolucion`, `pdfResolucionFirmada`, `pdfResolucionFirmadaRegistroSalida`, y los 6 `<datetime>` `fechaHoraPdfSolicitud`, `fechaHoraPdfSolicitudFirmada`, `fechaHoraPdfJustificanteRegistroEntrada`, `fechaHoraPdfResolucion`, `fechaHoraPdfResolucionFirmada`, `fechaHoraPdfResolucionRegistroSalida`.
+  - En cualquiera de las dos bases, el tipo **MUST** seguir declarando lo que su base no trae: `resultadoVerificacion` y `textoSubsanacion` (§4.1) y todos sus campos específicos (en los ejemplos reales de arriba: el periodo y el motivo de la falta, el `tipoResolucion` con sus motivos y el `justificante`; el `ciclo`, el `cursoAcademico` y su `tipoResolucion`).
+  - Si el trámite **no** termina en resolución firmada con registro de salida, la base es `Expediente` y entonces los `pdf*` del ciclo de resolución que necesite **MUST** declararlos cada tipo (§4 y §4.1).
 - La entidad del expediente **MUST** ser la **primera** `<entity>` del fichero; las auxiliares (entidades hija) van después.
   Es la que **MUST** parametrizar el `InitialEventManagerImpl` (`implements InitialEventManager<MiTramiteV1>`) y el `PhaseEventManagerImpl` de cada fase (`extends PhaseEventManager<MiTramiteV1>`): lo comprueba el test M1.
 - **MUST NOT** editar el `<extra-code-model>`: el build lo reescribe en cada compilación con el enum `TipoDocumentoPdf` (una constante por documento de `documentospdf/`) y el método `getDocumentoPdf(...)` (`phaseeventmanager.md` §6.1).
@@ -89,10 +92,11 @@ Cada PDF que el expediente guarde es un `many-to-one` a `com.axelor.meta.db.Meta
 
 - Para que el usuario firme un documento hace falta el **par** original/firmado (`pdfSolicitud`/`pdfSolicitudFirmada`): `recetas/firma.md` §1.2.
 - Los documentos que devuelven los registros de entrada y salida también necesitan su campo (`pdfJustificanteRegistroEntrada`, `pdfResolucion`).
+- Si el tipo extiende de `ExpedienteResoluble` (§1), los `pdf*` de los dos puntos de arriba ya están heredados: **MUST NOT** redeclararlos.
 
 ### 4.1 Los campos comunes de las fases `ENTRADA` y `VERIFICACION`
 
-Todo tipo **MUST** declarar estos cinco campos **con exactamente estos nombres** (`SKILL.md` §1.2). No están en `Expediente`, pero los paneles comunes de `tramites/shared/template-views.xml` los nombran (`vistas.md` §3.2) y el código común llega a ellos por el descriptor `CAMPOS_ENTRADA` (`recetas/presentacion.md` §1.1).
+Todo tipo **MUST** declarar estos cinco campos **con exactamente estos nombres** (`SKILL.md` §1.2), salvo que ya los herede: no están en `Expediente`, pero los tres `pdf*` sí están en `ExpedienteResoluble` (§1), así que un tipo que extienda de ella **MUST NOT** redeclararlos (los paneles comunes de `tramites/shared/common-template-views.xml` los nombran igual, `vistas.md` §3.2) y el código común llega a ellos por el descriptor `CAMPOS_ENTRADA` (`recetas/presentacion.md` §1.1). `resultadoVerificacion` y `textoSubsanacion` no están en ninguna base: **MUST** declararlos todo tipo.
 
 ```xml
 <many-to-one name="pdfSolicitud" title="Solicitud" ref="com.axelor.meta.db.MetaFile" />
@@ -119,6 +123,6 @@ Todo tipo **MUST** declarar estos cinco campos **con exactamente estos nombres**
 - **MUST NOT** cambiar el `<module>` ni el `name` de la entidad respecto a los derivados.
 - **MUST NOT** editar `<extra-code-model>` a mano.
 - **MUST NOT** crear enums sin el sufijo entidad+versión.
-- **MUST NOT** redeclarar campos que ya hereda de `Expediente`.
+- **MUST NOT** redeclarar campos que ya hereda de `Expediente` ni de `ExpedienteResoluble`, si extiende de ella (§1).
 - **MUST NOT** cambiar el nombre de los campos comunes de las fases `ENTRADA` y `VERIFICACION` (§4.1).
 - **MUST NOT** poner una entidad auxiliar por delante de la del expediente.

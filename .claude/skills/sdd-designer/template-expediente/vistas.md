@@ -81,7 +81,10 @@ Los forms de estado **heredan** los atributos del form plantilla (`model`, `widt
 - Todo panel incluible **MUST** tener `name` y **MUST** ser **hijo directo** del form plantilla.
 - Es incluible **cualquier tag que empiece por `panel`**: `panel`, `panel-related`, `panel-tabs`.
 - Un panel referenciado desde un `<include-panels>` que no exista → **el build falla** (`"No existe el panel con nombre:…"`).
-- Búsqueda del panel: **primero** en el form plantilla del propio tipo, si no en los `template-views.xml` globales de `tramites/shared/`. **MUST NOT** nombrarse un panel local igual que uno global salvo que se quiera **sobrescribirlo a propósito**: lo tapa **en silencio**.
+- Búsqueda del panel — **tres escalones**, en este orden:
+  1. Nombre que **empieza por `subsysExpedientes`** → solo el form `subsysExpedientes-system-templates-form` del `tramites/shared/system-template-views.xml`: los paneles globales del subsistema de expedientes (cabecera, footer, notas, historial de estados). **MUST NOT** venir cualificado con puntos (carpeta): el build falla.
+  2. Nombre **punteado** `<carpeta>.….<panel>` → el form `subsysExpedientes-common-templates-form` del `common-template-views.xml` de ESA carpeta bajo `tramites/shared/`. Puede haber **varios** `common-template-views.xml`, uno por carpeta de `shared` (la raíz incluida). El form plantilla local **no** participa en los nombres punteados.
+  3. Nombre **simple** → primero el form plantilla del propio tipo; si no, el `common-template-views.xml` de la raíz de `tramites/shared/`. **MUST NOT** nombrarse un panel local igual que uno global salvo que se quiera **sobrescribirlo a propósito**: lo tapa **en silencio**.
 - Un panel del almacén que **ninguna** fase incluye es código muerto: **MUST NOT** declararse.
 
 ### 2.4 Panel editable y panel de solo lectura
@@ -189,14 +192,14 @@ Particularidades de un tipo de expediente:
 
 ### 3.3 La cabecera gratis y `header`
 
-- Por defecto se antepone el panel global `subsysExpedientes-template-header-panel`, que pinta "Creado por", la **fase**, el **estado**, la fecha del último estado y el botón "Ver el historial de estados" (popup con el historial y los registros de entrada/salida). **No hay que declarar nada** para tenerla.
+- Por defecto se antepone el panel global `subsysExpedientes-template-header-panel` (del `tramites/shared/system-template-views.xml`), que pinta "Creado por", la **fase**, el **estado**, la fecha del último estado y el botón "Ver el historial de estados" (popup con el historial y los registros de entrada/salida). **No hay que declarar nada** para tenerla.
 - El texto de la fase que ve el usuario es el `title` de la `<fase>` del XML maestro (o su `name` humanizado): **ese `title` no es documental**.
 - `header="false"` la quita: `<include-panels header="false">`. Listarla explícitamente en la lista permite reconfigurarla (p.ej. en readonly).
 - **CRITICAL — el atributo es `header`, NO `includeHeader`**, que el preprocesador **ignora en silencio**. Solo admite `true`/`false`; otro valor → `"Valor fuera de rango"`.
 
 ### 3.4 `<footer>` y los botones
 
-- El `<footer>` se sustituye por el panel global `subsysExpedientes-template-footer-panel`, que además **pinta los mensajes de error de validación**. Los botones van dentro de `<buttons-left>` / `<buttons-right>`.
+- El `<footer>` se sustituye por el panel global `subsysExpedientes-template-footer-panel` (del `tramites/shared/system-template-views.xml`), que además **pinta los mensajes de error de validación**. Los botones van dentro de `<buttons-left>` / `<buttons-right>`.
 - **CRITICAL — el `name` de cada botón ES el evento que dispara.** MUST coincidir exactamente con un `<EVENTO>` del atributo `events` del estado, o ser `EXIT`.
 - Los botones admiten los atributos Axelor normales: `title`, `colSpan`, `colOffset`, `prompt`, `css`, `outline`, `icon`.
 - El `colSpan` por defecto es el `itemSpan` del panel footer (default `1`).
@@ -364,7 +367,7 @@ El diseñador lo aplica antes de dar el diseño por terminado (**MUST NOT** term
 - [ ] ¿`EXIT` **no** aparece en ningún `events` del `TipoExpedienteInstance.xml`?
 - [ ] ¿La suma de los `colSpan` de los botones de cada footer **no** pasa de 12?
 - [ ] ¿Cada bloque sin botones se escribe `<buttons-left/>` en vez de omitirse?
-- [ ] ¿Todos los paneles referenciados en `<include-panels>` existen en el form plantilla (o en los globales), sin repeticiones?
+- [ ] ¿Todos los paneles referenciados en `<include-panels>` existen en el form plantilla (o en los globales de `tramites/shared/`: el `system-template-views.xml` para los `subsysExpedientes*`, y el `common-template-views.xml` de la carpeta que indique un nombre punteado —o de la raíz, para un nombre simple—), sin repeticiones?
 - [ ] ¿Se usa `header` y **nunca** `includeHeader`?
 - [ ] ¿Ningún `views.xml` de fase queda vacío ni con todos sus forms comentados?
 - [ ] ¿Cada `<action-method>` propia está en el `views.xml` de **su** fase, junto al botón que la usa?

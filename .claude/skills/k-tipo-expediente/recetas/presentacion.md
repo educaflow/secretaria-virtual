@@ -18,7 +18,7 @@ El registro de entrada asienta el documento **firmado por el usuario** (`Registr
 Dependencias:
 
 - El registro lo crea `EventContext` contra `subsystem/registroentradasalida` (`phaseeventmanager.md` §3); no hay que inyectar ni resolver nada del registro en el trámite.
-- Lo que hacen igual todos los tipos está en `tramites/util/entrada/` (`EntradaHelper`, `CamposEntrada`) y `tramites/util/verificacion/` (`VerificacionHelper`); los paneles, en `tramites/shared/template-views.xml` (`vistas.md` §3.2).
+- Lo que hacen igual todos los tipos está en `tramites/util/entrada/` (`EntradaHelper`, `CamposEntrada`) y `tramites/util/verificacion/` (`VerificacionHelper`); los paneles, en `tramites/shared/common-template-views.xml` (`vistas.md` §3.2).
 - **MUST NOT** copiar esa lógica a la carpeta del tipo: CPD rompe el build si dos trámites repiten código. El tipo solo escribe lo que se ve en esta receta, incluidas las reglas de validación, que van en su validador (`validator.md` §3.2).
 
 ## 0. La máquina de estados
@@ -167,7 +167,7 @@ public static void borrarSubsanacion(MiTramiteV1 expediente) {
 - El form del `CREADOR` incluye editables los paneles de datos y el de subida del anexo (`widget="binary-link"`, `vistas.md` §6); el genérico los incluye todos con `-`, solo `EXIT` y el panel `avisoEstadoExpediente` (`vistas.md` §6.1).
 - `-subsanacion` (panel común) va el primero en los forms de la fase `ENTRADA` en los que se corrige la solicitud: solo se ve cuando el verificador ha pedido subsanar, y le dice al usuario qué tiene que corregir.
 - El form del `CREADOR` **MUST NOT** llevar el botón `BACK`: en este estado es solo del papel, y va en el form `profile="TRAMITADOR"` (§5.5).
-- Los paneles de datos viven en el form plantilla de la raíz (`vistas.md` §1); los comunes, en `tramites/shared/template-views.xml` (`vistas.md` §3.2).
+- Los paneles de datos viven en el form plantilla de la raíz (`vistas.md` §1); los comunes, en `tramites/shared/common-template-views.xml` (`vistas.md` §3.2).
 
 ### 4.2 Validator (`entrada/StateEventValidatorImpl.kt`)
 

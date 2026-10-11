@@ -58,8 +58,11 @@ En el atributo `state` va el **nombre del estado** tal cual, igual que en el `Ti
 - Cada línea es el `name` de un panel; prefijo `-` = copia con todos sus `<field>` a `readonly="true"`.
 - Es incluible **cualquier elemento cuyo tag empiece por `panel`** (`panel`, `panel-related`, `panel-tabs`) que sea hijo directo del form plantilla y tenga `name`.
 - **CRITICAL — el prefijo `-` solo afecta a los `<field>`** descendientes del panel: **NO desactiva los `<button>`** que el panel contenga ni hace nada sobre un **`panel-related`** (no tiene fields): el grid de hijos sigue permitiendo lo que digan sus `canNew`/`canEdit`/`canDelete`. Para un maestro-detalle de solo lectura, controla esos flags en el grid del hijo (§8).
-- Búsqueda: **primero** en el form plantilla del tipo (el `views.xml` de la raíz de la versión), si no en `tramites/shared/template-views.xml`. Un panel local con el mismo nombre que uno global lo **sobreescribe en silencio** (incluidos los de cabecera y footer).
-- Por defecto se antepone la cabecera global (`subsysExpedientes-template-header-panel`): pinta "Creado por", la **fase** y el **estado** actuales, la fecha del último estado, a quién le toca y el botón "Ver el historial de estados" (con los registros de entrada/salida de cada estado). Todo gratis, sin declarar nada.
+- Búsqueda — **tres escalones**, en este orden:
+  1. Nombre que **empieza por `subsysExpedientes`** → SOLO el form `subsysExpedientes-system-templates-form` del `tramites/shared/system-template-views.xml`: ahí viven los paneles globales del subsistema de expedientes (`subsysExpedientes-template-header-panel`, `subsysExpedientes-template-footer-panel`, `subsysExpedientes-template-notas-panel`) y las action-views/forms del historial de estados. **MUST NOT** venir cualificado con puntos: si los lleva, el build falla, porque todos los paneles del subsistema viven en ese único fichero de la raíz de `shared`.
+  2. Nombre **punteado** `bbb.ccc.<panel>` (el último segmento es el panel, el resto la carpeta bajo `tramites/shared`) → el form `subsysExpedientes-common-templates-form` del `common-template-views.xml` de ESA subcarpeta de `shared` (`bbb.ccc.<panel>` → `tramites/shared/bbb/ccc/common-template-views.xml`). Puede haber **VARIOS** `common-template-views.xml`, uno por carpeta bajo `shared` (la raíz incluida); si el de esa carpeta no existe, el build falla. El form plantilla local del tipo **NO participa** en los nombres punteados.
+  3. Nombre **simple** → primero el form plantilla local del tipo (el `views.xml` de la raíz de la versión, `exp-<Code>-Templates`); si no está ahí, el `common-template-views.xml` de la RAÍZ de `tramites/shared`. Un panel local con el mismo nombre que uno global lo **sobreescribe en silencio** (incluidos los de cabecera y footer).
+- Por defecto se antepone la cabecera global (`subsysExpedientes-template-header-panel`, del `tramites/shared/system-template-views.xml`): pinta "Creado por", la **fase** y el **estado** actuales, la fecha del último estado, a quién le toca y el botón "Ver el historial de estados" (con los registros de entrada/salida de cada estado). Todo gratis, sin declarar nada.
   - `header="false"` en `<include-panels>` la quita.
   - **CRITICAL**: el atributo es `header`, NO `includeHeader`, que se **ignora en silencio**. Solo admite `true`/`false`.
 - Un panel referenciado que no existe → el build falla ("No existe el panel con nombre:...").
@@ -68,7 +71,7 @@ En el atributo `state` va el **nombre del estado** tal cual, igual que en el `Ti
 
 ### 3.1 Paneles comunes de las personas
 
-`tramites/shared/template-views.xml` trae estos paneles, incluibles desde cualquier tipo, y sus dos acciones:
+`tramites/shared/common-template-views.xml` trae estos paneles, incluibles desde cualquier tipo, y sus dos acciones:
 
 | Panel / acción | Qué es |
 |---|---|
@@ -106,7 +109,7 @@ Si el tipo necesita otro conjunto de datos (p. ej. el NIA), declara en su form p
 
 ### 3.2 Paneles comunes de las fases `ENTRADA` y `VERIFICACION`
 
-`tramites/shared/template-views.xml` trae también los paneles de las dos fases comunes (`SKILL.md` §1.2). **MUST** incluirse desde ahí: **MUST NOT** redeclararlos en el form plantilla del tipo (un panel local con el mismo nombre taparía al común, §3).
+`tramites/shared/common-template-views.xml` trae también los paneles de las dos fases comunes (`SKILL.md` §1.2). **MUST** incluirse desde ahí: **MUST NOT** redeclararlos en el form plantilla del tipo (un panel local con el mismo nombre taparía al común, §3).
 
 | Panel | Qué pinta | Campos del tipo que necesita | Se incluye |
 |---|---|---|---|
@@ -119,7 +122,7 @@ Si el tipo necesita otro conjunto de datos (p. ej. el NIA), declara en su form p
 | `pdfJustificanteRegistroEntrada` | Visor del resguardo de la presentación | `pdfJustificanteRegistroEntrada` | con `-`, en los forms genéricos tras presentar |
 | `firma-solicitud` | Los campos de vista `situacionFirma`/`firmaEnServidor` y un panel por situación de firma, con `claveCertificado` donde se pide (`recetas/firma.md` §1.3) | ninguno propio (`claveCertificado` es de `Expediente`) | **sin guion**, en `PENDIENTE_PRESENTACION` |
 
-- **CRITICAL**: estos paneles nombran campos que **no son de `Expediente`**: cada tipo los declara en su `domains.xml` con **ese mismo nombre** (`SKILL.md` §1.2). Si el tipo no declara el campo, el build no falla: el panel pinta un campo vacío.
+- **CRITICAL**: estos paneles nombran campos que **no son de `Expediente`**: cada tipo los declara en su `domains.xml` con **ese mismo nombre** (`SKILL.md` §1.2) — salvo los tres `pdf*`, que ya hereda todo tipo que extienda de `ExpedienteResoluble` (`modelo.md` §1). Si el tipo no declara el campo, el build no falla: el panel pinta un campo vacío.
 - El panel `verificacion` compara `resultadoVerificacion=='SUBSANAR'`: el enum del tipo **MUST** tener un ítem con ese nombre.
 - Las acciones `exp-<Code>-…` que acompañan a `firma-solicitud` (el `onLoad`, AutoFirma, vaciar la clave) **no** son comunes: se declaran en el `views.xml` de la fase de cada tipo (`recetas/firma.md` §1.3).
 - Qué form incluye cada panel, estado a estado: `recetas/presentacion.md`.
@@ -131,7 +134,7 @@ Si el tipo necesita otro conjunto de datos (p. ej. el NIA), declara en su form p
 
 ## 4. `<footer>`
 
-- Se sustituye por el panel global `subsysExpedientes-template-footer-panel` (que además pinta los mensajes de error de validación) con tus botones dentro de `<buttons-left>`/`<buttons-right>`.
+- Se sustituye por el panel global `subsysExpedientes-template-footer-panel` (del `tramites/shared/system-template-views.xml`; además pinta los mensajes de error de validación) con tus botones dentro de `<buttons-left>`/`<buttons-right>`.
 - **El `name` de cada botón es el evento que dispara**; todos usan `onClick="subsysTramitador-event-action"`. Solo llevan botón los eventos de `events` y los comunes: un evento de `systemEvents` **MUST NOT** tener botón (test Y1, `SKILL.md` §2.1). Admiten atributos Axelor normales (`title`, `colSpan`, `prompt`, `css`, `outline`, `icon`).
 - **MUST**: todo botón de `<buttons-left>` y `<buttons-right>` lleva `colSpan="3"`, sea cual sea su texto, para que todos los botones de todos los trámites midan lo mismo.
   Lo comprueba el test Y4 (`SKILL.md` §3.3).
@@ -143,7 +146,7 @@ Si el tipo necesita otro conjunto de datos (p. ej. el NIA), declara en su form p
 - A cada botón de la derecha se le asigna **siempre** (sobrescribiendo cualquier valor manual) `colOffset = 6 − colSpan`, para alinearlo al margen derecho.
   Los de la izquierda no llevan ningún cálculo.
 - Los eventos comunes `EXIT` y `DELETE` responden al cliente con `refresh-app` (se recarga la aplicación entera, no se navega a otra vista).
-- Tras el footer de un `<form state=...>` el preprocesador añade siempre el panel global `subsysExpedientes-template-notas-panel`: las notas del expediente (`Expediente.notas`) y el botón «Añadir nota». No se declara ni se incluye: sale solo en todos los forms de estado, y se oculta él mismo al creador del expediente (salvo en papel).
+- Tras el footer de un `<form state=...>` el preprocesador añade siempre el panel global `subsysExpedientes-template-notas-panel` (del `tramites/shared/system-template-views.xml`): las notas del expediente (`Expediente.notas`) y el botón «Añadir nota». No se declara ni se incluye: sale solo en todos los forms de estado, y se oculta él mismo al creador del expediente (salvo en papel).
   - El `<footer>` de un form que no es de estado (el de una entidad hija, §8) no lo lleva.
   - Desde un `trigger*` una nota se añade con `ExpedienteNotasUtil.addNote(expediente, mensaje)` (`subsystem/expedientes/util`). Es para lo que se dicen entre sí quienes tramitan: lo que deba ver el creador va en un campo propio del tipo.
 

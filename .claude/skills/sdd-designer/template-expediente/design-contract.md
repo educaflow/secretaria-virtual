@@ -291,7 +291,7 @@ Reglas:
 - `servidor` = lo dicta el servidor (PDFs generados por un `trigger*`, resguardos de registro, campos calculados, snapshots). **MUST NOT** aparecer en ningún `field(...)`.
 - **Motivo (CRITICAL):** el `Tramitador` construye el `AllowProperties` de cada evento **a partir de las reglas del validador**. Un campo que no está en ningún `field(...)` de esa pareja (estado, evento) **no se copia** desde la petición; darle entrada lo hace **escribible por el cliente**. Declarar los campos es exactamente lo que los hace editables, así que la columna no es documentación: es la lista de permisos.
 - **MUST NOT** confiarse en `readonly`, `showIf` o `hidden` de la vista como defensa: no lo son.
-- **MUST NOT** listar en esta tabla los campos heredados de `Expediente`: `tipoExpediente`, `name`, `numeroExpediente`, `codePhase`, `namePhase`, `codeState`, `nameState`, `fechaUltimoEstado`, `abierto`, `historialEstados`, `centro`, `usuarioRegistrador`, `personaSolicitante`, `personaInteresada`. Redeclararlos en el `domains.xml` está prohibido. (Sí pueden **referenciarse** desde §8, §9 y §11 **del `design.md`** y desde las vistas.)
+- **MUST NOT** listar en esta tabla los campos heredados de `Expediente`: `tipoExpediente`, `name`, `numeroExpediente`, `codePhase`, `namePhase`, `codeState`, `nameState`, `fechaUltimoEstado`, `abierto`, `historialEstados`, `centro`, `usuarioRegistrador`, `personaSolicitante`, `personaInteresada`. Tampoco los heredados de `ExpedienteResoluble` si la entidad extiende de ella (§6.3). Redeclararlos en el `domains.xml` está prohibido. (Sí pueden **referenciarse** desde §8, §9 y §11 **del `design.md`** y desde las vistas.)
 - Todo campo `servidor` **MUST** estar respaldado por al menos una acción de las secciones «Especificación del InitialEventManagerImpl» o «Especificación de los PhaseEventManagerImpl» del `design.md` que lo asigne; si ninguna lo asigna, o sobra el campo o falta la acción.
 
 > **Ejemplo** (ilustrativo, NO normativo): un campo `many-to-one` a `com.axelor.meta.db.MetaFile` que un `trigger*` rellena con el PDF que acaba de generar es `servidor`; el `MetaFile` que la persona sube desde el formulario es `usuario`.
@@ -313,7 +313,10 @@ Una fila por ítem:
 
 - **MUST** declarar `<module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>`. **MUST NOT** cambiarse: el paquete está hardcodeado en los build-tools y en los tests.
 - **CRITICAL — la entidad del tipo MUST ser la PRIMERA `<entity>` del fichero** en orden de documento. Es convenio puro, no hay marca. **MUST NOT** ponerse una entidad auxiliar por delante.
-- **MUST** ser `<entity name="<Entidad>" extends="Expediente">`. Sin el `extends`, la inyección del `<extra-code-model>` avisa pero **no detiene el build**.
+- **MUST** ser `<entity name="<Entidad>" extends="Expediente">` **o** `<entity name="<Entidad>" extends="ExpedienteResoluble">`. La base se elige según el trámite: `Expediente` por defecto; `ExpedienteResoluble` —la entidad base **compartida** de `src/main/java/com/educaflow/tramites/shared/expedienteresoluble/domains.xml`, que no es un tipo de expediente (no tiene `TipoExpedienteInstance.xml`)— cuando el trámite termina en **resolución firmada con registro de salida**. Mismo `<module>` y misma unidad de persistencia (JOINED) que `Expediente`: la clase generada vive igualmente en `com.educaflow.subsystem.expedientes.db`, aunque el XML esté en `tramites/shared/`.
+  - Con `extends="Expediente"`, el tipo hereda solo los campos de `Expediente` y **MUST** declarar él mismo los `MetaFile` del ciclo de resolución que necesite (los que cite la columna «en qué campo se guarda» de §7).
+  - Con `extends="ExpedienteResoluble"`, hereda además, sin redeclararlos, los 6 `many-to-one` a `MetaFile` y los 6 `<datetime>` del ciclo de resolución (solicitud generada, firma de la solicitud, registro de entrada, resolución, firma de la resolución, registro de salida): la lista literal de nombres está en `k-tipo-expediente/modelo.md` §1. Los que esa base no trae —los campos comunes de la fase `VERIFICACION` que apliquen y todos los propios del trámite— **MUST** declararlos el tipo igualmente.
+  - Sin el `extends` (de la base que sea), la inyección del `<extra-code-model>` avisa pero **no detiene el build**.
 - Los enums van como `<enum>` hermanos de la entidad, con el sufijo de §6.2.
 - **MUST** ser `<extra-code-model>` y no `<extra-code>`: el primero inyecta en la entidad, el segundo en el `Repository`.
 
@@ -956,9 +959,9 @@ La sección `## 15. Checklist del diseñador` del `design.md` **MUST** reproduci
 
 **Modelo**
 
-- [ ] ¿La entidad es la **primera** `<entity>` del `domains.xml`, con `extends="Expediente"` y `name="<Entidad>"`?
+- [ ] ¿La entidad es la **primera** `<entity>` del `domains.xml`, con `name="<Entidad>"` y `extends="Expediente"` **o** `extends="ExpedienteResoluble"` según el trámite (§6.3)?
 - [ ] ¿El `<module>` es `expedientes` / `com.educaflow.subsystem.expedientes.db`?
-- [ ] ¿Ningún campo heredado de `Expediente` está redeclarado?
+- [ ] ¿Ningún campo heredado de `Expediente` —ni de `ExpedienteResoluble`, si extiende de ella (§6.3)— está redeclarado?
 - [ ] ¿Todo enum propio lleva `<Entidad>` como sufijo?
 - [ ] ¿Ningún campo lleva `required="true"`?
 - [ ] ¿Todo campo de la tabla de §6.1 tiene su columna «quién lo rellena» resuelta a `usuario` o `servidor`?
