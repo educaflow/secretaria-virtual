@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xmlns="http://axelor.com/xml/ns/object-views"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://axelor.com/xml/ns/object-views" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <form name="exp-JustificacionFaltaProfesoradoV1-Templates" width="large" title="Justificación de falta del profesorado" model="com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1" groups="admins,users">
         <panel name="datos-profesor" title="Datos del profesor interesado">
@@ -14,8 +12,7 @@
              registra la solicitud. Mismo patrón que el panel común persona-interesada, solo con la identificación
              y el contacto, que el Tramitador copia al solicitante para avisarle. -->
         <panel name="datos-profesor-editable" title="Datos del profesor interesado" colSpan="12">
-            <field name="personaInteresada" showTitle="false" colSpan="12"
-                   canNew="false" canSelect="false" canRemove="false" x-show-icons="false">
+            <field name="personaInteresada" showTitle="false" colSpan="12" canNew="false" canSelect="false" canRemove="false" x-show-icons="false">
                 <editor x-show-titles="true">
                     <field name="nombre"    colSpan="4" required="true"/>
                     <field name="apellidos" colSpan="5" required="true"/>
@@ -29,9 +26,7 @@
         </panel>
 
         <panel name="datos-falta" title="Datos de la falta">
-            <field name="tipoJornadaFalta" colSpan="12" required="true"
-                   widget="RadioSelect" x-direction="horizontal"
-                   onChange="exp-JustificacionFaltaProfesoradoV1-onChange-tipoJornadaFalta-action"/>
+            <field name="tipoJornadaFalta" colSpan="12" required="true" widget="RadioSelect" x-direction="horizontal" onChange="exp-JustificacionFaltaProfesoradoV1-onChange-tipoJornadaFalta-action"/>
 
             <panel name="datos-falta-un-dia" colSpan="12" showFrame="false" showIf="tipoJornadaFalta == 'UN_DIA_COMPLETO' || tipoJornadaFalta == 'UNAS_HORAS_UN_DIA'">
                 <field name="fechaInicio" title="Fecha" colSpan="3" required="true"/>
@@ -97,17 +92,14 @@
 
         <panel name="resolucion" title="Resolver expediente">
             <field name="tipoResolucion" widget="RadioSelect" colSpan="12" x-direction="horizontal" />
-            <field name="motivoRechazo" colSpan="12"  showIf="tipoResolucion == 'RECHAZAR'"
-                   help="Este texto se imprimirá tal cual en la resolución que recibirá el profesor"/>
-            <field name="motivoDevolucion" colSpan="12"  showIf="tipoResolucion == 'DEVOLVER'"
-                   help="Explique a la jefatura de estudios por qué le devuelve la solicitud"/>
+            <field name="motivoRechazo" colSpan="12"  showIf="tipoResolucion == 'RECHAZAR'" help="Este texto se imprimirá tal cual en la resolución que recibirá el profesor"/>
+            <field name="motivoDevolucion" colSpan="12"  showIf="tipoResolucion == 'DEVOLVER'" help="Explique a la jefatura de estudios por qué le devuelve la solicitud"/>
         </panel>
         <panel name="resolucion-view" title="Resolución">
             <field name="tipoResolucion" title="Resolución"  colSpan="12" x-direction="horizontal" readonly="true"  />
             <field name="motivoRechazo" colSpan="12" readonly="true" showIf="tipoResolucion == 'RECHAZAR'"/>
         </panel>
-        <panel name="devolucion-view" title="Devuelto por la dirección" colSpan="12"
-               showIf="(motivoDevolucion!=null) &amp;&amp; (motivoDevolucion!='')">
+        <panel name="devolucion-view" title="Devuelto por la dirección" colSpan="12" showIf="(motivoDevolucion!=null) &amp;&amp; (motivoDevolucion!='')">
             <field name="motivoDevolucion" colSpan="12" readonly="true"/>
         </panel>
     </form>

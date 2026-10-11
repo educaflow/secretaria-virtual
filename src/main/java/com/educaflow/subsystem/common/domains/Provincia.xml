@@ -1,15 +1,11 @@
-<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
     <module name="common" package="com.educaflow.subsystem.common.db"/>
     <entity name="Provincia">
         <string name="code" title="Código" required="true" unique="true" />
         <string name="name" title="Nombre" namecolumn="true" required="false"/>
 
-        <many-to-one name="comunidadAutonoma" title="Comunidad Autónoma"
-                     ref="com.educaflow.subsystem.common.db.ComunidadAutonoma"
-                     required="true"/>
+        <many-to-one name="comunidadAutonoma" title="Comunidad Autónoma" ref="com.educaflow.subsystem.common.db.ComunidadAutonoma" required="true"/>
     </entity>
 
 </domain-models>

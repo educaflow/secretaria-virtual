@@ -1,32 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!-- Form del SMS en «Todas»: alta (desde la elección de canal) y detalle en solo lectura (desde una fila
          del listado común). No tiene <action-view>: lo abre en popup NotificacionController
          (continuarAlta / abrirTodas), así que sus botones cierran con close. -->
     <?sv-view?>
-    <form name="subsysNotificaciones.Main@Sms-form" title="SMS__!!" model="com.educaflow.subsystem.notificaciones.db.Sms"
-          width="large" onNew="subsysNotificaciones.Main@Sms-onNew-action"
-          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+    <form name="subsysNotificaciones.Main@Sms-form" title="SMS__!!" model="com.educaflow.subsystem.notificaciones.db.Sms" width="large" onNew="subsysNotificaciones.Main@Sms-onNew-action" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
 
         <panel name="Sms" title="Datos del SMS" readonlyIf="(id != null) || (cid != null)">
             <field name="tipoNotificacion" colSpan="3" readonly="true"/>
             <field name="name" colSpan="9" requiredIf="(id == null) &amp;&amp; (cid == null)"/>
-            <field name="centro" colSpan="4" requiredIf="(id == null) &amp;&amp; (cid == null)"
-                   grid-view="subsysCommon.Ref@Centro-grid" form-view="subsysCommon.Ref@Centro-form"
-                   onChange="subsysNotificaciones.Main@Sms-onChange-centro-action"/>
-            <field name="historialEstado" colSpan="8" domain="self.expediente.centro = :centro"
-                   target-name="nameState" canSuggest="false"
-                   grid-view="subsysExpedientes.Ref@HistorialEstado-grid" form-view="subsysExpedientes.Ref@HistorialEstado-form"/>
+            <field name="centro" colSpan="4" requiredIf="(id == null) &amp;&amp; (cid == null)" grid-view="subsysCommon.Ref@Centro-grid" form-view="subsysCommon.Ref@Centro-form" onChange="subsysNotificaciones.Main@Sms-onChange-centro-action"/>
+            <field name="historialEstado" colSpan="8" domain="self.expediente.centro = :centro" target-name="nameState" canSuggest="false" grid-view="subsysExpedientes.Ref@HistorialEstado-grid" form-view="subsysExpedientes.Ref@HistorialEstado-form"/>
             <field name="dniDestinatario" colSpan="3" requiredIf="(id == null) &amp;&amp; (cid == null)"/>
             <field name="nombre" colSpan="4" requiredIf="(id == null) &amp;&amp; (cid == null)"/>
             <field name="apellidos" colSpan="5" requiredIf="(id == null) &amp;&amp; (cid == null)"/>
-            <field name="telefono" colSpan="4" widget="phone" x-only-countries="ES"
-                   requiredIf="(id == null) &amp;&amp; (cid == null)"/>
-            <field name="mensaje" colSpan="12" colOffset="8" widget="Text"
-                   requiredIf="(id == null) &amp;&amp; (cid == null)"/>
+            <field name="telefono" colSpan="4" widget="phone" x-only-countries="ES" requiredIf="(id == null) &amp;&amp; (cid == null)"/>
+            <field name="mensaje" colSpan="12" colOffset="8" widget="Text" requiredIf="(id == null) &amp;&amp; (cid == null)"/>
         </panel>
 
         <panel name="Envio" title="Datos del envío" colSpan="12" readonly="true" showIf="(id != null) || (cid != null)">
@@ -40,24 +30,16 @@
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <panel name="buttonsAlta" title="" colSpan="12" showFrame="false"
-                   showIf="(id == null) &amp;&amp; (cid == null)">
-                <button name="btnCancelAlta" title="Cancelar" onClick="subsysNotificaciones.Main@Sms-btnCancel-action"
-                        colSpan="2" colOffset="8" outline="true"/>
-                <button name="btnSave" title="Guardar" onClick="subsysNotificaciones.Main@Sms-btnSave-action"
-                        colSpan="2"/>
+            <panel name="buttonsAlta" title="" colSpan="12" showFrame="false" showIf="(id == null) &amp;&amp; (cid == null)">
+                <button name="btnCancelAlta" title="Cancelar" onClick="subsysNotificaciones.Main@Sms-btnCancel-action" colSpan="2" colOffset="8" outline="true"/>
+                <button name="btnSave" title="Guardar" onClick="subsysNotificaciones.Main@Sms-btnSave-action" colSpan="2"/>
             </panel>
-            <panel name="buttonsFallido" title="" colSpan="12" showFrame="false"
-                   showIf="((id != null) || (cid != null)) &amp;&amp; (estado == 'FALLIDO')">
-                <button name="btnReenviar" title="Reenviar" onClick="subsysNotificaciones.Main@Sms-btnReenviar-action"
-                        colSpan="2"/>
-                <button name="btnCancelSalirFallido" title="Salir" onClick="subsysNotificaciones.Main@Sms-btnCancel-action"
-                        colSpan="2" colOffset="8" outline="true"/>
+            <panel name="buttonsFallido" title="" colSpan="12" showFrame="false" showIf="((id != null) || (cid != null)) &amp;&amp; (estado == 'FALLIDO')">
+                <button name="btnReenviar" title="Reenviar" onClick="subsysNotificaciones.Main@Sms-btnReenviar-action" colSpan="2"/>
+                <button name="btnCancelSalirFallido" title="Salir" onClick="subsysNotificaciones.Main@Sms-btnCancel-action" colSpan="2" colOffset="8" outline="true"/>
             </panel>
-            <panel name="buttonsDetalle" title="" colSpan="12" showFrame="false"
-                   showIf="((id != null) || (cid != null)) &amp;&amp; (estado != 'FALLIDO')">
-                <button name="btnCancelSalir" title="Salir" onClick="subsysNotificaciones.Main@Sms-btnCancel-action"
-                        colSpan="2" colOffset="10" outline="true"/>
+            <panel name="buttonsDetalle" title="" colSpan="12" showFrame="false" showIf="((id != null) || (cid != null)) &amp;&amp; (estado != 'FALLIDO')">
+                <button name="btnCancelSalir" title="Salir" onClick="subsysNotificaciones.Main@Sms-btnCancel-action" colSpan="2" colOffset="10" outline="true"/>
             </panel>
         </panel>
 
@@ -101,20 +83,13 @@
     <!-- Obligatorios en cliente, solo para evitar el viaje al servidor; la fuente
          de verdad es SmsServiceImpl.validateInsert -->
     <action-condition name="subsysNotificaciones.Main@Sms-Local-validateSave-action">
-        <check field="name" if="name == null || name.trim().isEmpty()"
-               error="El motivo es obligatorio"/>
-        <check field="centro" if="centro == null"
-               error="El centro es obligatorio"/>
-        <check field="dniDestinatario" if="dniDestinatario == null || dniDestinatario.trim().isEmpty()"
-               error="El DNI del destinatario es obligatorio"/>
-        <check field="nombre" if="nombre == null || nombre.trim().isEmpty()"
-               error="El nombre es obligatorio"/>
-        <check field="apellidos" if="apellidos == null || apellidos.trim().isEmpty()"
-               error="Los apellidos son obligatorios"/>
-        <check field="telefono" if="telefono == null || telefono.trim().isEmpty()"
-               error="El teléfono es obligatorio"/>
-        <check field="mensaje" if="mensaje == null || mensaje.trim().isEmpty()"
-               error="El mensaje es obligatorio"/>
+        <check field="name" if="name == null || name.trim().isEmpty()" error="El motivo es obligatorio"/>
+        <check field="centro" if="centro == null" error="El centro es obligatorio"/>
+        <check field="dniDestinatario" if="dniDestinatario == null || dniDestinatario.trim().isEmpty()" error="El DNI del destinatario es obligatorio"/>
+        <check field="nombre" if="nombre == null || nombre.trim().isEmpty()" error="El nombre es obligatorio"/>
+        <check field="apellidos" if="apellidos == null || apellidos.trim().isEmpty()" error="Los apellidos son obligatorios"/>
+        <check field="telefono" if="telefono == null || telefono.trim().isEmpty()" error="El teléfono es obligatorio"/>
+        <check field="mensaje" if="mensaje == null || mensaje.trim().isEmpty()" error="El mensaje es obligatorio"/>
     </action-condition>
 
     <!-- Confirmación del coste del reenvío; también la usa Centro-Sms.xml (un único dueño del aviso) -->

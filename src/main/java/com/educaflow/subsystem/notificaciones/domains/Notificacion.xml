@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
     <module name="notificaciones" package="com.educaflow.subsystem.notificaciones.db"/>
 
@@ -16,8 +14,7 @@
 
         <!-- El «motivo». required en el modelo; el mensaje personalizado lo da
              NotificacionServiceImpl.validateInsert -->
-        <string name="name" title="Motivo" required="true"
-                help="Texto interno que explica de qué va la notificación; no lo ve el destinatario"/>
+        <string name="name" title="Motivo" required="true" help="Texto interno que explica de qué va la notificación; no lo ve el destinatario"/>
 
         <!-- Datos del destinatario (texto libre, no enlazan con la ficha de ninguna persona) -->
         <string name="dniDestinatario" title="DNI del destinatario" required="true"/>
@@ -34,12 +31,9 @@
             ]]>
         </string>
 
-        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro" required="true"
-                     help="Centro que envía la notificación; decide qué gestores del centro la ven"/>
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro" required="true" help="Centro que envía la notificación; decide qué gestores del centro la ven"/>
 
-        <many-to-one name="historialEstado" ref="com.educaflow.subsystem.expedientes.db.HistorialEstado"
-                     title="Estado del expediente"
-                     help="Estado en el que se encontraba el expediente cuando se envió la notificación (opcional)"/>
+        <many-to-one name="historialEstado" ref="com.educaflow.subsystem.expedientes.db.HistorialEstado" title="Estado del expediente" help="Estado en el que se encontraba el expediente cuando se envió la notificación (opcional)"/>
 
         <!-- Navega dos relaciones a otras tablas y es columna de los
              listados → formula SQL (k-validaciones/reglas-negocio.md §2.2). Sin estado ligado, null -->
@@ -59,13 +53,10 @@
         <datetime name="fechaUltimoIntentoEnvio" title="Fecha del último intento de envío"/>
         <datetime name="fechaEnvio" title="Fecha de envío"/>
         <integer name="numeroReintentos" title="Número de reintentos__!!"/>
-        <string name="descripcionUltimoFallo" title="Descripción del último fallo" large="true" multiline="true"
-                help="Traza de la excepción Java del último intento de envío fallido"/>
+        <string name="descripcionUltimoFallo" title="Descripción del último fallo" large="true" multiline="true" help="Traza de la excepción Java del último intento de envío fallido"/>
 
         <!-- Por tipo y estado: con el tipo, todas las filas devueltas son de la clase de un mismo canal -->
-        <finder-method name="findByTipoNotificacionAndEstado"
-                       using="com.educaflow.subsystem.notificaciones.db.TipoNotificacion:tipoNotificacion,com.educaflow.subsystem.notificaciones.db.EstadoNotificacion:estado"
-                       filter="self.tipoNotificacion = :tipoNotificacion AND self.estado = :estado" all="true"/>
+        <finder-method name="findByTipoNotificacionAndEstado" using="com.educaflow.subsystem.notificaciones.db.TipoNotificacion:tipoNotificacion,com.educaflow.subsystem.notificaciones.db.EstadoNotificacion:estado" filter="self.tipoNotificacion = :tipoNotificacion AND self.estado = :estado" all="true"/>
 
     </entity>
 

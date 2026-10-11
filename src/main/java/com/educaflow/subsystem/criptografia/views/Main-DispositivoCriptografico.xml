@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://axelor.com/xml/ns/object-views
-https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
-
-    <?sv-view?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">  <?sv-view?>
 
     <action-view name="subsysCriptografia.Main@DispositivoCriptografico-action" title="Dispositivos criptográficos" model="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico">
         <view type="grid" name="subsysCriptografia.Main@DispositivoCriptografico-grid"/>
@@ -13,32 +8,20 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="subsysCriptografia.Main@DispositivoCriptografico-grid" model="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico"
-          title="" orderBy="name" newButtonTitle="Añadir dispositivo criptográfico" allowSearchFields="true"
-          canAdvanceSearch="false" canRefresh="false" canNew="true"
-          editable="false" edit-icon="false" x-selector="none"
-          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
-    >
+    <grid name="subsysCriptografia.Main@DispositivoCriptografico-grid" model="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico" title="" orderBy="name" newButtonTitle="Añadir dispositivo criptográfico" allowSearchFields="true" canAdvanceSearch="false" canRefresh="false" canNew="true" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" >
         <help>Permite añadir a la aplicación un dispositivo criptográfico que se conecta por un USB</help>
         <toolbar>
-            <button name="btnRecargarDispositivos" icon="arrow-clockwise" title="Recargar dispositivos"
-                    onClick="subsysCriptografia.Main@DispositivoCriptografico-btnRecargarDispositivos-action"
-                    help="Vuelve a conectar desde cero con todos los dispositivos criptográficos por si han dejado de responder"/>
+            <button name="btnRecargarDispositivos" icon="arrow-clockwise" title="Recargar dispositivos" onClick="subsysCriptografia.Main@DispositivoCriptografico-btnRecargarDispositivos-action" help="Vuelve a conectar desde cero con todos los dispositivos criptográficos por si han dejado de responder"/>
         </toolbar>
         <field name="name"/>
         <field name="pkcs11LibraryPath"/>
         <field name="slot" width="100px"/>
     </grid>
 
-    <form name="subsysCriptografia.Main@DispositivoCriptografico-form" title="Dispositivo criptográfico" model="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico"
-          width="large"
-          onNew="subsysCriptografia.Main@DispositivoCriptografico-onNew-action"
-          onLoad="subsysCriptografia.Main@DispositivoCriptografico-onLoad-action"
-          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+    <form name="subsysCriptografia.Main@DispositivoCriptografico-form" title="Dispositivo criptográfico" model="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico" width="large" onNew="subsysCriptografia.Main@DispositivoCriptografico-onNew-action" onLoad="subsysCriptografia.Main@DispositivoCriptografico-onLoad-action" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
         <panel name="DispositivoCriptografico" title="Dispositivo criptográfico">
             <field name="name" colSpan="4"/>
-            <field name="pkcs11LibraryPath" colSpan="8"
-                   onChange="subsysCriptografia.Main@DispositivoCriptografico-onChange-pkcs11LibraryPath-action"/>
+            <field name="pkcs11LibraryPath" colSpan="8" onChange="subsysCriptografia.Main@DispositivoCriptografico-onChange-pkcs11LibraryPath-action"/>
             <field name="slot" colSpan="2"/>
             <field name="nuevoPin" colSpan="3" widget="password" requiredIf="id == null"/>
             <field name="slotsDisponibles" colSpan="12" widget="Text" height="5" readonly="true"/>
@@ -47,19 +30,12 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
             <field name="info" colSpan="12" widget="Text" height="12" title="" />
         </panel>
 
-        <panel-related name="alias" title="Alias" field="alias" colSpan="12" readonly="true" showIf="(id != null) || (cid != null)"
-            grid-view="subsysCriptografia.Ref@Alias-grid"
-            form-view="subsysCriptografia.Ref@Alias-form"
-            canNew="false" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
-        />
+        <panel-related name="alias" title="Alias" field="alias" colSpan="12" readonly="true" showIf="(id != null) || (cid != null)" grid-view="subsysCriptografia.Ref@Alias-grid" form-view="subsysCriptografia.Ref@Alias-form" canNew="false" showFooter="false" canEdit="false" canRemove="false" forceEdit="true" />
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnDelete" title="Borrar" onClick="subsysCriptografia.Main@DispositivoCriptografico-btnDelete-action"
-                    css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
-            <button name="btnCancel" title="Cancelar" onClick="subsysCriptografia.Main@DispositivoCriptografico-btnCancel-action"
-                    colSpan="2" colOffset="6" outline="true"/>
-            <button name="btnSave" title="Guardar" onClick="subsysCriptografia.Main@DispositivoCriptografico-btnSave-action"
-                    colSpan="2"/>
+            <button name="btnDelete" title="Borrar" onClick="subsysCriptografia.Main@DispositivoCriptografico-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysCriptografia.Main@DispositivoCriptografico-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysCriptografia.Main@DispositivoCriptografico-btnSave-action" colSpan="2"/>
         </panel>
     </form>
 

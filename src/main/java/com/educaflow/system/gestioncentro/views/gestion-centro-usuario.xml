@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!-- «Mi centro» → «Usuarios»: los usuarios de los centros de los que el usuario es supervisor, con sus tipos de usuario y sus cargos.
          Lo normal es que sea supervisor de un solo centro, pero pueden ser varios: el centro se elige al añadir el usuario.
@@ -16,12 +14,7 @@
         <context name="usuarioId" expr="eval: __user__?.id"/>
     </action-view>
 
-    <grid name="sysGestionCentro.Main@CentroUsuario-grid" title=""
-          model="com.educaflow.subsystem.common.db.CentroUsuario"
-          orderBy="usuario.apellidos" canNew="true" newButtonTitle="Añadir usuario" allowSearchFields="true"
-          canAdvanceSearch="false" canRefresh="false"
-          editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"
-          canEditOnClick="true">
+    <grid name="sysGestionCentro.Main@CentroUsuario-grid" title="" model="com.educaflow.subsystem.common.db.CentroUsuario" orderBy="usuario.apellidos" canNew="true" newButtonTitle="Añadir usuario" allowSearchFields="true" canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
         <field name="centro"            title="Centro"/>
         <field name="usuario.dni"       title="DNI"/>
         <field name="usuario.nombre"    title="Nombre"/>
@@ -29,26 +22,13 @@
         <field name="usuario.email"     title="Correo electrónico"/>
     </grid>
 
-    <form name="sysGestionCentro.Main@CentroUsuario-form" title="Usuario"
-          model="com.educaflow.subsystem.common.db.CentroUsuario"
-          onNew="sysGestionCentro.Main@CentroUsuario-onNew-action"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+    <form name="sysGestionCentro.Main@CentroUsuario-form" title="Usuario" model="com.educaflow.subsystem.common.db.CentroUsuario" onNew="sysGestionCentro.Main@CentroUsuario-onNew-action" width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
         <panel name="centroUsuarioDatosPanel" title="">
-            <field name="centro"  colSpan="6" required="true" readonlyIf="id != null"
-                   grid-view="subsysCommon.Ref@Centro-grid" form-view="subsysCommon.Ref@Centro-form"
-                   domain="self.id IN (SELECT cu.centro.id FROM CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut WHERE cu.usuario.id = :__user__ AND cut.tipoUsuario.codigo = 'SUPERVISOR')"/>
+            <field name="centro"  colSpan="6" required="true" readonlyIf="id != null" grid-view="subsysCommon.Ref@Centro-grid" form-view="subsysCommon.Ref@Centro-form" domain="self.id IN (SELECT cu.centro.id FROM CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut WHERE cu.usuario.id = :__user__ AND cut.tipoUsuario.codigo = 'SUPERVISOR')"/>
             <field name="usuario" colSpan="6" readonlyIf="id != null" grid-view="subsysCommon.Ref@Usuario-grid"/>
         </panel>
-        <panel-related name="centroUsuarioTipoUsuario" field="centroUsuarioTipoUsuario" title="Tipos de usuario" colSpan="12"
-                       newButtonTitle="Añadir tipo de usuario"
-                       grid-view="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-grid"
-                       form-view="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-form"
-                       showFooter="false" canEdit="false" canRemove="false" forceEdit="true"/>
-        <panel-related name="centroUsuarioCargo" field="centroUsuarioCargo" title="Cargos" colSpan="12"
-                       newButtonTitle="Añadir cargo"
-                       grid-view="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-grid"
-                       form-view="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-form"
-                       showFooter="false" canEdit="false" canRemove="false" forceEdit="true"/>
+        <panel-related name="centroUsuarioTipoUsuario" field="centroUsuarioTipoUsuario" title="Tipos de usuario" colSpan="12" newButtonTitle="Añadir tipo de usuario" grid-view="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-grid" form-view="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-form" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"/>
+        <panel-related name="centroUsuarioCargo" field="centroUsuarioCargo" title="Cargos" colSpan="12" newButtonTitle="Añadir cargo" grid-view="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-grid" form-view="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-form" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"/>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
             <button name="btnCancel" title="Cancelar" onClick="sysGestionCentro.Main@CentroUsuario-btnCancel-action" colSpan="2" colOffset="8" outline="true"/>
             <button name="btnSave"   title="Guardar"  onClick="sysGestionCentro.Main@CentroUsuario-btnSave-action"   colSpan="2"/>

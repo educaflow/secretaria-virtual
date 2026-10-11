@@ -1,47 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
     <module name="importacion" package="com.educaflow.subsystem.importacion.db"/>
 
     <entity name="TareaImportacion">
 
-        <many-to-one name="usuario"
-                     ref="com.axelor.auth.db.User"
-                     title="Usuario"/>
+        <many-to-one name="usuario" ref="com.axelor.auth.db.User" title="Usuario"/>
 
-        <many-to-one name="centro"
-                     ref="com.educaflow.subsystem.common.db.Centro"
-                     title="Centro"/>
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro"/>
 
         <integer name="curso" title="Curso"/>
 
-        <datetime name="fechaImportacion"
-                  namecolumn="true"
-                  title="Fecha de importación"/>
+        <datetime name="fechaImportacion" namecolumn="true" title="Fecha de importación"/>
 
-        <datetime name="fechaExportacion"
-                  title="Fecha de exportación"/>
+        <datetime name="fechaExportacion" title="Fecha de exportación"/>
 
-        <enum name="tipoFichero"
-              ref="com.educaflow.subsystem.importacion.db.TipoFicheroImportacion"
-              required="true"
-              title="Tipo de fichero"/>
+        <enum name="tipoFichero" ref="com.educaflow.subsystem.importacion.db.TipoFicheroImportacion" required="true" title="Tipo de fichero"/>
 
-        <many-to-one name="fichero"
-                     ref="com.axelor.meta.db.MetaFile"
-                     required="true"
-                     title="Fichero"/>
+        <many-to-one name="fichero" ref="com.axelor.meta.db.MetaFile" required="true" title="Fichero"/>
 
-        <boolean name="estado"
-                 title="Estado"
-                 help="true = correcta, false = fallida"/>
+        <boolean name="estado" title="Estado" help="true = correcta, false = fallida"/>
 
-        <string name="log"
-                large="true"
-                multiline="true"
-                title="Log__!!"/>
+        <string name="log" large="true" multiline="true" title="Log__!!"/>
 
     </entity>
 

@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
     <module name="common" package="com.educaflow.subsystem.common.db"/>
 
@@ -17,12 +15,8 @@
           quitarlo de la colección borraría sus filas. El dueño de CentroUsuarioTipoUsuario es CentroUsuario, no
           TipoUsuario. Declarándolo a false, resolveCascadeTypes vuelve a PERSIST,MERGE y no se emite orphanRemoval.
         -->
-        <one-to-many name="centroUsuarioTipoUsuario"
-                     ref="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
-                     mappedBy="tipoUsuario" orphanRemoval="false" title=""/>
-        <one-to-many name="cargos"
-                     ref="com.educaflow.subsystem.common.db.Cargo"
-                     mappedBy="tipoUsuario" orphanRemoval="false" title="Cargos"/>
+        <one-to-many name="centroUsuarioTipoUsuario" ref="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario" mappedBy="tipoUsuario" orphanRemoval="false" title=""/>
+        <one-to-many name="cargos" ref="com.educaflow.subsystem.common.db.Cargo" mappedBy="tipoUsuario" orphanRemoval="false" title="Cargos"/>
 
     </entity>
 

@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <?sv-view?>
     <action-view name="sysVentanilla.TodosAbiertos@Expediente-action" title="Expedientes abiertos de todos los centros" model="com.educaflow.subsystem.expedientes.db.Expediente">
@@ -9,12 +7,7 @@
         <domain>self.abierto = true</domain>
     </action-view>
 
-    <grid name="sysVentanilla.TodosAbiertos@Expediente-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
-          groups="admins,users"
-          groupBy="tipoExpediente.tramite.name" orderBy="fechaUltimoEstado"
-          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
-          action="sysVentanilla.Abrir@Expediente-Remote-abrirExpediente-action"
-    >
+    <grid name="sysVentanilla.TodosAbiertos@Expediente-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente" groups="admins,users" groupBy="tipoExpediente.tramite.name" orderBy="fechaUltimoEstado" editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" action="sysVentanilla.Abrir@Expediente-Remote-abrirExpediente-action" >
         <field name="numeroExpediente" width="110px"/>
         <field name="tipoExpediente.name"/>
         <field name="centro" width="200px"/>

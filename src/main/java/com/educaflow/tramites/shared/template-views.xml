@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <form name="subsysExpedientes-templates-form" title="Expediente" model="com.educaflow.subsystem.expedientes.db.Expediente">
 
@@ -26,8 +24,7 @@
             </panel>
         </panel>
 
-        <panel name="persona-solicitante" title="Persona que presenta la solicitud" colSpan="12"
-               showIf="presentadoEnRepresentacion">
+        <panel name="persona-solicitante" title="Persona que presenta la solicitud" colSpan="12" showIf="presentadoEnRepresentacion">
             <field name="personaSolicitante.nombre"    title="Nombre"    colSpan="4" readonly="true"/>
             <field name="personaSolicitante.apellidos" title="Apellidos" colSpan="5" readonly="true"/>
             <field name="personaSolicitante.dni"       title="DNI/NIE"   colSpan="3" readonly="true"/>
@@ -40,10 +37,8 @@
              representación nadie más rellena al solicitante. La identificación y el contacto los bloquea
              subsysExpedientes-persona-solicitante-onLoad-action en los demás modos, por lo mismo que se explica
              en persona-interesada. -->
-        <panel name="persona-solicitante-editable" title="Persona que presenta la solicitud" colSpan="12"
-               showIf="presentadoEnRepresentacion">
-            <field name="personaSolicitante" showTitle="false" colSpan="12"
-                   canNew="false" canSelect="false" canRemove="false" x-show-icons="false">
+        <panel name="persona-solicitante-editable" title="Persona que presenta la solicitud" colSpan="12" showIf="presentadoEnRepresentacion">
+            <field name="personaSolicitante" showTitle="false" colSpan="12" canNew="false" canSelect="false" canRemove="false" x-show-icons="false">
                 <editor x-show-titles="true">
                     <field name="nombre"    colSpan="4" required="true"/>
                     <field name="apellidos" colSpan="5" required="true"/>
@@ -61,8 +56,7 @@
              (personaInteresada.nombre) le pasa sus atributos al campo nombre del editor: por eso la
              identificación la bloquea subsysExpedientes-persona-interesada-onLoad-action. -->
         <panel name="persona-interesada" title="Persona interesada" colSpan="12">
-            <field name="personaInteresada" showTitle="false" colSpan="12"
-                   canNew="false" canSelect="false" canRemove="false">
+            <field name="personaInteresada" showTitle="false" colSpan="12" canNew="false" canSelect="false" canRemove="false">
                 <editor x-show-titles="true">
                     <field name="apellidos" colSpan="5"/>
                     <field name="nombre"    colSpan="4"/>
@@ -88,8 +82,7 @@
         <!-- ================================================================================== -->
 
         <!-- Lo que el verificador ha pedido subsanar. Solo se ve mientras hay algo pendiente de subsanar. -->
-        <panel name="subsanacion" title="Qué hay que subsanar" colSpan="12"
-               showIf="(textoSubsanacion!=null) &amp;&amp; (textoSubsanacion!='')">
+        <panel name="subsanacion" title="Qué hay que subsanar" colSpan="12" showIf="(textoSubsanacion!=null) &amp;&amp; (textoSubsanacion!='')">
             <field name="textoSubsanacion" showTitle="false" readonly="true" colSpan="12"/>
         </panel>
 
@@ -106,9 +99,7 @@
 
         <panel name="verificacion" title="Verificación de la solicitud" colSpan="12">
             <field name="resultadoVerificacion" colSpan="12" widget="RadioSelect" x-direction="horizontal" required="true"/>
-            <field name="textoSubsanacion" colSpan="12" showIf="resultadoVerificacion=='SUBSANAR'"
-                   requiredIf="resultadoVerificacion=='SUBSANAR'"
-                   help="Este texto se le enviará por correo a quien presentó la solicitud y lo verá al subsanarla"/>
+            <field name="textoSubsanacion" colSpan="12" showIf="resultadoVerificacion=='SUBSANAR'" requiredIf="resultadoVerificacion=='SUBSANAR'" help="Este texto se le enviará por correo a quien presentó la solicitud y lo verá al subsanarla"/>
         </panel>
 
         <panel name="pdfSolicitud" title="Solicitud a firmar" colSpan="12">
@@ -151,35 +142,29 @@
                 <field name="firmaEnServidor" type="boolean" showIf="false" readonly="true"/>
             </panel>
 
-            <panel name="firmaSolicitudSinCertificado" title="Firma de la solicitud" colSpan="12"
-                   showIf="situacionFirma=='SIN_CERTIFICADO'">
+            <panel name="firmaSolicitudSinCertificado" title="Firma de la solicitud" colSpan="12" showIf="situacionFirma=='SIN_CERTIFICADO'">
                 <help variant="info" colSpan="12"><![CDATA[Para presentar la solicitud debe tener la aplicación de <a href="https://sede.serviciosmin.gob.es/es-es/firmaelectronica/paginas/autofirma.aspx" target="_blank">AutoFirma</a> instalada y un certificado digital válido]]></help>
             </panel>
 
-            <panel name="firmaSolicitudDispositivoConPin" title="Firma de la solicitud" colSpan="12"
-                   showIf="situacionFirma=='DISPOSITIVO_CON_PIN'">
+            <panel name="firmaSolicitudDispositivoConPin" title="Firma de la solicitud" colSpan="12" showIf="situacionFirma=='DISPOSITIVO_CON_PIN'">
                 <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
             </panel>
 
-            <panel name="firmaSolicitudDispositivoSinPin" title="Firma de la solicitud" colSpan="12"
-                   showIf="situacionFirma=='DISPOSITIVO_SIN_PIN'">
+            <panel name="firmaSolicitudDispositivoSinPin" title="Firma de la solicitud" colSpan="12" showIf="situacionFirma=='DISPOSITIVO_SIN_PIN'">
                 <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca el PIN de su dispositivo criptográfico.]]></help>
                 <field name="claveCertificado" title="PIN" widget="password" required="true" colSpan="4"/>
             </panel>
 
-            <panel name="firmaSolicitudFicheroConClave" title="Firma de la solicitud" colSpan="12"
-                   showIf="situacionFirma=='FICHERO_CON_CLAVE'">
+            <panel name="firmaSolicitudFicheroConClave" title="Firma de la solicitud" colSpan="12" showIf="situacionFirma=='FICHERO_CON_CLAVE'">
                 <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
             </panel>
 
-            <panel name="firmaSolicitudFicheroSinClave" title="Firma de la solicitud" colSpan="12"
-                   showIf="situacionFirma=='FICHERO_SIN_CLAVE'">
+            <panel name="firmaSolicitudFicheroSinClave" title="Firma de la solicitud" colSpan="12" showIf="situacionFirma=='FICHERO_SIN_CLAVE'">
                 <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca la contraseña de su certificado.]]></help>
                 <field name="claveCertificado" title="Contraseña" widget="password" required="true" colSpan="4"/>
             </panel>
 
-            <panel name="firmaSolicitudSinDni" title="Firma de la solicitud" colSpan="12"
-                   showIf="situacionFirma=='SIN_DNI'">
+            <panel name="firmaSolicitudSinDni" title="Firma de la solicitud" colSpan="12" showIf="situacionFirma=='SIN_DNI'">
                 <help variant="warning" colSpan="12"><![CDATA[No es posible firmar la solicitud porque su usuario no tiene un documento de identidad. Póngase en contacto con el administrador.]]></help>
             </panel>
         </panel>
@@ -212,8 +197,7 @@
         <!-- Lo añade el preprocesador debajo del footer de todos los forms de estado. No es para el creador
              del expediente, salvo en papel, donde quien lo registró es personal del centro; ocultarlo es
              solo la pantalla: quién puede añadir una nota lo comprueba ExpedienteService.addNote. -->
-        <panel name="subsysExpedientes-template-notas-panel" title="Notas internas" colSpan="12"
-               hideIf="usuarioRegistrador.id == $userId &amp;&amp; !presentadoEnPapel">
+        <panel name="subsysExpedientes-template-notas-panel" title="Notas internas" colSpan="12" hideIf="usuarioRegistrador.id == $userId &amp;&amp; !presentadoEnPapel">
             <field name="notas" showTitle="false" readonly="true" colSpan="12"/>
             <field name="nuevaNota" type="string" widget="Text" title="Nueva nota" colSpan="12"/>
             <button name="add-note" title="Añadir nota" outline="true" colSpan="2" colOffset="10" onClick="subsysExpedientes-btnAddNote-action"/>
@@ -255,17 +239,12 @@
         </panel>
         <panel-related name="estados" title="Historial de estados" field="historialEstados" colSpan="12" form-view="subsysExpedientes.Expediente.HistorialEstado-form"  grid-view="subsysExpedientes.Expediente.HistorialEstado-grid" showFooter="false"/>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnCancel" title="Salir" onClick="subsysExpedientes.Expediente-verHistorialEstados-btnCancel-action"
-                    colSpan="2" colOffset="10" outline="true"/>
+            <button name="btnCancel" title="Salir" onClick="subsysExpedientes.Expediente-verHistorialEstados-btnCancel-action" colSpan="2" colOffset="10" outline="true"/>
         </panel>
     </form>
 
 
-    <grid name="subsysExpedientes.Expediente.HistorialEstado-grid" title="Historial de estados" model="com.educaflow.subsystem.expedientes.db.HistorialEstado"
-          groups="admins,users"
-          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false"
-          canSave="false" orderBy="fecha" canViewOnClick="true"
-    >
+    <grid name="subsysExpedientes.Expediente.HistorialEstado-grid" title="Historial de estados" model="com.educaflow.subsystem.expedientes.db.HistorialEstado" groups="admins,users" editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" orderBy="fecha" canViewOnClick="true" >
         <field name="createdBy"/>
         <field name="nameEvent"/>
         <field name="namePhase"/>
@@ -275,9 +254,7 @@
         <field name="registroSalida"/>
     </grid>
 
-    <form name="subsysExpedientes.Expediente.HistorialEstado-form" title="Registro" model="com.educaflow.subsystem.expedientes.db.HistorialEstado"
-          canAttach="false"
-        >
+    <form name="subsysExpedientes.Expediente.HistorialEstado-form" title="Registro" model="com.educaflow.subsystem.expedientes.db.HistorialEstado" canAttach="false" >
         <panel-tabs hideIf="(registroEntrada==null) &amp;&amp; (registroSalida==null)">
             <panel name="registroEntrada" title="Registro de Entrada" colSpan="12" hideIf="registroEntrada==null">
                 <field name="registroEntrada.numeroRegistro" />
@@ -302,15 +279,12 @@
             </help>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnCancel" title="Salir" onClick="subsysExpedientes.Expediente-verHistorialEstados-btnCancel-action"
-                    colSpan="2" colOffset="10" outline="true"/>
+            <button name="btnCancel" title="Salir" onClick="subsysExpedientes.Expediente-verHistorialEstados-btnCancel-action" colSpan="2" colOffset="10" outline="true"/>
         </panel>
     </form>
 
 
-    <grid name="subsysExpedientes.Expediente.HistorialEstado.RegistroEntrada.Anexos.MetaFile-grid" title="Anexos" model="com.axelor.meta.db.MetaFile"
-          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
-          canViewOnClick="true" >
+    <grid name="subsysExpedientes.Expediente.HistorialEstado.RegistroEntrada.Anexos.MetaFile-grid" title="Anexos" model="com.axelor.meta.db.MetaFile" editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true" >
         <field name="fileName"/>
     </grid>
     <form name="subsysExpedientes.Expediente.HistorialEstado.RegistroEntrada.Anexos.MetaFile-form" title="Anexo" canAttach="false"  model="com.axelor.meta.db.MetaFile">
@@ -319,16 +293,12 @@
             <field name="content" widget="binary" title="Descargar" colSpan="2"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnCancel" title="Salir" onClick="subsysExpedientes.Expediente-verHistorialEstados-btnCancel-action"
-                    colSpan="2" colOffset="10" outline="true"/>
+            <button name="btnCancel" title="Salir" onClick="subsysExpedientes.Expediente-verHistorialEstados-btnCancel-action" colSpan="2" colOffset="10" outline="true"/>
         </panel>
     </form>
 
 
-    <grid name="subsysExpedientes.Expediente.HistorialEstado.RegistroSalida.Anexos.MetaFile-grid" title="Anexos" model="com.axelor.meta.db.MetaFile"
-          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
-          canViewOnClick="true"
-    >
+    <grid name="subsysExpedientes.Expediente.HistorialEstado.RegistroSalida.Anexos.MetaFile-grid" title="Anexos" model="com.axelor.meta.db.MetaFile" editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true" >
         <field name="fileName"/>
     </grid>
     <form name="subsysExpedientes.Expediente.HistorialEstado.RegistroSalida.Anexos.MetaFile-form" title="Anexo" canAttach="false"  model="com.axelor.meta.db.MetaFile">
@@ -337,8 +307,7 @@
             <field name="content" widget="binary" title="Descargar" colSpan="2"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnCancel" title="Salir" onClick="subsysExpedientes.Expediente-verHistorialEstados-btnCancel-action"
-                    colSpan="2" colOffset="10" outline="true"/>
+            <button name="btnCancel" title="Salir" onClick="subsysExpedientes.Expediente-verHistorialEstados-btnCancel-action" colSpan="2" colOffset="10" outline="true"/>
         </panel>
     </form>
 

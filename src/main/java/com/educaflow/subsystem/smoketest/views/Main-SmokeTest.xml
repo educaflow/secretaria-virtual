@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://axelor.com/xml/ns/object-views
-https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
-
-    <?sv-view?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">  <?sv-view?>
 
     <!-- action-view de entrada desde el menuitem «Smoke test» -->
-    <action-view name="subsysSmokeTest.Main@SmokeTest-action" title="Smoke__!! tests__!!"
-                 model="com.educaflow.subsystem.smoketest.db.SmokeTest">
+    <action-view name="subsysSmokeTest.Main@SmokeTest-action" title="Smoke__!! tests__!!" model="com.educaflow.subsystem.smoketest.db.SmokeTest">
         <view type="grid" name="subsysSmokeTest.Main@SmokeTest-grid"/>
         <view type="form" name="subsysSmokeTest.Main@SmokeTest-form"/>
         <view-param name="show-toolbar-form" value="false"/>
@@ -21,14 +15,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         - Ordenación por defecto: -fechaCreacion (los más recientes primero, spec).
         - allowSearchFields="true": búsqueda por texto (campo visible en la columna).
     -->
-    <grid name="subsysSmokeTest.Main@SmokeTest-grid"
-          model="com.educaflow.subsystem.smoketest.db.SmokeTest"
-          title="" orderBy="-fechaCreacion"
-          newButtonTitle="Añadir un nuevo smoke test"
-          allowSearchFields="true" canAdvanceSearch="false" canRefresh="false"
-          canNew="true" editable="false" edit-icon="false" x-selector="none"
-          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
-    >
+    <grid name="subsysSmokeTest.Main@SmokeTest-grid" model="com.educaflow.subsystem.smoketest.db.SmokeTest" title="" orderBy="-fechaCreacion" newButtonTitle="Añadir un nuevo smoke test" allowSearchFields="true" canAdvanceSearch="false" canRefresh="false" canNew="true" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" >
         <field name="texto"/>
         <field name="fechaCreacion"           width="200px"/>
         <field name="fechaUltimaModificacion" width="200px"/>
@@ -43,11 +30,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         - Validación de servidor (V-SmokeTest-001) anclada al action-group del btnSave
           (antes de <action name="save"/>), no en onSave del form.
     -->
-    <form name="subsysSmokeTest.Main@SmokeTest-form" title="Smoke__!! test__!!"
-          model="com.educaflow.subsystem.smoketest.db.SmokeTest"
-          width="large"
-          canAttach="false" canBack="false" canDelete="false" canNew="false"
-          canSave="false" canMore="false" canBackOnSave="true">
+    <form name="subsysSmokeTest.Main@SmokeTest-form" title="Smoke__!! test__!!" model="com.educaflow.subsystem.smoketest.db.SmokeTest" width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
 
         <panel name="SmokeTest" title="Smoke__!! test">
             <field name="texto" colSpan="12"/>
@@ -56,16 +39,9 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnDelete" title="Borrar"
-                    onClick="subsysSmokeTest.Main@SmokeTest-btnDelete-action"
-                    css="btn-danger" colSpan="2" outline="true"
-                    showIf="(id!=null) || (cid!=null)"/>
-            <button name="btnCancel" title="Cancelar"
-                    onClick="subsysSmokeTest.Main@SmokeTest-btnCancel-action"
-                    colSpan="2" colOffset="6" outline="true"/>
-            <button name="btnSave" title="Guardar"
-                    onClick="subsysSmokeTest.Main@SmokeTest-btnSave-action"
-                    colSpan="2"/>
+            <button name="btnDelete" title="Borrar" onClick="subsysSmokeTest.Main@SmokeTest-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysSmokeTest.Main@SmokeTest-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysSmokeTest.Main@SmokeTest-btnSave-action" colSpan="2"/>
         </panel>
     </form>
 

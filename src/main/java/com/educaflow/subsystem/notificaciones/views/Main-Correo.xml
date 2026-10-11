@@ -1,25 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!-- Form del correo en «Todas»: alta (desde la elección de canal) y detalle en solo lectura (desde una
          fila del listado común). No tiene <action-view>: lo abre en popup NotificacionController
          (continuarAlta / abrirTodas), así que no hay grid al que volver y sus botones cierran con close. -->
     <?sv-view?>
-    <form name="subsysNotificaciones.Main@Correo-form" title="Correo" model="com.educaflow.subsystem.notificaciones.db.Correo"
-          width="large" onNew="subsysNotificaciones.Main@Correo-onNew-action"
-          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+    <form name="subsysNotificaciones.Main@Correo-form" title="Correo" model="com.educaflow.subsystem.notificaciones.db.Correo" width="large" onNew="subsysNotificaciones.Main@Correo-onNew-action" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
 
         <panel name="Correo" title="Datos del correo" readonlyIf="(id != null) || (cid != null)">
             <field name="tipoNotificacion" colSpan="3" readonly="true"/>
             <field name="name" colSpan="9" requiredIf="(id == null) &amp;&amp; (cid == null)"/>
-            <field name="centro" colSpan="4" requiredIf="(id == null) &amp;&amp; (cid == null)"
-                   grid-view="subsysCommon.Ref@Centro-grid" form-view="subsysCommon.Ref@Centro-form"
-                   onChange="subsysNotificaciones.Main@Correo-onChange-centro-action"/>
-            <field name="historialEstado" colSpan="8" domain="self.expediente.centro = :centro"
-                   target-name="nameState" canSuggest="false"
-                   grid-view="subsysExpedientes.Ref@HistorialEstado-grid" form-view="subsysExpedientes.Ref@HistorialEstado-form"/>
+            <field name="centro" colSpan="4" requiredIf="(id == null) &amp;&amp; (cid == null)" grid-view="subsysCommon.Ref@Centro-grid" form-view="subsysCommon.Ref@Centro-form" onChange="subsysNotificaciones.Main@Correo-onChange-centro-action"/>
+            <field name="historialEstado" colSpan="8" domain="self.expediente.centro = :centro" target-name="nameState" canSuggest="false" grid-view="subsysExpedientes.Ref@HistorialEstado-grid" form-view="subsysExpedientes.Ref@HistorialEstado-form"/>
             <field name="dniDestinatario" colSpan="3" requiredIf="(id == null) &amp;&amp; (cid == null)"/>
             <field name="nombre" colSpan="4" requiredIf="(id == null) &amp;&amp; (cid == null)"/>
             <field name="apellidos" colSpan="5" requiredIf="(id == null) &amp;&amp; (cid == null)"/>
@@ -31,16 +23,10 @@
         </panel>
 
         <!-- En el alta: se añaden y quitan adjuntos en memoria (modal Main@Correo.Adjunto) -->
-        <panel-related name="adjuntos" field="adjuntos" title="Adjuntos"
-            grid-view="subsysNotificaciones.Main@Correo.Adjunto-grid" form-view="subsysNotificaciones.Main@Correo.Adjunto-form"
-            colSpan="12" newButtonTitle="Añadir adjunto" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
-            showIf="(id == null) &amp;&amp; (cid == null)"/>
+        <panel-related name="adjuntos" field="adjuntos" title="Adjuntos" grid-view="subsysNotificaciones.Main@Correo.Adjunto-grid" form-view="subsysNotificaciones.Main@Correo.Adjunto-form" colSpan="12" newButtonTitle="Añadir adjunto" showFooter="false" canEdit="false" canRemove="false" forceEdit="true" showIf="(id == null) &amp;&amp; (cid == null)"/>
 
         <!-- En el detalle: solo consulta y descarga (Ref@Adjunto) -->
-        <panel-related name="adjuntosConsulta" field="adjuntos" title="Adjuntos"
-            grid-view="subsysNotificaciones.Ref@Adjunto-grid" form-view="subsysNotificaciones.Ref@Adjunto-form"
-            colSpan="12" canNew="false" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
-            showIf="(id != null) || (cid != null)"/>
+        <panel-related name="adjuntosConsulta" field="adjuntos" title="Adjuntos" grid-view="subsysNotificaciones.Ref@Adjunto-grid" form-view="subsysNotificaciones.Ref@Adjunto-form" colSpan="12" canNew="false" showFooter="false" canEdit="false" canRemove="false" forceEdit="true" showIf="(id != null) || (cid != null)"/>
 
         <panel name="Envio" title="Datos del envío" colSpan="12" readonly="true" showIf="(id != null) || (cid != null)">
             <field name="estado" colSpan="6"/>
@@ -53,24 +39,16 @@
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <panel name="buttonsAlta" title="" colSpan="12" showFrame="false"
-                   showIf="(id == null) &amp;&amp; (cid == null)">
-                <button name="btnCancelAlta" title="Cancelar" onClick="subsysNotificaciones.Main@Correo-btnCancel-action"
-                        colSpan="2" colOffset="8" outline="true"/>
-                <button name="btnSave" title="Guardar" onClick="subsysNotificaciones.Main@Correo-btnSave-action"
-                        colSpan="2"/>
+            <panel name="buttonsAlta" title="" colSpan="12" showFrame="false" showIf="(id == null) &amp;&amp; (cid == null)">
+                <button name="btnCancelAlta" title="Cancelar" onClick="subsysNotificaciones.Main@Correo-btnCancel-action" colSpan="2" colOffset="8" outline="true"/>
+                <button name="btnSave" title="Guardar" onClick="subsysNotificaciones.Main@Correo-btnSave-action" colSpan="2"/>
             </panel>
-            <panel name="buttonsFallido" title="" colSpan="12" showFrame="false"
-                   showIf="((id != null) || (cid != null)) &amp;&amp; (estado == 'FALLIDO')">
-                <button name="btnReenviar" title="Reenviar" onClick="subsysNotificaciones.Main@Correo-btnReenviar-action"
-                        colSpan="2"/>
-                <button name="btnCancelSalirFallido" title="Salir" onClick="subsysNotificaciones.Main@Correo-btnCancel-action"
-                        colSpan="2" colOffset="8" outline="true"/>
+            <panel name="buttonsFallido" title="" colSpan="12" showFrame="false" showIf="((id != null) || (cid != null)) &amp;&amp; (estado == 'FALLIDO')">
+                <button name="btnReenviar" title="Reenviar" onClick="subsysNotificaciones.Main@Correo-btnReenviar-action" colSpan="2"/>
+                <button name="btnCancelSalirFallido" title="Salir" onClick="subsysNotificaciones.Main@Correo-btnCancel-action" colSpan="2" colOffset="8" outline="true"/>
             </panel>
-            <panel name="buttonsDetalle" title="" colSpan="12" showFrame="false"
-                   showIf="((id != null) || (cid != null)) &amp;&amp; (estado != 'FALLIDO')">
-                <button name="btnCancelSalir" title="Salir" onClick="subsysNotificaciones.Main@Correo-btnCancel-action"
-                        colSpan="2" colOffset="10" outline="true"/>
+            <panel name="buttonsDetalle" title="" colSpan="12" showFrame="false" showIf="((id != null) || (cid != null)) &amp;&amp; (estado != 'FALLIDO')">
+                <button name="btnCancelSalir" title="Salir" onClick="subsysNotificaciones.Main@Correo-btnCancel-action" colSpan="2" colOffset="10" outline="true"/>
             </panel>
         </panel>
 
@@ -112,22 +90,14 @@
     <!-- Obligatorios en cliente, solo para evitar el viaje al servidor; la fuente
          de verdad es CorreoServiceImpl.validateInsert -->
     <action-condition name="subsysNotificaciones.Main@Correo-Local-validateSave-action">
-        <check field="name" if="name == null || name.trim().isEmpty()"
-               error="El motivo es obligatorio"/>
-        <check field="centro" if="centro == null"
-               error="El centro es obligatorio"/>
-        <check field="dniDestinatario" if="dniDestinatario == null || dniDestinatario.trim().isEmpty()"
-               error="El DNI del destinatario es obligatorio"/>
-        <check field="nombre" if="nombre == null || nombre.trim().isEmpty()"
-               error="El nombre es obligatorio"/>
-        <check field="apellidos" if="apellidos == null || apellidos.trim().isEmpty()"
-               error="Los apellidos son obligatorios"/>
-        <check field="para" if="para == null || para.trim().isEmpty()"
-               error="Debe indicar al menos un destinatario en el «para»"/>
-        <check field="asunto" if="asunto == null || asunto.trim().isEmpty()"
-               error="El asunto es obligatorio"/>
-        <check field="cuerpo" if="cuerpo == null || cuerpo.trim().isEmpty()"
-               error="El cuerpo es obligatorio"/>
+        <check field="name" if="name == null || name.trim().isEmpty()" error="El motivo es obligatorio"/>
+        <check field="centro" if="centro == null" error="El centro es obligatorio"/>
+        <check field="dniDestinatario" if="dniDestinatario == null || dniDestinatario.trim().isEmpty()" error="El DNI del destinatario es obligatorio"/>
+        <check field="nombre" if="nombre == null || nombre.trim().isEmpty()" error="El nombre es obligatorio"/>
+        <check field="apellidos" if="apellidos == null || apellidos.trim().isEmpty()" error="Los apellidos son obligatorios"/>
+        <check field="para" if="para == null || para.trim().isEmpty()" error="Debe indicar al menos un destinatario en el «para»"/>
+        <check field="asunto" if="asunto == null || asunto.trim().isEmpty()" error="El asunto es obligatorio"/>
+        <check field="cuerpo" if="cuerpo == null || cuerpo.trim().isEmpty()" error="El cuerpo es obligatorio"/>
     </action-condition>
 
     <?sv-rules?>
@@ -153,37 +123,25 @@
 
     <?sv-view?>
 
-    <grid name="subsysNotificaciones.Main@Correo.Adjunto-grid" title="" model="com.educaflow.subsystem.notificaciones.db.Adjunto"
-          canNew="true" newButtonTitle="Añadir adjunto" allowSearchFields="false" orderBy="nombreFichero"
-          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
-          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
+    <grid name="subsysNotificaciones.Main@Correo.Adjunto-grid" title="" model="com.educaflow.subsystem.notificaciones.db.Adjunto" canNew="true" newButtonTitle="Añadir adjunto" allowSearchFields="false" orderBy="nombreFichero" canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
         <field name="nombreFichero"/>
     </grid>
 
-    <form name="subsysNotificaciones.Main@Correo.Adjunto-form" title="Adjunto" model="com.educaflow.subsystem.notificaciones.db.Adjunto"
-          width="large" onNew="subsysNotificaciones.Main@Correo.Adjunto-onNew-action"
-          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+    <form name="subsysNotificaciones.Main@Correo.Adjunto-form" title="Adjunto" model="com.educaflow.subsystem.notificaciones.db.Adjunto" width="large" onNew="subsysNotificaciones.Main@Correo.Adjunto-onNew-action" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="Adjunto" title="">
             <field name="nombreFichero" colSpan="8" required="true"/>
             <field name="contenido" colSpan="4" widget="binary-link" required="true"/>
             <field name="correo" showIf="false"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <panel name="buttonsAlta" title="" colSpan="12" showFrame="false"
-                   showIf="(id == null) &amp;&amp; (cid == null)">
-                <button name="btnCancelAlta" title="Cancelar" onClick="subsysNotificaciones.Main@Correo.Adjunto-btnCancel-action"
-                        colSpan="2" colOffset="8" outline="true"/>
-                <button name="btnSaveAlta" title="Guardar" onClick="subsysNotificaciones.Main@Correo.Adjunto-btnSave-action"
-                        colSpan="2"/>
+            <panel name="buttonsAlta" title="" colSpan="12" showFrame="false" showIf="(id == null) &amp;&amp; (cid == null)">
+                <button name="btnCancelAlta" title="Cancelar" onClick="subsysNotificaciones.Main@Correo.Adjunto-btnCancel-action" colSpan="2" colOffset="8" outline="true"/>
+                <button name="btnSaveAlta" title="Guardar" onClick="subsysNotificaciones.Main@Correo.Adjunto-btnSave-action" colSpan="2"/>
             </panel>
-            <panel name="buttonsEdicion" title="" colSpan="12" showFrame="false"
-                   showIf="(id != null) || (cid != null)">
-                <button name="btnDelete" title="Borrar" onClick="subsysNotificaciones.Main@Correo.Adjunto-btnDelete-action"
-                        css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
-                <button name="btnCancelSalir" title="Cancelar" onClick="subsysNotificaciones.Main@Correo.Adjunto-btnCancel-action"
-                        colSpan="2" colOffset="6" outline="true"/>
-                <button name="btnSaveEdicion" title="Guardar" onClick="subsysNotificaciones.Main@Correo.Adjunto-btnSave-action"
-                        colSpan="2"/>
+            <panel name="buttonsEdicion" title="" colSpan="12" showFrame="false" showIf="(id != null) || (cid != null)">
+                <button name="btnDelete" title="Borrar" onClick="subsysNotificaciones.Main@Correo.Adjunto-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+                <button name="btnCancelSalir" title="Cancelar" onClick="subsysNotificaciones.Main@Correo.Adjunto-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+                <button name="btnSaveEdicion" title="Guardar" onClick="subsysNotificaciones.Main@Correo.Adjunto-btnSave-action" colSpan="2"/>
             </panel>
         </panel>
     </form>
@@ -217,18 +175,12 @@
          que ActionValidate se para en el primer <error> que se cumple. El orden de los <error> es el de
          prioridad del aviso. -->
     <action-validate name="subsysNotificaciones.Main@Correo.Adjunto-Local-validateSave-action">
-        <error if="nombreFichero == null || nombreFichero.trim().isEmpty()"
-               message="El nombre del fichero es obligatorio"/>
-        <error if="contenido == null"
-               message="Debe adjuntar el fichero"/>
-        <error if="nombreFichero != null &amp;&amp; nombreFichero =~ /[\/\\\p{Cntrl}]/"
-               message="El nombre del fichero no puede contener los caracteres / \\ ni caracteres de control"/>
-        <error if="nombreFichero != null &amp;&amp; nombreFichero.length() &gt; 255"
-               message="El nombre del fichero no puede superar 255 caracteres"/>
-        <error if="nombreFichero != null &amp;&amp; (nombreFichero.trim() == '.' || nombreFichero.trim() == '..')"
-               message="El nombre del fichero no puede ser «.» ni «..»"/>
-        <error if="contenido != null &amp;&amp; contenido.fileSize == 0"
-               message="El fichero adjunto está vacío"/>
+        <error if="nombreFichero == null || nombreFichero.trim().isEmpty()" message="El nombre del fichero es obligatorio"/>
+        <error if="contenido == null" message="Debe adjuntar el fichero"/>
+        <error if="nombreFichero != null &amp;&amp; nombreFichero =~ /[\/\\\p{Cntrl}]/" message="El nombre del fichero no puede contener los caracteres / \\ ni caracteres de control"/>
+        <error if="nombreFichero != null &amp;&amp; nombreFichero.length() &gt; 255" message="El nombre del fichero no puede superar 255 caracteres"/>
+        <error if="nombreFichero != null &amp;&amp; (nombreFichero.trim() == '.' || nombreFichero.trim() == '..')" message="El nombre del fichero no puede ser «.» ni «..»"/>
+        <error if="contenido != null &amp;&amp; contenido.fileSize == 0" message="El fichero adjunto está vacío"/>
     </action-validate>
 
     <?sv-rules?>

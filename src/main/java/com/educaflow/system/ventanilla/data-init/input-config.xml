@@ -1,10 +1,5 @@
 <?xml version="1.0"?>
-<xml-inputs priority="10" xmlns="http://axelor.com/xml/ns/data-import"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://axelor.com/xml/ns/data-import
-  https://axelor.com/xml/ns/data-import/data-import_8.0.xsd">
-
-    <input file="auth-ventanilla.xml" root="auth">
+<xml-inputs priority="10" xmlns="http://axelor.com/xml/ns/data-import" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/data-import https://axelor.com/xml/ns/data-import/data-import_8.0.xsd">  <input file="auth-ventanilla.xml" root="auth">
         <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true" update="true">
             <bind node="@name" to="name"/>
             <bind node="@object" to="object"/>

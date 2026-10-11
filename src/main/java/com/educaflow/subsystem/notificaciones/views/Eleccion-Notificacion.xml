@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!-- Elección de canal: popup sobre «Todas» que no guarda nada. Las opciones salen del propio enumerado
          TipoNotificacion, así que un canal nuevo aparece aquí sin tocar esta vista. «Continuar» abre en
@@ -19,9 +17,7 @@
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <form name="subsysNotificaciones.Eleccion@Notificacion-form" title="Elija el canal de la notificación" model="com.educaflow.subsystem.notificaciones.db.Notificacion"
-          width="large"
-          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+    <form name="subsysNotificaciones.Eleccion@Notificacion-form" title="Elija el canal de la notificación" model="com.educaflow.subsystem.notificaciones.db.Notificacion" width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
 
         <!-- Sin valor por defecto: al abrirse no hay canal elegido -->
         <panel name="Canal" title="Canal">
@@ -29,10 +25,8 @@
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnCancel" title="Cancelar" onClick="subsysNotificaciones.Eleccion@Notificacion-btnCancel-action"
-                    colSpan="2" colOffset="8" outline="true"/>
-            <button name="btnContinuar" title="Continuar" onClick="subsysNotificaciones.Eleccion@Notificacion-btnContinuar-action"
-                    colSpan="2" readonlyIf="tipoNotificacion == null"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysNotificaciones.Eleccion@Notificacion-btnCancel-action" colSpan="2" colOffset="8" outline="true"/>
+            <button name="btnContinuar" title="Continuar" onClick="subsysNotificaciones.Eleccion@Notificacion-btnContinuar-action" colSpan="2" readonlyIf="tipoNotificacion == null"/>
         </panel>
 
     </form>

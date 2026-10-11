@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xmlns="http://axelor.com/xml/ns/object-views"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://axelor.com/xml/ns/object-views" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!-- *********************************************************************************************  -->
     <!-- *************************************** ENTRADA_DATOS ***************************************  -->
     <!-- *********************************************************************************************  -->
-    <form state="ENTRADA_DATOS" profile="CREADOR"
-          onLoad="exp-AnulacionMatriculaCicloFormativoV1-ENTRADA_DATOS-onLoad-action">
+    <form state="ENTRADA_DATOS" profile="CREADOR" onLoad="exp-AnulacionMatriculaCicloFormativoV1-ENTRADA_DATOS-onLoad-action">
         <include-panels>
             -subsanacion
             persona-solicitante-editable
@@ -28,21 +25,15 @@
                 <button name="BACK"   colSpan="3"                  outline="true"              title="Atrás"                showIf="presentadoEnPapel"  onClick="subsysTramitador-event-action" />
             </buttons-left>
             <buttons-right>
-                <button name="GUARDAR_DATOS" colSpan="3" title="Siguiente"
-                        showIf="!presentadoEnPapel"
-                        onClick="subsysTramitador-event-action"/>
-                <button name="GUARDAR_DATOS" colSpan="3" title="Presentar la solicitud"
-                        showIf="presentadoEnPapel"
-                        onClick="subsysTramitador-event-action"
-                        prompt="Va a presentar la solicitud de anulación entregada en papel. Una vez presentada no podrá modificarla"/>
+                <button name="GUARDAR_DATOS" colSpan="3" title="Siguiente" showIf="!presentadoEnPapel" onClick="subsysTramitador-event-action"/>
+                <button name="GUARDAR_DATOS" colSpan="3" title="Presentar la solicitud" showIf="presentadoEnPapel" onClick="subsysTramitador-event-action" prompt="Va a presentar la solicitud de anulación entregada en papel. Una vez presentada no podrá modificarla"/>
             </buttons-right>
         </footer>
     </form>
 
     <!-- El estado lo comparten las dos formas de presentar, así que tiene un form por perfil: el de arriba para
          quien presenta telemáticamente (CREADOR) y este para quien registra el papel (TRAMITADOR). -->
-    <form state="ENTRADA_DATOS" profile="TRAMITADOR"
-          onLoad="exp-AnulacionMatriculaCicloFormativoV1-ENTRADA_DATOS-onLoad-action">
+    <form state="ENTRADA_DATOS" profile="TRAMITADOR" onLoad="exp-AnulacionMatriculaCicloFormativoV1-ENTRADA_DATOS-onLoad-action">
         <include-panels>
             -subsanacion
             persona-solicitante-editable
@@ -60,17 +51,11 @@
 
         <footer>
             <buttons-left>
-                <button name="DELETE" showIf="presentadoEnPapel" colSpan="3" css="btn-danger" outline="true" icon="trash"
-                        title="Borrar el expediente"
-                        onClick="subsysTramitador-event-action"
-                        prompt="Se va a eliminar el expediente y no podrá recuperarlo"/>
-                <button name="BACK" showIf="presentadoEnPapel" colSpan="3" outline="true" title="Atrás"
-                        onClick="subsysTramitador-event-action"/>
+                <button name="DELETE" showIf="presentadoEnPapel" colSpan="3" css="btn-danger" outline="true" icon="trash" title="Borrar el expediente" onClick="subsysTramitador-event-action" prompt="Se va a eliminar el expediente y no podrá recuperarlo"/>
+                <button name="BACK" showIf="presentadoEnPapel" colSpan="3" outline="true" title="Atrás" onClick="subsysTramitador-event-action"/>
             </buttons-left>
             <buttons-right>
-                <button name="GUARDAR_DATOS" showIf="presentadoEnPapel" colSpan="3" title="Presentar la solicitud"
-                        onClick="subsysTramitador-event-action"
-                        prompt="Va a presentar la solicitud de anulación entregada en papel. Una vez presentada no podrá modificarla"/>
+                <button name="GUARDAR_DATOS" showIf="presentadoEnPapel" colSpan="3" title="Presentar la solicitud" onClick="subsysTramitador-event-action" prompt="Va a presentar la solicitud de anulación entregada en papel. Una vez presentada no podrá modificarla"/>
             </buttons-right>
         </footer>
     </form>
@@ -98,8 +83,7 @@
     <!-- *********************************************************************************************  -->
     <!-- *********************************** PENDIENTE_PRESENTACION **********************************  -->
     <!-- *********************************************************************************************  -->
-    <form state="PENDIENTE_PRESENTACION" profile="CREADOR"
-          onLoad="exp-AnulacionMatriculaCicloFormativoV1-PENDIENTE_PRESENTACION-onLoad-action">
+    <form state="PENDIENTE_PRESENTACION" profile="CREADOR" onLoad="exp-AnulacionMatriculaCicloFormativoV1-PENDIENTE_PRESENTACION-onLoad-action">
         <include-panels>
             -subsanacion
             -pdfSolicitud
@@ -112,18 +96,11 @@
 
         <footer>
             <buttons-left>
-                <button name="BACK" colSpan="3" outline="true" title="Atrás"
-                        onClick="subsysTramitador-event-action"/>
+                <button name="BACK" colSpan="3" outline="true" title="Atrás" onClick="subsysTramitador-event-action"/>
             </buttons-left>
             <buttons-right>
-                <button name="PRESENTAR" colSpan="3" title="Firmar y presentar la solicitud"
-                        showIf="situacionFirma=='SIN_CERTIFICADO'"
-                        onClick="serial:exp-AnulacionMatriculaCicloFormativoV1-firmarSolicitud-action,subsysTramitador-event-action"
-                        prompt="Va a firmar y presentar la solicitud de anulación. Una vez presentada no podrá modificarla"/>
-                <button name="PRESENTAR" colSpan="3" title="Firmar y presentar la solicitud"
-                        showIf="firmaEnServidor"
-                        onClick="serial:subsysTramitador-event-action,exp-AnulacionMatriculaCicloFormativoV1-set-claveCertificado-null-action"
-                        prompt="Va a firmar y presentar la solicitud de anulación. Una vez presentada no podrá modificarla"/>
+                <button name="PRESENTAR" colSpan="3" title="Firmar y presentar la solicitud" showIf="situacionFirma=='SIN_CERTIFICADO'" onClick="serial:exp-AnulacionMatriculaCicloFormativoV1-firmarSolicitud-action,subsysTramitador-event-action" prompt="Va a firmar y presentar la solicitud de anulación. Una vez presentada no podrá modificarla"/>
+                <button name="PRESENTAR" colSpan="3" title="Firmar y presentar la solicitud" showIf="firmaEnServidor" onClick="serial:subsysTramitador-event-action,exp-AnulacionMatriculaCicloFormativoV1-set-claveCertificado-null-action" prompt="Va a firmar y presentar la solicitud de anulación. Una vez presentada no podrá modificarla"/>
             </buttons-right>
         </footer>
     </form>
@@ -164,14 +141,10 @@
 
         <footer>
             <buttons-left>
-                <button name="DELETE" colSpan="3" css="btn-danger" outline="true" icon="trash"
-                        title="Borrar el expediente"
-                        onClick="subsysTramitador-event-action"
-                        prompt="Se va a eliminar el expediente y no podrá recuperarlo"/>
+                <button name="DELETE" colSpan="3" css="btn-danger" outline="true" icon="trash" title="Borrar el expediente" onClick="subsysTramitador-event-action" prompt="Se va a eliminar el expediente y no podrá recuperarlo"/>
             </buttons-left>
             <buttons-right>
-                <button name="CONTINUAR" colSpan="3" title="Siguiente"
-                        onClick="subsysTramitador-event-action"/>
+                <button name="CONTINUAR" colSpan="3" title="Siguiente" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -211,23 +184,18 @@
         <action name="exp-AnulacionMatriculaCicloFormativoV1-set-situacionFirma-action"/>
     </action-group>
 
-    <action-record name="exp-AnulacionMatriculaCicloFormativoV1-set-situacionFirma-action"
-                   model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1">
-        <field name="situacionFirma"
-               expr="call:com.educaflow.subsystem.criptografia.controller.CertificadoDigitalController:getSituacionFirma()"/>
-        <field name="firmaEnServidor"
-               expr="call:com.educaflow.subsystem.criptografia.controller.CertificadoDigitalController:isFirmaEnServidor()"/>
+    <action-record name="exp-AnulacionMatriculaCicloFormativoV1-set-situacionFirma-action" model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1">
+        <field name="situacionFirma" expr="call:com.educaflow.subsystem.criptografia.controller.CertificadoDigitalController:getSituacionFirma()"/>
+        <field name="firmaEnServidor" expr="call:com.educaflow.subsystem.criptografia.controller.CertificadoDigitalController:isFirmaEnServidor()"/>
     </action-record>
 
     <!-- firmaSolicitante: el campoFirma de documentospdf/solicitud.xml, el mismo que CAMPO_FIRMA_SOLICITUD
          del PhaseEventManagerImpl de esta fase. MUST NOT cambiarse aquí sin cambiarlo allí. -->
     <action-method name="exp-AnulacionMatriculaCicloFormativoV1-firmarSolicitud-action">
-        <call class="com.educaflow.tramites.util.firma.FirmaClienteController"
-              method='firmarDocumentoEnCampo(id,"pdfSolicitud","pdfSolicitudFirmada","firmaSolicitante")'/>
+        <call class="com.educaflow.tramites.util.firma.FirmaClienteController" method='firmarDocumentoEnCampo(id,"pdfSolicitud","pdfSolicitudFirmada","firmaSolicitante")'/>
     </action-method>
 
-    <action-record name="exp-AnulacionMatriculaCicloFormativoV1-set-claveCertificado-null-action"
-                   model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1">
+    <action-record name="exp-AnulacionMatriculaCicloFormativoV1-set-claveCertificado-null-action" model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1">
         <field name="claveCertificado" expr="eval: null"/>
     </action-record>
 

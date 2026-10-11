@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://axelor.com/xml/ns/object-views
-https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
-
-    <?sv-view?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">  <?sv-view?>
 
     <action-view name="subsysSistemaEducativo.Main@LeyEducativa-action" title="Leyes educativas" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
         <view type="grid" name="subsysSistemaEducativo.Main@LeyEducativa-grid"/>
@@ -13,30 +8,21 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="subsysSistemaEducativo.Main@LeyEducativa-grid" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
-          title="" orderBy="name" newButtonTitle="Añadir una nueva ley educativa" allowSearchFields="true"
-          canAdvanceSearch="false" canRefresh="false" canNew="true"
-          editable="false" edit-icon="false" x-selector="none"
-          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
-    >
+    <grid name="subsysSistemaEducativo.Main@LeyEducativa-grid" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa" title="" orderBy="name" newButtonTitle="Añadir una nueva ley educativa" allowSearchFields="true" canAdvanceSearch="false" canRefresh="false" canNew="true" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" >
         <field name="code" width="200px"/>
         <field name="name"/>
     </grid>
 
-    <form name="subsysSistemaEducativo.Main@LeyEducativa-form" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+    <form name="subsysSistemaEducativo.Main@LeyEducativa-form" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa" width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
         <panel name="LeyEducativa" title="Ley educativa">
             <field name="code" colSpan="3"/>
             <field name="name" colSpan="6" colOffset="3"/>
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@LeyEducativa-btnDelete-action"
-                    css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
-            <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Main@LeyEducativa-btnCancel-action"
-                    colSpan="2" colOffset="6" outline="true"/>
-            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Main@LeyEducativa-btnSave-action"
-                    colSpan="2"/>
+            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@LeyEducativa-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Main@LeyEducativa-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Main@LeyEducativa-btnSave-action" colSpan="2"/>
         </panel>
     </form>
 

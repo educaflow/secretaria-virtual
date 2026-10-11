@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xmlns="http://axelor.com/xml/ns/object-views"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://axelor.com/xml/ns/object-views" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <form name="exp-AnulacionMatriculaCicloFormativoV1-Templates" width="large"
-          title="Anulación de matrícula en ciclo formativo"
-          model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1"
-          groups="admins,users">
+    <form name="exp-AnulacionMatriculaCicloFormativoV1-Templates" width="large" title="Anulación de matrícula en ciclo formativo" model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1" groups="admins,users">
 
         <!-- Los paneles subsanacion, verificacion, solicitud-escaneada-* y firma-solicitud, y los visores
              pdfSolicitud y pdfSolicitudFirmada de las fases comunes ENTRADA y VERIFICACION están en
@@ -16,8 +11,7 @@
         <!-- Datos del alumno                                                                   -->
         <!-- ================================================================================== -->
         <panel name="datos-alumno" title="Datos de identificación del alumno" colSpan="12" showFrame="false">
-            <field name="personaInteresada" showTitle="false" colSpan="12"
-                   canNew="false" canSelect="false" canRemove="false" x-show-icons="false">
+            <field name="personaInteresada" showTitle="false" colSpan="12" canNew="false" canSelect="false" canRemove="false" x-show-icons="false">
                 <editor x-show-titles="true">
 
                     <panel name="alumno" title="Alumno/a al que se refiere la solicitud" colSpan="12" showFrame="true">
@@ -56,10 +50,7 @@
             <field name="cursoAcademico" colSpan="3" readonly="true"/>
             <field name="centro.name" title="Centro" colSpan="9" readonly="true"/>
 
-            <field name="ciclo" colSpan="9"
-                   grid-view="subsysSistemaEducativo.Ref@Ciclo-grid"
-                   form-view="subsysSistemaEducativo.Ref@Ciclo-form"
-                   help="Elija el ciclo en el que está matriculado; puede buscarlo por familia profesional, grado, nivel o nombre"/>
+            <field name="ciclo" colSpan="9" grid-view="subsysSistemaEducativo.Ref@Ciclo-grid" form-view="subsysSistemaEducativo.Ref@Ciclo-form" help="Elija el ciclo en el que está matriculado; puede buscarlo por familia profesional, grado, nivel o nombre"/>
             <field name="ciclo.gradoNivel" title="Grado o nivel" colSpan="3" readonly="true" depends="ciclo"/>
         </panel>
 
@@ -67,9 +58,7 @@
             <field name="cursoAcademico" colSpan="3" readonly="true"/>
             <field name="centro.name" title="Centro" colSpan="9" readonly="true"/>
 
-            <field name="ciclo" colSpan="9" readonly="true"
-                   grid-view="subsysSistemaEducativo.Ref@Ciclo-grid"
-                   form-view="subsysSistemaEducativo.Ref@Ciclo-form"/>
+            <field name="ciclo" colSpan="9" readonly="true" grid-view="subsysSistemaEducativo.Ref@Ciclo-grid" form-view="subsysSistemaEducativo.Ref@Ciclo-form"/>
             <field name="ciclo.gradoNivel" title="Grado o nivel" colSpan="3" readonly="true" depends="ciclo"/>
 
             <field name="fechaHoraPresentacion" colSpan="4" readonly="true"/>
@@ -123,11 +112,8 @@
         <!-- Resolución                                                                         -->
         <!-- ================================================================================== -->
         <panel name="resolucion" title="Resolución de la solicitud" colSpan="12">
-            <field name="tipoResolucion"  colSpan="8" widget="RadioSelect" x-direction="horizontal" required="true"
-                   onChange="exp-AnulacionMatriculaCicloFormativoV1-limpiar-resolucion-action"/>
-            <field name="motivoRechazo"    colSpan="12" showIf="tipoResolucion=='RECHAZAR'"
-                   requiredIf="tipoResolucion=='RECHAZAR'"
-                   help="Este texto se imprimirá tal cual en la resolución que recibirá el alumno"/>
+            <field name="tipoResolucion"  colSpan="8" widget="RadioSelect" x-direction="horizontal" required="true" onChange="exp-AnulacionMatriculaCicloFormativoV1-limpiar-resolucion-action"/>
+            <field name="motivoRechazo"    colSpan="12" showIf="tipoResolucion=='RECHAZAR'" requiredIf="tipoResolucion=='RECHAZAR'" help="Este texto se imprimirá tal cual en la resolución que recibirá el alumno"/>
         </panel>
 
         <panel name="decision-secretaria" title="Decisión de secretaría" colSpan="12">

@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 
     <?sv-view?>
@@ -17,20 +15,14 @@
         <context name="firmanteId" expr="eval:__user__.id"/>
     </action-view>
 
-    <grid name="subsysFirmas.Pendiente@TareaFirma-grid" title="" model="com.educaflow.subsystem.firmas.db.TareaFirma"
-          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
-          orderBy="fechaSolicitud" canEditOnClick="true"
-    >
+    <grid name="subsysFirmas.Pendiente@TareaFirma-grid" title="" model="com.educaflow.subsystem.firmas.db.TareaFirma" editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" orderBy="fechaSolicitud" canEditOnClick="true" >
         <field name="fechaSolicitud"/>
         <field name="firmante"/>
         <field name="motivoFirma"/>
         <field name="estadoTareaFirma"/>
     </grid>
 
-    <form name="subsysFirmas.Pendiente@TareaFirma-form" title="Firma de documento" model="com.educaflow.subsystem.firmas.db.TareaFirma"
-          canEdit="true" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canCancel="false" canMore="false"
-          onLoad="subsysFirmas.Pendiente@TareaFirma-onLoad-action" related='{"documentosFirma":["documentoOriginal","documentoFirmado"]}'
-    >
+    <form name="subsysFirmas.Pendiente@TareaFirma-form" title="Firma de documento" model="com.educaflow.subsystem.firmas.db.TareaFirma" canEdit="true" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canCancel="false" canMore="false" onLoad="subsysFirmas.Pendiente@TareaFirma-onLoad-action" related='{"documentosFirma":["documentoOriginal","documentoFirmado"]}' >
         <panel name="tareaFirmaInsertDTO" title="Estado de la tarea a firmar" colSpan="12" readonly="true">
             <field name="estadoTareaFirma"  colSpan="6"/>
             <field name="motivoFirma"   colSpan="12" colOffset="6"/>
@@ -41,11 +33,7 @@
         </panel>
 
 
-        <panel-related name="documentosFirma" title="Documentos a firmar" field="documentosFirma" colSpan="12"  readonly="true"
-            grid-view="subsysFirmas.Pendiente@TareaFirma.DocumentoFirma-grid"
-            form-view="subsysFirmas.Pendiente@TareaFirma.DocumentoFirma-form"
-            canNew="false" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
-        />
+        <panel-related name="documentosFirma" title="Documentos a firmar" field="documentosFirma" colSpan="12"  readonly="true" grid-view="subsysFirmas.Pendiente@TareaFirma.DocumentoFirma-grid" form-view="subsysFirmas.Pendiente@TareaFirma.DocumentoFirma-form" canNew="false" showFooter="false" canEdit="false" canRemove="false" forceEdit="true" />
 
 
 
@@ -53,35 +41,29 @@
             <field name="motivoRechazo"   colSpan="12" widget="Text"/>
         </panel>
 
-        <panel name="paso2FirmarSinCertificado" title="Firmar el documento" colSpan="12"
-               showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='SIN_CERTIFICADO'">
+        <panel name="paso2FirmarSinCertificado" title="Firmar el documento" colSpan="12" showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='SIN_CERTIFICADO'">
             <help variant="info" colSpan="12" colOffset="0" ><![CDATA[Para firmar los documentos debe tener la aplicación de <a href="https://sede.serviciosmin.gob.es/es-es/firmaelectronica/paginas/autofirma.aspx" target="_blank">AutoFirma</a> instalada y un certificado digital válido.]]></help>
         </panel>
 
-        <panel name="paso2FirmarDispositivoConPin" title="Firmar el documento" colSpan="12"
-               showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='DISPOSITIVO_CON_PIN'">
+        <panel name="paso2FirmarDispositivoConPin" title="Firmar el documento" colSpan="12" showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='DISPOSITIVO_CON_PIN'">
             <help variant="info" colSpan="12" colOffset="0" ><![CDATA[Los documentos se firmarán en el servidor con su certificado digital.]]></help>
         </panel>
 
-        <panel name="paso2FirmarDispositivoSinPin" title="Firmar el documento" colSpan="12"
-               showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='DISPOSITIVO_SIN_PIN'">
+        <panel name="paso2FirmarDispositivoSinPin" title="Firmar el documento" colSpan="12" showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='DISPOSITIVO_SIN_PIN'">
             <help variant="info" colSpan="12" colOffset="0" ><![CDATA[Los documentos se firmarán en el servidor con su certificado digital. Introduzca el PIN de su dispositivo criptográfico.]]></help>
             <field name="claveCertificado" type="string" title="PIN" widget="password" required="true" colSpan="4"/>
         </panel>
 
-        <panel name="paso2FirmarFicheroConClave" title="Firmar el documento" colSpan="12"
-               showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='FICHERO_CON_CLAVE'">
+        <panel name="paso2FirmarFicheroConClave" title="Firmar el documento" colSpan="12" showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='FICHERO_CON_CLAVE'">
             <help variant="info" colSpan="12" colOffset="0" ><![CDATA[Los documentos se firmarán en el servidor con su certificado digital.]]></help>
         </panel>
 
-        <panel name="paso2FirmarFicheroSinClave" title="Firmar el documento" colSpan="12"
-               showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='FICHERO_SIN_CLAVE'">
+        <panel name="paso2FirmarFicheroSinClave" title="Firmar el documento" colSpan="12" showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='FICHERO_SIN_CLAVE'">
             <help variant="info" colSpan="12" colOffset="0" ><![CDATA[Los documentos se firmarán en el servidor con su certificado digital. Introduzca la contraseña de su certificado.]]></help>
             <field name="claveCertificado" type="string" title="Contraseña" widget="password" required="true" colSpan="4"/>
         </panel>
 
-        <panel name="paso2FirmarSinDni" title="Firmar el documento" colSpan="12"
-               showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='SIN_DNI'">
+        <panel name="paso2FirmarSinDni" title="Firmar el documento" colSpan="12" showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='SIN_DNI'">
             <help variant="warning" colSpan="12" colOffset="0" ><![CDATA[No es posible firmar los documentos porque su usuario no tiene un DNI. Póngase en contacto con el administrador.]]></help>
         </panel>
 
@@ -94,18 +76,15 @@
                 <button name="btnPaso2RechazadoAtras"   onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso2RechazadoAtras-action"   title="Atrás"                      css="btn-secondary" colSpan="3" outline="true" />
                 <button name="btnPaso2RechazadoGuardar" onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso2RechazadoGuardar-action" title="Finalizar"                     colSpan="3" colOffset="6"  />
             </panel>
-            <panel name="buttonsPaso2FirmarAutoFirma" title="" colSpan="12" showFrame="false"
-                   showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='SIN_CERTIFICADO'">
+            <panel name="buttonsPaso2FirmarAutoFirma" title="" colSpan="12" showFrame="false" showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='SIN_CERTIFICADO'">
                 <button name="btnPaso2FirmarAtrasAutoFirma"  onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso2FirmarAtras-action"  title="Atrás"   css="btn-secondary" colSpan="3" outline="true" />
                 <button name="btnPaso2FirmarGuardar"    onClick="serial:subsysFirmas.Pendiente@TareaFirma-btnPaso2FirmarGuardar-firmarConAutoFirma-action,subsysFirmas.Pendiente@TareaFirma-btnPaso2FirmarGuardar-action" title="Firmar todos los documentos con AutoFirma__!! y finalizar"      colSpan="5" colOffset="4"  />
             </panel>
-            <panel name="buttonsPaso2FirmarServidor" title="" colSpan="12" showFrame="false"
-                   showIf="pasoActual=='paso2Firmar' &amp;&amp; (situacionFirma=='DISPOSITIVO_CON_PIN' || situacionFirma=='DISPOSITIVO_SIN_PIN' || situacionFirma=='FICHERO_CON_CLAVE' || situacionFirma=='FICHERO_SIN_CLAVE')">
+            <panel name="buttonsPaso2FirmarServidor" title="" colSpan="12" showFrame="false" showIf="pasoActual=='paso2Firmar' &amp;&amp; (situacionFirma=='DISPOSITIVO_CON_PIN' || situacionFirma=='DISPOSITIVO_SIN_PIN' || situacionFirma=='FICHERO_CON_CLAVE' || situacionFirma=='FICHERO_SIN_CLAVE')">
                 <button name="btnPaso2FirmarAtrasServidor"   onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso2FirmarAtras-action"  title="Atrás"   css="btn-secondary" colSpan="3" outline="true" />
                 <button name="btnPaso2FirmarServidorGuardar" onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso2FirmarServidorGuardar-action" title="Firmar todos los documentos y finalizar"      colSpan="5" colOffset="4"  />
             </panel>
-            <panel name="buttonsPaso2FirmarSinDni" title="" colSpan="12" showFrame="false"
-                   showIf="pasoActual=='paso2Firmar' &amp;&amp; !(situacionFirma=='SIN_CERTIFICADO' || situacionFirma=='DISPOSITIVO_CON_PIN' || situacionFirma=='DISPOSITIVO_SIN_PIN' || situacionFirma=='FICHERO_CON_CLAVE' || situacionFirma=='FICHERO_SIN_CLAVE')">
+            <panel name="buttonsPaso2FirmarSinDni" title="" colSpan="12" showFrame="false" showIf="pasoActual=='paso2Firmar' &amp;&amp; !(situacionFirma=='SIN_CERTIFICADO' || situacionFirma=='DISPOSITIVO_CON_PIN' || situacionFirma=='DISPOSITIVO_SIN_PIN' || situacionFirma=='FICHERO_CON_CLAVE' || situacionFirma=='FICHERO_SIN_CLAVE')">
                 <button name="btnPaso2FirmarAtrasSinDni"    onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso2FirmarAtras-action"  title="Atrás"   css="btn-secondary" colSpan="3" outline="true" />
             </panel>
         </panel>
@@ -212,13 +191,10 @@
 
 
     <?sv-view?>
-    <grid name="subsysFirmas.Pendiente@TareaFirma.DocumentoFirma-grid" title="" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"
-          editable="false" edit-icon="false" x-selector="none" orderBy="documentoOriginal.fileName"
-          canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+    <grid name="subsysFirmas.Pendiente@TareaFirma.DocumentoFirma-grid" title="" model="com.educaflow.subsystem.firmas.db.DocumentoFirma" editable="false" edit-icon="false" x-selector="none" orderBy="documentoOriginal.fileName" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <field name="documentoOriginal.fileName"/>
     </grid>
-    <form name="subsysFirmas.Pendiente@TareaFirma.DocumentoFirma-form" title="Documento" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"
-          canAttach="false" canEdit="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+    <form name="subsysFirmas.Pendiente@TareaFirma.DocumentoFirma-form" title="Documento" model="com.educaflow.subsystem.firmas.db.DocumentoFirma" canAttach="false" canEdit="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel-tabs>
             <panel name="tabDocumentoOriginal" title="Documento original" colSpan="12">
                 <field name="new" showTitle="false" readonly="true" colSpan="12">

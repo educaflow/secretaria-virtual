@@ -3,20 +3,12 @@
 
   <!-- El usuario solo puede ver sus propios CentroUsuario (en todos sus centros,
        para que el cambio de centro activo funcione). -->
-  <permission name="CentroUsuario.propio"
-              object="com.educaflow.subsystem.common.db.CentroUsuario"
-              condition="self.usuario = ?"
-              conditionParams="__user__"
-  >
+  <permission name="CentroUsuario.propio" object="com.educaflow.subsystem.common.db.CentroUsuario" condition="self.usuario = ?" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
   <!-- Solo puede ver los tipos de usuario de sus propias CentroUsuario -->
-  <permission name="CentroUsuarioTipoUsuario.propio"
-              object="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
-              condition="self.centroUsuario.usuario = ?"
-              conditionParams="__user__"
-  >
+  <permission name="CentroUsuarioTipoUsuario.propio" object="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario" condition="self.centroUsuario.usuario = ?" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
@@ -25,11 +17,7 @@
   </permission>
 
   <!-- Solo puede ver los cargos de sus propias CentroUsuario -->
-  <permission name="CentroUsuarioCargo.propio"
-              object="com.educaflow.subsystem.common.db.CentroUsuarioCargo"
-              condition="self.centroUsuario.usuario = ?"
-              conditionParams="__user__"
-  >
+  <permission name="CentroUsuarioCargo.propio" object="com.educaflow.subsystem.common.db.CentroUsuarioCargo" condition="self.centroUsuario.usuario = ?" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
@@ -40,22 +28,14 @@
   <!-- Repite en JPQL la consulta de AceProfileCentroRepository.findCentrosSupervisados: si cambia una, cambia la otra.
        Axelor aplica la condición al leer, modificar y borrar (filtra el listado y bloquea las filas ajenas), pero en
        el alta no la evalúa sobre la fila nueva: la defensa del alta es la validación V-008 del servicio. -->
-  <permission name="AceProfileCentro.supervisor"
-              object="com.educaflow.subsystem.security.db.AceProfileCentro"
-              condition="self.centro IN (SELECT cu.centro FROM com.educaflow.subsystem.common.db.CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut JOIN cut.tipoUsuario tu WHERE cu.usuario = ? AND tu.codigo = 'SUPERVISOR')"
-              conditionParams="__user__"
-  >
+  <permission name="AceProfileCentro.supervisor" object="com.educaflow.subsystem.security.db.AceProfileCentro" condition="self.centro IN (SELECT cu.centro FROM com.educaflow.subsystem.common.db.CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut JOIN cut.tipoUsuario tu WHERE cu.usuario = ? AND tu.codigo = 'SUPERVISOR')" conditionParams="__user__" >
     <can create="true" read="true" write="true" remove="true" export="false"/>
   </permission>
 
   <!-- Repite en JPQL la consulta de AceProfileCentroRepository.findCentrosSupervisados: si cambia una, cambia la otra.
        Existe solo para que el selector de trámite de «Mi centro → Perfiles de trámites» no salga vacío: no da ningún
        perfil ni cambia lo que ofrece «Nuevo trámite». -->
-  <permission name="Tramite.supervisor"
-              object="com.educaflow.subsystem.expedientes.db.Tramite"
-              condition="EXISTS (SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut JOIN cut.tipoUsuario tu WHERE cu.usuario = ? AND tu.codigo = 'SUPERVISOR')"
-              conditionParams="__user__"
-  >
+  <permission name="Tramite.supervisor" object="com.educaflow.subsystem.expedientes.db.Tramite" condition="EXISTS (SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut JOIN cut.tipoUsuario tu WHERE cu.usuario = ? AND tu.codigo = 'SUPERVISOR')" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 

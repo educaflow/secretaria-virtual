@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <form name="sysGestionCentro.Datos@Centro-form" title="Datos" model="com.educaflow.subsystem.common.db.Centro"
-          onNew="sysGestionCentro.DatosOnNew@Centro-action">
+    <form name="sysGestionCentro.Datos@Centro-form" title="Datos" model="com.educaflow.subsystem.common.db.Centro" onNew="sysGestionCentro.DatosOnNew@Centro-action">
         <panel name="man-Centro-datos-panel" title="Datos">
             <field name="code"    colSpan="3" required="true"/>
             <field name="name"    colSpan="6" required="true"/>
@@ -13,13 +10,9 @@
             <field name="direccion" colSpan="9"/>
             <field name="codigoPostal" colSpan="3"/>
 
-            <field name="comunidadAutonoma" colSpan="4"
-                   onChange="sysGestionCentro.OnChangeComunidadAutonoma@Centro-action"/>
-            <field name="provincia" colSpan="4"
-                   domain="self.comunidadAutonoma = :comunidadAutonoma"
-                   onChange="sysGestionCentro.OnChangeProvincia@Centro-action"/>
-            <field name="municipio" colSpan="4"
-                   domain="self.provincia = :provincia"/>
+            <field name="comunidadAutonoma" colSpan="4" onChange="sysGestionCentro.OnChangeComunidadAutonoma@Centro-action"/>
+            <field name="provincia" colSpan="4" domain="self.comunidadAutonoma = :comunidadAutonoma" onChange="sysGestionCentro.OnChangeProvincia@Centro-action"/>
+            <field name="municipio" colSpan="4" domain="self.provincia = :provincia"/>
 
             <field name="conselleria" colSpan="6"/>
         </panel>

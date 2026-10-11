@@ -1,210 +1,59 @@
 <?xml version="1.0"?>
 <auth>
 
-  <permission name="TipoExpediente.porTipoExpediente"
-              object="com.educaflow.subsystem.expedientes.db.TipoExpediente"
-              condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoExpediente a, com.educaflow.subsystem.common.db.CentroUsuario cu
-        WHERE cu.usuario = ?
-        AND a.tipoExpediente = self
-        AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
-            OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))
-    )"
-              conditionParams="__user__"
-  >
+  <permission name="TipoExpediente.porTipoExpediente" object="com.educaflow.subsystem.expedientes.db.TipoExpediente" condition="EXISTS ( SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoExpediente a, com.educaflow.subsystem.common.db.CentroUsuario cu WHERE cu.usuario = ? AND a.tipoExpediente = self AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu) OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)) )" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <permission name="Tramite.porGlobal"
-              object="com.educaflow.subsystem.expedientes.db.Tramite"
-              condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileGlobal a, com.educaflow.subsystem.common.db.CentroUsuario cu
-        WHERE cu.usuario = ?
-        AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
-            OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))
-    )"
-              conditionParams="__user__"
-  >
+  <permission name="Tramite.porGlobal" object="com.educaflow.subsystem.expedientes.db.Tramite" condition="EXISTS ( SELECT a FROM com.educaflow.subsystem.security.db.AceProfileGlobal a, com.educaflow.subsystem.common.db.CentroUsuario cu WHERE cu.usuario = ? AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu) OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)) )" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <permission name="Tramite.porTipoUsuario"
-              object="com.educaflow.subsystem.expedientes.db.Tramite"
-              condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoUsuarioTramite a, com.educaflow.subsystem.common.db.CentroUsuario cu
-        WHERE cu.usuario = ?
-        AND a.tipoUsuarioTramite = self.tipoUsuario
-        AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
-            OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))
-    )"
-              conditionParams="__user__"
-  >
+  <permission name="Tramite.porTipoUsuario" object="com.educaflow.subsystem.expedientes.db.Tramite" condition="EXISTS ( SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoUsuarioTramite a, com.educaflow.subsystem.common.db.CentroUsuario cu WHERE cu.usuario = ? AND a.tipoUsuarioTramite = self.tipoUsuario AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu) OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)) )" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <permission name="Tramite.porTramite"
-              object="com.educaflow.subsystem.expedientes.db.Tramite"
-              condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTramite a, com.educaflow.subsystem.common.db.CentroUsuario cu
-        WHERE cu.usuario = ?
-        AND a.tramite = self
-        AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
-            OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))
-    )"
-              conditionParams="__user__"
-  >
+  <permission name="Tramite.porTramite" object="com.educaflow.subsystem.expedientes.db.Tramite" condition="EXISTS ( SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTramite a, com.educaflow.subsystem.common.db.CentroUsuario cu WHERE cu.usuario = ? AND a.tramite = self AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu) OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)) )" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <permission name="Tramite.porCentro"
-              object="com.educaflow.subsystem.expedientes.db.Tramite"
-              condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileCentro a, com.educaflow.subsystem.common.db.CentroUsuario cu
-        WHERE cu.usuario = ?
-        AND a.tramite = self
-        AND a.centro = cu.centro
-        AND (a.usuario = cu.usuario
-            OR (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
-            OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)))
-    )"
-              conditionParams="__user__"
-  >
+  <permission name="Tramite.porCentro" object="com.educaflow.subsystem.expedientes.db.Tramite" condition="EXISTS ( SELECT a FROM com.educaflow.subsystem.security.db.AceProfileCentro a, com.educaflow.subsystem.common.db.CentroUsuario cu WHERE cu.usuario = ? AND a.tramite = self AND a.centro = cu.centro AND (a.usuario = cu.usuario OR (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu) OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))) )" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <permission name="Tramite.porTipoExpediente"
-              object="com.educaflow.subsystem.expedientes.db.Tramite"
-              condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoExpediente a, com.educaflow.subsystem.common.db.CentroUsuario cu
-        WHERE cu.usuario = ?
-        AND a.tipoExpediente.tramite = self
-        AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
-            OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))
-    )"
-              conditionParams="__user__"
-  >
+  <permission name="Tramite.porTipoExpediente" object="com.educaflow.subsystem.expedientes.db.Tramite" condition="EXISTS ( SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoExpediente a, com.educaflow.subsystem.common.db.CentroUsuario cu WHERE cu.usuario = ? AND a.tipoExpediente.tramite = self AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu) OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)) )" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <permission name="Tramite.porExpediente"
-              object="com.educaflow.subsystem.expedientes.db.Tramite"
-              condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileExpediente a, com.educaflow.subsystem.common.db.CentroUsuario cu
-        WHERE a.usuario = ?
-        AND a.expediente.tipoExpediente.tramite = self
-        AND cu.usuario = a.usuario
-        AND cu.centro = a.expediente.centro
-    )"
-              conditionParams="__user__"
-  >
+  <permission name="Tramite.porExpediente" object="com.educaflow.subsystem.expedientes.db.Tramite" condition="EXISTS ( SELECT a FROM com.educaflow.subsystem.security.db.AceProfileExpediente a, com.educaflow.subsystem.common.db.CentroUsuario cu WHERE a.usuario = ? AND a.expediente.tipoExpediente.tramite = self AND cu.usuario = a.usuario AND cu.centro = a.expediente.centro )" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <permission name="Expediente.creador"
-              object="com.educaflow.subsystem.expedientes.db.Expediente"
-              condition="self.usuarioRegistrador = ?
-        AND EXISTS (
-            SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu
-            WHERE cu.usuario = self.usuarioRegistrador
-            AND cu.centro = self.centro
-        )"
-              conditionParams="__user__"
-  >
+  <permission name="Expediente.creador" object="com.educaflow.subsystem.expedientes.db.Expediente" condition="self.usuarioRegistrador = ? AND EXISTS ( SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu WHERE cu.usuario = self.usuarioRegistrador AND cu.centro = self.centro )" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="true"/>
   </permission>
 
-  <permission name="Expediente.porGlobal"
-              object="com.educaflow.subsystem.expedientes.db.Expediente"
-              condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileGlobal a, com.educaflow.subsystem.common.db.CentroUsuario cu
-        WHERE cu.usuario = ?
-        AND cu.centro = self.centro
-        AND a.perfil != com.educaflow.subsystem.expedientes.db.Profile.CREADOR
-        AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
-            OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))
-    )"
-              conditionParams="__user__"
-  >
+  <permission name="Expediente.porGlobal" object="com.educaflow.subsystem.expedientes.db.Expediente" condition="EXISTS ( SELECT a FROM com.educaflow.subsystem.security.db.AceProfileGlobal a, com.educaflow.subsystem.common.db.CentroUsuario cu WHERE cu.usuario = ? AND cu.centro = self.centro AND a.perfil != com.educaflow.subsystem.expedientes.db.Profile.CREADOR AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu) OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)) )" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <permission name="Expediente.porTipoUsuario"
-              object="com.educaflow.subsystem.expedientes.db.Expediente"
-              condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoUsuarioTramite a, com.educaflow.subsystem.common.db.CentroUsuario cu
-        WHERE cu.usuario = ?
-        AND cu.centro = self.centro
-        AND a.perfil != com.educaflow.subsystem.expedientes.db.Profile.CREADOR
-        AND a.tipoUsuarioTramite = self.tipoExpediente.tramite.tipoUsuario
-        AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
-            OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))
-    )"
-              conditionParams="__user__"
-  >
+  <permission name="Expediente.porTipoUsuario" object="com.educaflow.subsystem.expedientes.db.Expediente" condition="EXISTS ( SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoUsuarioTramite a, com.educaflow.subsystem.common.db.CentroUsuario cu WHERE cu.usuario = ? AND cu.centro = self.centro AND a.perfil != com.educaflow.subsystem.expedientes.db.Profile.CREADOR AND a.tipoUsuarioTramite = self.tipoExpediente.tramite.tipoUsuario AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu) OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)) )" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <permission name="Expediente.porTramite"
-              object="com.educaflow.subsystem.expedientes.db.Expediente"
-              condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTramite a, com.educaflow.subsystem.common.db.CentroUsuario cu
-        WHERE cu.usuario = ?
-        AND cu.centro = self.centro
-        AND a.perfil != com.educaflow.subsystem.expedientes.db.Profile.CREADOR
-        AND a.tramite = self.tipoExpediente.tramite
-        AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
-            OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))
-    )"
-              conditionParams="__user__"
-  >
+  <permission name="Expediente.porTramite" object="com.educaflow.subsystem.expedientes.db.Expediente" condition="EXISTS ( SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTramite a, com.educaflow.subsystem.common.db.CentroUsuario cu WHERE cu.usuario = ? AND cu.centro = self.centro AND a.perfil != com.educaflow.subsystem.expedientes.db.Profile.CREADOR AND a.tramite = self.tipoExpediente.tramite AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu) OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)) )" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <permission name="Expediente.porCentro"
-              object="com.educaflow.subsystem.expedientes.db.Expediente"
-              condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileCentro a, com.educaflow.subsystem.common.db.CentroUsuario cu
-        WHERE cu.usuario = ?
-        AND cu.centro = self.centro
-        AND a.perfil != com.educaflow.subsystem.expedientes.db.Profile.CREADOR
-        AND a.tramite = self.tipoExpediente.tramite
-        AND a.centro = cu.centro
-        AND (a.usuario = cu.usuario
-            OR (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
-            OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)))
-    )"
-              conditionParams="__user__"
-  >
+  <permission name="Expediente.porCentro" object="com.educaflow.subsystem.expedientes.db.Expediente" condition="EXISTS ( SELECT a FROM com.educaflow.subsystem.security.db.AceProfileCentro a, com.educaflow.subsystem.common.db.CentroUsuario cu WHERE cu.usuario = ? AND cu.centro = self.centro AND a.perfil != com.educaflow.subsystem.expedientes.db.Profile.CREADOR AND a.tramite = self.tipoExpediente.tramite AND a.centro = cu.centro AND (a.usuario = cu.usuario OR (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu) OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))) )" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <permission name="Expediente.porTipoExpediente"
-              object="com.educaflow.subsystem.expedientes.db.Expediente"
-              condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoExpediente a, com.educaflow.subsystem.common.db.CentroUsuario cu
-        WHERE cu.usuario = ?
-        AND cu.centro = self.centro
-        AND a.perfil != com.educaflow.subsystem.expedientes.db.Profile.CREADOR
-        AND a.tipoExpediente = self.tipoExpediente
-        AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
-            OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))
-    )"
-              conditionParams="__user__"
-  >
+  <permission name="Expediente.porTipoExpediente" object="com.educaflow.subsystem.expedientes.db.Expediente" condition="EXISTS ( SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoExpediente a, com.educaflow.subsystem.common.db.CentroUsuario cu WHERE cu.usuario = ? AND cu.centro = self.centro AND a.perfil != com.educaflow.subsystem.expedientes.db.Profile.CREADOR AND a.tipoExpediente = self.tipoExpediente AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu) OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)) )" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <permission name="Expediente.porExpediente"
-              object="com.educaflow.subsystem.expedientes.db.Expediente"
-              condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileExpediente a, com.educaflow.subsystem.common.db.CentroUsuario cu
-        WHERE a.usuario = ?
-        AND a.expediente = self
-        AND cu.usuario = a.usuario
-        AND cu.centro = self.centro
-    )"
-              conditionParams="__user__"
-  >
+  <permission name="Expediente.porExpediente" object="com.educaflow.subsystem.expedientes.db.Expediente" condition="EXISTS ( SELECT a FROM com.educaflow.subsystem.security.db.AceProfileExpediente a, com.educaflow.subsystem.common.db.CentroUsuario cu WHERE a.usuario = ? AND a.expediente = self AND cu.usuario = a.usuario AND cu.centro = self.centro )" conditionParams="__user__" >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 

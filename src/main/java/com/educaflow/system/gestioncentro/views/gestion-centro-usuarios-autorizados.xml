@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <form name="sysGestionCentro.UsuariosAutorizados@Centro-form" title="Usuarios autorizados" model="com.educaflow.subsystem.common.db.Centro">
         <panel title="Usuarios autorizados" colSpan="12" showTitle="false">
@@ -9,8 +7,7 @@
         </panel>
     </form>
 
-    <action-view name="sysGestionCentro.Main@UsuarioAutorizado-action" title="Usuarios autorizados"
-                 model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
+    <action-view name="sysGestionCentro.Main@UsuarioAutorizado-action" title="Usuarios autorizados" model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
         <view type="grid" name="sysGestionCentro.Main@UsuarioAutorizado-grid"/>
         <view type="form" name="sysGestionCentro.Main@UsuarioAutorizado-form"/>
         <view-param name="show-toolbar-form" value="false"/>
@@ -19,17 +16,12 @@
         <context name="curso"    expr="eval: curso"/>
     </action-view>
 
-    <grid name="sysGestionCentro.Main@UsuarioAutorizado-grid" title=""
-          model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado"
-          editable="false" edit-icon="true" x-selector="none" canNew="true" newButtonTitle="Añadir usuario autorizado" canEdit="true" canDelete="true" canViewOnClick="true">
+    <grid name="sysGestionCentro.Main@UsuarioAutorizado-grid" title="" model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado" editable="false" edit-icon="true" x-selector="none" canNew="true" newButtonTitle="Añadir usuario autorizado" canEdit="true" canDelete="true" canViewOnClick="true">
         <field name="dni"         title="DNI"/>
         <field name="tipoUsuario" title="Tipo"/>
     </grid>
 
-    <form name="sysGestionCentro.Main@UsuarioAutorizado-form" title="Usuario autorizado"
-          model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado"
-          onNew="sysGestionCentro.OnNew@UsuarioAutorizado-action"
-          canAttach="false" canDelete="true">
+    <form name="sysGestionCentro.Main@UsuarioAutorizado-form" title="Usuario autorizado" model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado" onNew="sysGestionCentro.OnNew@UsuarioAutorizado-action" canAttach="false" canDelete="true">
         <panel title="">
             <field name="dni"         colSpan="3" required="true"/>
             <field name="tipoUsuario" colSpan="6" required="true"/>
@@ -38,8 +30,7 @@
         </panel>
     </form>
 
-    <action-record name="sysGestionCentro.OnNew@UsuarioAutorizado-action"
-                   model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
+    <action-record name="sysGestionCentro.OnNew@UsuarioAutorizado-action" model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
         <field name="centro" expr="eval: __parent__"/>
         <field name="curso"  expr="eval: __parent__?.curso"/>
     </action-record>

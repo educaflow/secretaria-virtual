@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://axelor.com/xml/ns/object-views
-https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
-
-    <?sv-view?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">  <?sv-view?>
 
     <action-view name="subsysSistemaEducativo.Main@FamiliaProfesional-action" title="Familias profesionales"  model="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional">
         <view type="grid" name="subsysSistemaEducativo.Main@FamiliaProfesional-grid"/>
@@ -13,30 +8,19 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="subsysSistemaEducativo.Main@FamiliaProfesional-grid" title="" model="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional"
-          groups="admins"
-          orderBy="name" canNew="true" newButtonTitle="Añadir una nueva familia profesional"
-          canRefresh="false" canAdvanceSearch="false" allowSearchFields="true"
-          editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"
-          canEditOnClick="true"
-    >
+    <grid name="subsysSistemaEducativo.Main@FamiliaProfesional-grid" title="" model="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional" groups="admins" orderBy="name" canNew="true" newButtonTitle="Añadir una nueva familia profesional" canRefresh="false" canAdvanceSearch="false" allowSearchFields="true" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" >
         <hilite color="danger" if="archived"/>
         <field name="code" width="200px" />
         <field name="name" />
     </grid>
 
-    <form name="subsysSistemaEducativo.Main@FamiliaProfesional-form" title="Familia Profesional"  model="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional"
-          groups="admins"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+    <form name="subsysSistemaEducativo.Main@FamiliaProfesional-form" title="Familia Profesional"  model="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional" groups="admins" width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
         <panel name="FamiliaProfesional" title="Familia Profesional">
             <field name="code" colSpan="3" />
             <field name="name" colOffset="3" colSpan="6" />
         </panel>
 
-        <panel-related name="ciclos" field="ciclos" title="Ciclos"
-            grid-view="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-grid" form-view="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-form"
-            colSpan="12" newButtonTitle="Añadir un nuevo ciclo" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
-        />
+        <panel-related name="ciclos" field="ciclos" title="Ciclos" grid-view="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-grid" form-view="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-form" colSpan="12" newButtonTitle="Añadir un nuevo ciclo" showFooter="false" canEdit="false" canRemove="false" forceEdit="true" />
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
             <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@FamiliaProfesional-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
@@ -68,25 +52,17 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <?sv-view?>
 
-    <grid name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" allowSearchFields="true" orderBy="name"
-          canAdvanceSearch="false" canRefresh="false" canNew="true" newButtonTitle="Añadir un nuevo ciclo" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" title=""
-    >
+    <grid name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" allowSearchFields="true" orderBy="name" canAdvanceSearch="false" canRefresh="false" canNew="true" newButtonTitle="Añadir un nuevo ciclo" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" title="" >
         <field name="code" width="200px" />
         <field name="name" />
     </grid>
 
-    <form name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-          width="large"
-          onNew="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-onNew-action"
-          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+    <form name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" width="large" onNew="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-onNew-action" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="Ciclo" title="">
             <field name="code" colSpan="3" />
             <field name="name" colOffset="3" colSpan="6" />
-            <field name="grado" colSpan="3" grid-view="subsysSistemaEducativo.Ref@Grado-grid" form-view="subsysSistemaEducativo.Ref@Grado-form"
-                   onChange="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-onChange-grado-action" />
-            <field name="nivel" colSpan="3" showIf="grado.admiteNivel" requiredIf="grado.admiteNivel" depends="grado.admiteNivel,nivel.grado"
-                   grid-view="subsysSistemaEducativo.Ref@Nivel-grid" form-view="subsysSistemaEducativo.Ref@Nivel-form"
-                   domain="self.grado = :grado" />
+            <field name="grado" colSpan="3" grid-view="subsysSistemaEducativo.Ref@Grado-grid" form-view="subsysSistemaEducativo.Ref@Grado-form" onChange="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-onChange-grado-action" />
+            <field name="nivel" colSpan="3" showIf="grado.admiteNivel" requiredIf="grado.admiteNivel" depends="grado.admiteNivel,nivel.grado" grid-view="subsysSistemaEducativo.Ref@Nivel-grid" form-view="subsysSistemaEducativo.Ref@Nivel-form" domain="self.grado = :grado" />
             <field name="familiaProfesional" showIf="false"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
@@ -138,12 +114,9 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         grado.id), y el usuario veria dos mensajes donde el servidor da uno.
     -->
     <action-condition name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-Local-validateSave-action">
-        <check field="nivel" if="grado != null &amp;&amp; grado.admiteNivel &amp;&amp; nivel == null"
-               error="El nivel es obligatorio para el grado indicado"/>
-        <check field="nivel" if="grado != null &amp;&amp; !grado.admiteNivel &amp;&amp; nivel != null"
-               error="El grado indicado no admite nivel: el nivel debe quedar vacío"/>
-        <check field="nivel" if="grado != null &amp;&amp; grado.admiteNivel &amp;&amp; nivel != null &amp;&amp; nivel.grado != null &amp;&amp; nivel.grado.id != grado.id"
-               error="El nivel indicado no pertenece al grado del ciclo"/>
+        <check field="nivel" if="grado != null &amp;&amp; grado.admiteNivel &amp;&amp; nivel == null" error="El nivel es obligatorio para el grado indicado"/>
+        <check field="nivel" if="grado != null &amp;&amp; !grado.admiteNivel &amp;&amp; nivel != null" error="El grado indicado no admite nivel: el nivel debe quedar vacío"/>
+        <check field="nivel" if="grado != null &amp;&amp; grado.admiteNivel &amp;&amp; nivel != null &amp;&amp; nivel.grado != null &amp;&amp; nivel.grado.id != grado.id" error="El nivel indicado no pertenece al grado del ciclo"/>
     </action-condition>
 
     <?sv-rules?>

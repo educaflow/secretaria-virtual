@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xmlns="http://axelor.com/xml/ns/object-views"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://axelor.com/xml/ns/object-views" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!-- *********************************************************************************************  -->
     <!-- ************************************ PENDIENTE_RESOLUCION ***********************************  -->
@@ -22,13 +20,10 @@
 
         <footer>
             <buttons-left>
-                <button name="BACK" colSpan="3" outline="true" title="Atrás"
-                        onClick="subsysTramitador-event-action"/>
+                <button name="BACK" colSpan="3" outline="true" title="Atrás" onClick="subsysTramitador-event-action"/>
             </buttons-left>
             <buttons-right>
-                <button name="RESOLVER" colSpan="3" title="Enviar a la firma"
-                        onClick="subsysTramitador-event-action"
-                        prompt="Va a generar la resolución y a enviarla a la firma del secretario y del director del centro"/>
+                <button name="RESOLVER" colSpan="3" title="Enviar a la firma" onClick="subsysTramitador-event-action" prompt="Va a generar la resolución y a enviarla a la firma del secretario y del director del centro"/>
             </buttons-right>
         </footer>
     </form>
@@ -56,8 +51,7 @@
     <!-- *********************************************************************************************  -->
     <!-- ***************************** Acciones propias de la fase RESOLUCION ************************  -->
     <!-- *********************************************************************************************  -->
-    <action-record name="exp-AnulacionMatriculaCicloFormativoV1-limpiar-resolucion-action"
-                   model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1">
+    <action-record name="exp-AnulacionMatriculaCicloFormativoV1-limpiar-resolucion-action" model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1">
         <field name="motivoRechazo" expr="eval: null" if="tipoResolucion != 'RECHAZAR'"/>
     </action-record>
 

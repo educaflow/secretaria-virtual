@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://axelor.com/xml/ns/object-views
-https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">  <?sv-view?>
 
-    <?sv-view?>
-
-    <action-view name="subsysImportacion.Main@TareaImportacion-action"
-                 title="Ficheros importación"
-                 model="com.educaflow.subsystem.importacion.db.TareaImportacion">
+    <action-view name="subsysImportacion.Main@TareaImportacion-action" title="Ficheros importación" model="com.educaflow.subsystem.importacion.db.TareaImportacion">
         <view type="grid" name="subsysImportacion.Main@TareaImportacion-grid"/>
         <view type="form" name="subsysImportacion.Main@TareaImportacion-form"/>
         <view-param name="show-toolbar-form" value="false"/>
@@ -16,16 +9,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <view-param name="reload-grid" value="true"/>
     </action-view>
 
-    <grid name="subsysImportacion.Main@TareaImportacion-grid"
-          model="com.educaflow.subsystem.importacion.db.TareaImportacion"
-          title=""
-          canAdvanceSearch="false" canRefresh="false" allowSearchFields="false"
-          canNew="true" newButtonTitle="Importar nueva"
-          canEdit="false" canDelete="false" canSave="false"
-          editable="false" edit-icon="false" x-selector="none"
-          canEditOnClick="true"
-          orderBy="-fechaImportacion"
-    >
+    <grid name="subsysImportacion.Main@TareaImportacion-grid" model="com.educaflow.subsystem.importacion.db.TareaImportacion" title="" canAdvanceSearch="false" canRefresh="false" allowSearchFields="false" canNew="true" newButtonTitle="Importar nueva" canEdit="false" canDelete="false" canSave="false" editable="false" edit-icon="false" x-selector="none" canEditOnClick="true" orderBy="-fechaImportacion" >
         <field name="fechaImportacion"/>
         <field name="tipoFichero"/>
         <field name="centro"/>
@@ -35,12 +19,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <field name="usuario"/>
     </grid>
 
-    <form name="subsysImportacion.Main@TareaImportacion-form"
-          model="com.educaflow.subsystem.importacion.db.TareaImportacion"
-          title="Importar fichero"
-          width="large"
-          onNew="subsysImportacion.Main@TareaImportacion-onNew-action"
-          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+    <form name="subsysImportacion.Main@TareaImportacion-form" model="com.educaflow.subsystem.importacion.db.TareaImportacion" title="Importar fichero" width="large" onNew="subsysImportacion.Main@TareaImportacion-onNew-action" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
 
         <panel name="panelEntrada" title="Nueva importación" showIf="id == null">
             <field name="tipoFichero" widget="RadioSelect" required="true" x-direction="horizontal" colSpan="12"/>
@@ -63,17 +42,11 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
         <panel name="buttons-panel" title="" showFrame="false" colSpan="12">
             <panel name="buttonsNueva" title="" colSpan="12" showFrame="false" showIf="id == null">
-                <button name="btnCancelar" title="Cancelar"
-                        onClick="subsysImportacion.Main@TareaImportacion-btnCancelar-action"
-                        outline="true" colSpan="2" colOffset="8"/>
-                <button name="btnImportar" title="Importar"
-                        onClick="subsysImportacion.Main@TareaImportacion-btnImportar-action"
-                        colSpan="2"/>
+                <button name="btnCancelar" title="Cancelar" onClick="subsysImportacion.Main@TareaImportacion-btnCancelar-action" outline="true" colSpan="2" colOffset="8"/>
+                <button name="btnImportar" title="Importar" onClick="subsysImportacion.Main@TareaImportacion-btnImportar-action" colSpan="2"/>
             </panel>
             <panel name="buttonsResultado" title="" colSpan="12" showFrame="false" showIf="id != null">
-                <button name="btnAceptar" title="Aceptar"
-                        onClick="subsysImportacion.Main@TareaImportacion-btnAceptar-action"
-                        colSpan="2" colOffset="10"/>
+                <button name="btnAceptar" title="Aceptar" onClick="subsysImportacion.Main@TareaImportacion-btnAceptar-action" colSpan="2" colOffset="10"/>
             </panel>
         </panel>
 
@@ -105,8 +78,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </action-condition>
 
     <?sv-rules?>
-    <action-record name="subsysImportacion.Main@TareaImportacion-set-campos-sistema-action"
-                   model="com.educaflow.subsystem.importacion.db.TareaImportacion">
+    <action-record name="subsysImportacion.Main@TareaImportacion-set-campos-sistema-action" model="com.educaflow.subsystem.importacion.db.TareaImportacion">
         <field name="usuario"          expr="eval: __user__"/>
         <field name="fechaImportacion" expr="eval: __datetime__"/>
     </action-record>

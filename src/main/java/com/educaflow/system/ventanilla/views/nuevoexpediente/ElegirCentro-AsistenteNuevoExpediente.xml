@@ -1,36 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views
-https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
-
-    <?sv-view?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">  <?sv-view?>
     <!-- Dos entradas al mismo form, una por forma de presentar: un <menuitem> no puede pasar
          contexto propio, así que la forma la fija el `_presentadoEnPapel` literal de cada una
          («Mis trámites» → propia, «Tramitación» → en papel). -->
-    <action-view name="sysVentanilla.ElegirCentro@AsistenteNuevoExpedientePresentadoElectronicamente-action"
-                 title="Nuevo expediente: elija el centro"
-                 model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+    <action-view name="sysVentanilla.ElegirCentro@AsistenteNuevoExpedientePresentadoElectronicamente-action" title="Nuevo expediente: elija el centro" model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <view type="form" name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-form"/>
         <view-param name="show-toolbar-form" value="false"/>
         <view-param name="show-confirm" value="false"/>
         <context name="_presentadoEnPapel" expr="eval: false"/>
     </action-view>
 
-    <action-view name="sysVentanilla.ElegirCentro@AsistenteNuevoExpedientePresentadoEnPapel-action"
-                 title="Nuevo expediente: elija el centro"
-                 model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+    <action-view name="sysVentanilla.ElegirCentro@AsistenteNuevoExpedientePresentadoEnPapel-action" title="Nuevo expediente: elija el centro" model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <view type="form" name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-form"/>
         <view-param name="show-toolbar-form" value="false"/>
         <view-param name="show-confirm" value="false"/>
         <context name="_presentadoEnPapel" expr="eval: true"/>
     </action-view>
 
-    <form name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-form"
-          title="Nuevo expediente: elija el centro"
-          model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente"
-          onNew="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-onNew-action"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+    <form name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-form" title="Nuevo expediente: elija el centro" model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente" onNew="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-onNew-action" width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
 
         <panel name="estadoPanel" title="" colSpan="12" showFrame="false">
             <field name="centro" hidden="true"/>
@@ -39,13 +26,11 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         </panel>
 
         <panel name="centrosPanel" title="" colSpan="12" showFrame="false" showIf="hayQueElegirCentro">
-            <panel-dashlet action="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente.Centro-action"
-                           colSpan="12" canSearch="false" height="300"/>
+            <panel-dashlet action="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente.Centro-action" colSpan="12" canSearch="false" height="300"/>
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" showIf="hayQueElegirCentro">
-            <button name="btnCancelar" title="Cancelar" colSpan="3" colOffset="9" outline="true"
-                    onClick="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-btnCancelar-action"/>
+            <button name="btnCancelar" title="Cancelar" colSpan="3" colOffset="9" outline="true" onClick="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-btnCancelar-action"/>
         </panel>
     </form>
 
@@ -57,8 +42,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <action-group name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-onNew-action">
         <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-set-presentadoEnPapel-recibido-action"/>
         <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-Remote-prepararCentros-action"/>
-        <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-Local-avisoSinCentros-action"
-                if="centrosDisponibles.isEmpty()"/>
+        <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-Local-avisoSinCentros-action" if="centrosDisponibles.isEmpty()"/>
         <action name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-action" if="centro != null"/>
         <action name="close" if="!hayQueElegirCentro"/>
     </action-group>
@@ -69,34 +53,25 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </action-validate>
 
     <?sv-rules?>
-    <action-record name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-set-presentadoEnPapel-recibido-action"
-                   model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+    <action-record name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-set-presentadoEnPapel-recibido-action" model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <field name="presentadoEnPapel" expr="eval: _presentadoEnPapel"/>
     </action-record>
 
     <?sv-remotes?>
-    <action-method name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-Remote-prepararCentros-action"
-                   model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
-        <call class="com.educaflow.system.ventanilla.controller.AsistenteNuevoExpedienteController"
-              method="prepararCentros"/>
+    <action-method name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-Remote-prepararCentros-action" model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <call class="com.educaflow.system.ventanilla.controller.AsistenteNuevoExpedienteController" method="prepararCentros"/>
     </action-method>
 
 
     <?sv-view?>
-    <action-view name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente.Centro-action"
-                 title="Centro" model="com.educaflow.subsystem.common.db.Centro">
+    <action-view name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente.Centro-action" title="Centro" model="com.educaflow.subsystem.common.db.Centro">
         <view type="grid" name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente.Centro-grid"/>
         <view-param name="show-toolbar-grid" value="false"/>
         <domain>self.id IN :_centrosIds</domain>
         <context name="_centrosIds" expr="eval: centrosDisponibles.collect{it.id}"/>
     </action-view>
 
-    <grid name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente.Centro-grid"
-          model="com.educaflow.subsystem.common.db.Centro"
-          title="" orderBy="name" allowSearchFields="false" canAdvanceSearch="false" canRefresh="false"
-          action="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente.Centro-onClick-action"
-          editable="false" edit-icon="false" x-selector="none"
-          canNew="false" canEdit="false" canDelete="false" canSave="false">
+    <grid name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente.Centro-grid" model="com.educaflow.subsystem.common.db.Centro" title="" orderBy="name" allowSearchFields="false" canAdvanceSearch="false" canRefresh="false" action="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente.Centro-onClick-action" editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false">
         <field name="name" title="Centro"/>
     </grid>
 

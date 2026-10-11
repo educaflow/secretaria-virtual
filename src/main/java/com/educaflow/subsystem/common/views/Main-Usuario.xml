@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <?sv-view?>
     <action-view name="subsysCommon.Main@Usuario-action" title="Usuarios" model="com.axelor.auth.db.User">
@@ -13,13 +11,7 @@
     </action-view>
 
 
-    <grid name="subsysCommon.Main@Usuario-grid" title="" model="com.axelor.auth.db.User"
-          groups="admins"
-          allowSearchFields="true" orderBy="code"
-          editable="false" edit-icon="false" x-selector="none"
-          canNew="false"
-          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
-          canAdvanceSearch="false" canRefresh="false">
+    <grid name="subsysCommon.Main@Usuario-grid" title="" model="com.axelor.auth.db.User" groups="admins" allowSearchFields="true" orderBy="code" editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" canAdvanceSearch="false" canRefresh="false">
         <field name="code" width="200px"/>
         <field name="dni"/>
         <field name="nombre"/>
@@ -30,9 +22,7 @@
         <field name="active"/>
     </grid>
 
-    <form name="subsysCommon.Main@Usuario-form" title="Usuario" model="com.axelor.auth.db.User"
-          width="large"
-          canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" canSave="false" canMore="false">
+    <form name="subsysCommon.Main@Usuario-form" title="Usuario" model="com.axelor.auth.db.User" width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="usuario" title="">
             <field name="code"         colSpan="6" required="true"/>
             <field name="email"        colSpan="6"/>

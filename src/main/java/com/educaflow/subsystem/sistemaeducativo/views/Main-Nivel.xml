@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://axelor.com/xml/ns/object-views
-https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
-
-    <?sv-view?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">  <?sv-view?>
 
     <action-view name="subsysSistemaEducativo.Main@Nivel-action" title="Niveles" model="com.educaflow.subsystem.sistemaeducativo.db.Nivel">
         <view type="grid" name="subsysSistemaEducativo.Main@Nivel-grid"/>
@@ -13,12 +8,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="subsysSistemaEducativo.Main@Nivel-grid" title="" model="com.educaflow.subsystem.sistemaeducativo.db.Nivel"
-          groups="admins"
-          orderBy="name" canNew="true" newButtonTitle="Añadir un nuevo nivel"
-          canRefresh="false" canAdvanceSearch="false" allowSearchFields="true"
-          editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"
-          canEditOnClick="true">
+    <grid name="subsysSistemaEducativo.Main@Nivel-grid" title="" model="com.educaflow.subsystem.sistemaeducativo.db.Nivel" groups="admins" orderBy="name" canNew="true" newButtonTitle="Añadir un nuevo nivel" canRefresh="false" canAdvanceSearch="false" allowSearchFields="true" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
         <hilite color="danger" if="archived"/>
         <field name="code" width="200px" />
         <field name="name" />
@@ -26,9 +16,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <field name="archived" width="100px" />
     </grid>
 
-    <form name="subsysSistemaEducativo.Main@Nivel-form" title="Nivel" model="com.educaflow.subsystem.sistemaeducativo.db.Nivel"
-          groups="admins"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+    <form name="subsysSistemaEducativo.Main@Nivel-form" title="Nivel" model="com.educaflow.subsystem.sistemaeducativo.db.Nivel" groups="admins" width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
         <panel name="Nivel" title="Nivel">
             <field name="code" colSpan="3" />
             <field name="name" colOffset="3" colSpan="6" />

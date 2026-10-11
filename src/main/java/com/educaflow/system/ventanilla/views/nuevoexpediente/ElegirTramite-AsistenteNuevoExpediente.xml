@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views
-https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
-
-    <?sv-view?>
-    <action-view name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-action"
-                 title="Nuevo expediente: elija el trámite"
-                 model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">  <?sv-view?>
+    <action-view name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-action" title="Nuevo expediente: elija el trámite" model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <view type="form" name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-form"/>
         <view-param name="show-toolbar-form" value="false"/>
         <view-param name="show-confirm" value="false"/>
@@ -18,20 +11,14 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
              leer el campo que no existe en esa forma y dispare el WARN
              "No such field" de GroovyScriptHelper. -->
         <context name="_centroId" expr="eval: id != null ? id : centro?.id"/>
-        <context name="_hayQueElegirCentro"
-                 expr="eval: id != null ? __parent__?.hayQueElegirCentro : hayQueElegirCentro"/>
-        <context name="_presentadoEnPapel"
-                 expr="eval: id != null ? __parent__?.presentadoEnPapel : presentadoEnPapel"/>
+        <context name="_hayQueElegirCentro" expr="eval: id != null ? __parent__?.hayQueElegirCentro : hayQueElegirCentro"/>
+        <context name="_presentadoEnPapel" expr="eval: id != null ? __parent__?.presentadoEnPapel : presentadoEnPapel"/>
     </action-view>
 
     <!-- Muestra el tree de trámites candidatos embebido vía panel-dashlet (un <tree> no admite
          panel-related), con un buttons-panel real debajo: "Atrás" si hubo elección de centro
          (paso 1 mostrado), "Cancelar" si no (paso 1 saltado). -->
-    <form name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-form"
-          title="Nuevo expediente: elija el trámite"
-          model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente"
-          onNew="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-onNew-action"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+    <form name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-form" title="Nuevo expediente: elija el trámite" model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente" onNew="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-onNew-action" width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
 
         <panel name="estadoPanel" title="" colSpan="12" showFrame="false">
             <field name="hayQueElegirCentro" hidden="true"/>
@@ -44,18 +31,15 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         </panel>
 
         <panel name="tramitesPanel" title="" colSpan="12" showFrame="false">
-            <panel-dashlet action="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-action"
-                           colSpan="12" canSearch="false" height="300"/>
+            <panel-dashlet action="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-action" colSpan="12" canSearch="false" height="300"/>
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
             <panel name="botonesAtras" title="" colSpan="12" showFrame="false" showIf="hayQueElegirCentro">
-                <button name="btnAtras" title="Atrás" colSpan="3" outline="true"
-                        onClick="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-btnAtras-action"/>
+                <button name="btnAtras" title="Atrás" colSpan="3" outline="true" onClick="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-btnAtras-action"/>
             </panel>
             <panel name="botonesCancelar" title="" colSpan="12" showFrame="false" showIf="!hayQueElegirCentro">
-                <button name="btnCancelar" title="Cancelar" colSpan="3" colOffset="9" outline="true"
-                        onClick="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-btnCancelar-action"/>
+                <button name="btnCancelar" title="Cancelar" colSpan="3" colOffset="9" outline="true" onClick="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-btnCancelar-action"/>
             </panel>
         </panel>
     </form>
@@ -64,10 +48,8 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <!-- Vuelve a la entrada de la misma forma de presentar por la que se entró: las dos entradas
          llevan `_presentadoEnPapel` literal, así que reabrir la otra la cambiaría en silencio. -->
     <action-group name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-btnAtras-action">
-        <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpedientePresentadoElectronicamente-action"
-                if="!presentadoEnPapel"/>
-        <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpedientePresentadoEnPapel-action"
-                if="presentadoEnPapel"/>
+        <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpedientePresentadoElectronicamente-action" if="!presentadoEnPapel"/>
+        <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpedientePresentadoEnPapel-action" if="presentadoEnPapel"/>
         <action name="close"/>
     </action-group>
 
@@ -83,18 +65,15 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <?sv-validations?>
 
     <?sv-rules?>
-    <action-record name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-set-centroHayQueElegirCentroYPresentadoEnPapel-recibidos-action"
-                   model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+    <action-record name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-set-centroHayQueElegirCentroYPresentadoEnPapel-recibidos-action" model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <field name="centro" expr="eval: __repo__(com.educaflow.subsystem.common.db.Centro).find(_centroId)"/>
         <field name="hayQueElegirCentro" expr="eval: _hayQueElegirCentro"/>
         <field name="presentadoEnPapel" expr="eval: _presentadoEnPapel"/>
     </action-record>
 
     <?sv-remotes?>
-    <action-method name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-Remote-prepararTramites-action"
-                   model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
-        <call class="com.educaflow.system.ventanilla.controller.AsistenteNuevoExpedienteController"
-              method="prepararTramites"/>
+    <action-method name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-Remote-prepararTramites-action" model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <call class="com.educaflow.system.ventanilla.controller.AsistenteNuevoExpedienteController" method="prepararTramites"/>
     </action-method>
 
 
@@ -104,8 +83,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
          tiene calculados el form contenedor (centro, hayQueElegirCentro, presentadoEnPapel,
          tramitesDisponibles);
          los nodos del propio tree usan TipoUsuario/Tramite. -->
-    <action-view name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-action"
-                 title="Trámite" model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+    <action-view name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-action" title="Trámite" model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <view type="tree" name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-tree"/>
         <context name="_centroId" expr="eval: centro?.id"/>
         <context name="_hayQueElegirCentro" expr="eval: hayQueElegirCentro"/>
@@ -113,20 +91,15 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <context name="_tramiteIds" expr="eval: tramitesDisponibles?.collect{it.id}"/>
     </action-view>
 
-    <tree name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-tree"
-          title="Trámites disponibles" showHeader="false">
+    <tree name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-tree" title="Trámites disponibles" showHeader="false">
 
         <column name="name"/>
 
-        <node model="com.educaflow.subsystem.common.db.TipoUsuario"
-              domain="EXISTS (SELECT 1 FROM Tramite t WHERE t.tipoUsuario=self AND t.id IN :_tramiteIds)">
+        <node model="com.educaflow.subsystem.common.db.TipoUsuario" domain="EXISTS (SELECT 1 FROM Tramite t WHERE t.tipoUsuario=self AND t.id IN :_tramiteIds)">
             <field name="tituloTramites" as="name"/>
         </node>
 
-        <node model="com.educaflow.subsystem.expedientes.db.Tramite"
-              domain="self.id IN :_tramiteIds"
-              parent="tipoUsuario" draggable="false"
-              onClick="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-onClick-action">
+        <node model="com.educaflow.subsystem.expedientes.db.Tramite" domain="self.id IN :_tramiteIds" parent="tipoUsuario" draggable="false" onClick="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-onClick-action">
             <field name="name" as="name"/>
         </node>
 

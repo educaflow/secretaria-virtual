@@ -4,26 +4,18 @@
   <!-- Permisos exclusivos del administrador del centro (rol center.admin).
        Estos permisos no forman parte de users.all. -->
 
-  <permission name="UsuarioAutorizado.admin"
-              object="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado"
-              condition="self.centro IN (SELECT cu.centro FROM com.educaflow.subsystem.common.db.CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut JOIN cut.tipoUsuario tu WHERE cu.usuario = ? AND tu.codigo = 'SUPERVISOR')"
-              conditionParams="__user__"
-  >
+  <permission name="UsuarioAutorizado.admin" object="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado" condition="self.centro IN (SELECT cu.centro FROM com.educaflow.subsystem.common.db.CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut JOIN cut.tipoUsuario tu WHERE cu.usuario = ? AND tu.codigo = 'SUPERVISOR')" conditionParams="__user__" >
     <can create="true" read="true" write="true" remove="true" export="false"/>
   </permission>
 
   <!-- ViewGestionCentroImport es persistable="false" (transient): no hay filas en BD que filtrar.
        El controlador GestionCentroImportController restringe la operación al centro del usuario. -->
-  <permission name="ViewGestionCentroImport.admin"
-              object="com.educaflow.system.gestioncentro.db.ViewGestionCentroImport"
-  >
+  <permission name="ViewGestionCentroImport.admin" object="com.educaflow.system.gestioncentro.db.ViewGestionCentroImport" >
     <can create="true" read="true" write="true" remove="true" export="false"/>
   </permission>
 
   <!-- ViewGestionCentroCambioCurso es persistable="false" (transient): ídem. -->
-  <permission name="ViewGestionCentroCambioCurso.admin"
-              object="com.educaflow.system.gestioncentro.db.ViewGestionCentroCambioCurso"
-  >
+  <permission name="ViewGestionCentroCambioCurso.admin" object="com.educaflow.system.gestioncentro.db.ViewGestionCentroCambioCurso" >
     <can create="true" read="true" write="true" remove="true" export="false"/>
   </permission>
 
