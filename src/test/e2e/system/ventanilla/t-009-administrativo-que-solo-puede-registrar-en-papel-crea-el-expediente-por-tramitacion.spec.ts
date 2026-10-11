@@ -16,10 +16,11 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
  * El borrado no puede hacerse sobre la pestaña recién creada porque el test navega
  * antes a los listados para comprobar el centro (Axelor sustituye la pestaña del
  * expediente al abrir otra vista): por eso el teardown lo reabre desde la bandeja del
- * estado en que quedó, donde el servidor lo abre con el perfil que declara ese estado y,
- * por tanto, con el botón «Borrar el expediente» (lo ofrecen los dos estados por los que
- * pasa el test, PENDIENTE_DOCUMENTO_ESCANEADO y ENTRADA_DATOS). Arrancar el teardown con un `goto` lo
- * hace robusto aunque el test falle con un diálogo abierto o a medio navegar.
+ * estado en que quedó, donde el servidor lo abre con el perfil que declara ese estado. El
+ * botón «Borrar el expediente» solo lo ofrece, en papel, PENDIENTE_DOCUMENTO_ESCANEADO
+ * (TRAMITADOR); ENTRADA_DATOS como CREADOR solo ofrece «Atrás», así que desde ahí el teardown
+ * retrocede a PENDIENTE_DOCUMENTO_ESCANEADO y lo borra como TRAMITADOR. Arrancar el teardown
+ * con un `goto` lo hace robusto aunque el test falle con un diálogo abierto o a medio navegar.
  * No hace falta pre-limpieza defensiva: ninguna regla de negocio limita cuántos
  * expedientes de este trámite puede registrar el administrativo, así que un expediente
  * residual de un run que abortara no impide crear otro ni cambia ninguna aserción (el
@@ -229,20 +230,24 @@ async function abrirExpedienteDesdeBandeja(
 }
 
 /**
- * Borra el expediente `numero`. Los dos estados por los que pasa el test ofrecen «Borrar el
- * expediente» al perfil que declaran, pero cada uno está en una bandeja distinta:
- * PENDIENTE_DOCUMENTO_ESCANEADO (TRAMITADOR) en «Tramitación» → «Pendientes de mí» y
- * ENTRADA_DATOS (CREADOR, que es el administrativo que lo registró) en «Mis trámites» →
- * «Pendientes de mí». `enEntradaDatos` dice en cuál de los dos quedó. El botón abre un
+ * Borra el expediente `numero`. «Borrar el expediente» solo lo ofrece, en papel,
+ * PENDIENTE_DOCUMENTO_ESCANEADO (TRAMITADOR), que se abre desde «Tramitación» →
+ * «Pendientes de mí». ENTRADA_DATOS abierto como CREADOR (el administrativo que lo registró,
+ * desde «Mis trámites» → «Pendientes de mí») en papel ya no lo ofrece: solo «Atrás». Por eso,
+ * si `enEntradaDatos`, se pulsa «Atrás» (evento BACK) para volver a
+ * PENDIENTE_DOCUMENTO_ESCANEADO y se borra desde allí como TRAMITADOR. El botón abre un
  * diálogo de confirmación de Axelor que hay que aceptar.
  */
 async function borrarExpediente(page: Page, numero: string, enEntradaDatos: boolean): Promise<void> {
   if (enEntradaDatos) {
     await abrirExpedienteDesdeBandeja(page, numero, 'misTramites-menuitem', 'misTramites-pendientesDeMi-menuitem');
-  } else {
-    await abrirExpedienteComoTramitador(page, numero);
+    await page.getByRole('button', { name: 'Atrás' }).click();
+    await expect(page.getByTestId('field:nameState').getByRole('textbox')).toHaveValue(
+      ESTADO_INICIAL_EN_PAPEL,
+    );
   }
 
+  await abrirExpedienteComoTramitador(page, numero);
   await page.getByTestId('widget:DELETE').getByRole('button').click();
   await page.getByRole('button', { name: 'Aceptar' }).click();
   await expect(page.getByRole('tab', { name: TITULO_EXPEDIENTE })).toHaveCount(0);

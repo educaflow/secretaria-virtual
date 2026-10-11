@@ -99,10 +99,13 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       await expect(panelInteresado.getByLabel('DNI/NIE')).toHaveValue('95591733F');
       await expect(panelInteresado.getByLabel('DNI/NIE')).toBeDisabled();
 
-      // And: el panel «Datos del alumno/a» («NIA», «Teléfono», «Dirección», «Municipio», «CP»)
-      // está vacío y editable…
+      // And: en el panel «Datos del alumno/a» («NIA», «Teléfono», «Dirección», «Municipio», «CP»)
+      // el «Teléfono» viene precargado con el de quien ha entrado (alumno1: 644495188) y es
+      // editable, y el resto de campos están vacíos y son editables…
       const panelDatosAlumno = page.getByRole('region', { name: 'Datos del alumno/a' });
-      for (const campo of ['NIA', 'Teléfono', 'Dirección', 'Código Postal']) {
+      await expect(panelDatosAlumno.getByLabel('Teléfono')).toHaveValue('644495188');
+      await expect(panelDatosAlumno.getByLabel('Teléfono')).toBeEnabled();
+      for (const campo of ['NIA', 'Dirección', 'Código Postal']) {
         await expect(panelDatosAlumno.getByLabel(campo)).toHaveValue('');
         await expect(panelDatosAlumno.getByLabel(campo)).toBeEnabled();
       }
