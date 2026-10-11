@@ -10,7 +10,7 @@ Es una ayuda **no exhaustiva**: cubre los tipos más habituales, pero si el nego
 
 | Descripción de la regla                                                    | Cuándo se dispara            | fase típica       | Ejemplo                                                            |
 |-----------------------------------------------------------------------------|-------------------------------|--------------------|----------------------------------------------------------------------|
-| Asignar una numeración secuencial al registro                              | Al crear                      | antes_de_commit    | "Al crear el registro de salida se le asigna el número NNNNN/AAAA secuencial por centro y año" |
+| Asignar una numeración secuencial al registro                              | Al crear                      | antes_de_commit    | "Al crear el registro de salida se le asigna el número NNNNN/AAAA-<códigoDeCentro> secuencial por centro y año" |
 | Registrar la fecha (y/o el usuario) de un evento de negocio                | Al crear / al ejecutar la acción | antes_de_commit | "Al enviar el correo se registra la fecha del último intento"       |
 | Fijar o cambiar el estado del registro como consecuencia de la acción      | Al crear / al ejecutar la acción | antes_de_commit | "Al crearse, el correo queda en estado PENDIENTE"                   |
 | Recalcular un valor derivado del propio registro                           | Al crear / al modificar       | antes_de_commit    | "Al guardar se recalcula el total como suma de las líneas"          |

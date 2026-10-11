@@ -86,11 +86,12 @@ public RegistroSalida insert(RegistroSalida entidad) {
     return entidad;
 }
 
-// CC-001 numeroRegistro — cálculo: secuencial por centro y año, formato NNNNN/AAAA
+// CC-001 numeroRegistro — cálculo: secuencial por centro y año, formato NNNNN/AAAA-<códigoDeCentro>
 private void fireActionRule_AsignarNumeroRegistro(RegistroSalida entidad) {
     String anyo = String.valueOf(LocalDate.now(Convert.defaultZoneId).getYear());
-    long numero = numeradorRepository.getSiguienteNumeroRegistroSalida(entidad.getCentro().getCode(), anyo);
-    entidad.setNumeroRegistro(String.format("%05d", numero) + "/" + anyo);
+    String codigoCentro = entidad.getCentro().getCode();
+    long numero = numeradorRepository.getSiguienteNumeroRegistroSalida(codigoCentro, anyo);
+    entidad.setNumeroRegistro(String.format("%05d", numero) + "/" + anyo + "-" + codigoCentro);
 }
 ```
 

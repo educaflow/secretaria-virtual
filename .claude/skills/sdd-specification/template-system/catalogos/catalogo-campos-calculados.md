@@ -8,7 +8,7 @@ Es una ayuda **no exhaustiva**: si el negocio necesita un campo calculado que no
 
 | Tipo de campo calculado                                                | momento típico | sobreescribible típico | Ejemplo de cálculo                                                        |
 |--------------------------------------------------------------------------|-----------------|--------------------------|------------------------------------------------------------------------------|
-| Numeración secuencial por ámbito                                        | escritura       | nunca                    | "Secuencial por centro y año, con formato NNNNN/AAAA"                       |
+| Numeración secuencial por ámbito                                        | escritura       | nunca                    | "Secuencial por centro y año, con formato NNNNN/AAAA-<códigoDeCentro>"                       |
 | Fecha de un evento de negocio (creación, envío, resolución…)            | escritura       | nunca                    | "La fecha y hora en que se creó el correo"                                  |
 | Persona/usuario que realizó la acción                                   | escritura       | nunca                    | "El usuario que registró la entrada"                                        |
 | Estado inicial del ciclo de vida                                        | escritura       | nunca                    | "Al crearse queda en PENDIENTE"                                             |
