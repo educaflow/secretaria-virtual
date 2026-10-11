@@ -1,5 +1,73 @@
 # Reglas específicas del proyecto
 
+## Formato de código: una unidad sintáctica por línea
+
+En todo el código que se escriba o edite en el proyecto —XML (`domains.xml`, `views.xml`, `menus.xml`, `TipoExpedienteInstance.xml`, etc.) o Java/Kotlin— **cada unidad sintáctica va completa en una sola línea, aunque la línea quede muy larga**:
+
+- En XML: cada etiqueta completa en una sola línea, con **todos sus atributos en esa misma línea**. **MUST NOT** partir los atributos de una etiqueta en líneas separadas.
+- En Java/Kotlin: cada sentencia o declaración en una sola línea, **MUST NOT** partir los parámetros o argumentos en líneas separadas.
+
+Motivo: se trabaja con un monitor de 27" y las líneas largas no son problema, y una etiqueta/sentencia por línea permite ver de un vistazo la estructura del fichero completo.
+
+**MUST NOT** reescribir ni reformatear ficheros XML/Java existentes solo para aplicar esta regla: se aplica al escribir o editar código nuevo (o al tocar de verdad una etiqueta/sentencia concreta), no de forma retrospectiva sobre ficheros que no se están modificando.
+
+Ejemplo real en XML — de `com.educaflow.subsystem.notificaciones.domains.Notificacion.xml`, hoy ❌ partido en dos líneas y su versión ✅ en una:
+
+❌:
+```xml
+<string name="name" title="Motivo" required="true"
+        help="Texto interno que explica de qué va la notificación; no lo ve el destinatario"/>
+```
+✅:
+```xml
+<string name="name" title="Motivo" required="true" help="Texto interno que explica de qué va la notificación; no lo ve el destinatario" />
+```
+
+Ejemplos reales en Java que hoy violan la regla (❌, como está ahora) y su versión correcta (✅, como se escribiría al editarlo):
+
+❌ `com.educaflow.base.util.TextUtil`:
+```java
+private static final Set<String> WINDOWS_RESERVED = Set.of(
+        "CON", "PRN", "AUX", "NUL",
+        "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+        "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+);
+```
+✅:
+```java
+private static final Set<String> WINDOWS_RESERVED = Set.of("CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9");
+```
+
+❌ `com.educaflow.base.infrastructure.async.EjecutorAsincrono`:
+```java
+throw new IllegalStateException(
+        "ejecutarTrasCommit requiere una transacción activa en el hilo actual");
+```
+✅:
+```java
+throw new IllegalStateException("ejecutarTrasCommit requiere una transacción activa en el hilo actual");
+```
+
+❌ `com.educaflow.subsystem.registroentradasalida.service.impl.RegistroEntradaServiceImpl` (constructor partido en una línea por argumento):
+```java
+DatosRegistroEntradaPdf datosRegistroEntradaPdf=new DatosRegistroEntradaPdf(
+        registroEntradaInsertDTO.centro(),
+        registroEntradaInsertDTO.solicitante(),
+        registroEntradaInsertDTO.interesado(),
+        registroEntradaInsertDTO.numeroExpediente(),
+        registroEntradaInsertDTO.asunto(),
+        ahora,
+        numeroRegistro,
+        Idioma.deCodigo(registroEntradaInsertDTO.idioma())
+);
+```
+✅:
+```java
+DatosRegistroEntradaPdf datosRegistroEntradaPdf = new DatosRegistroEntradaPdf(registroEntradaInsertDTO.centro(), registroEntradaInsertDTO.solicitante(), registroEntradaInsertDTO.interesado(), registroEntradaInsertDTO.numeroExpediente(), registroEntradaInsertDTO.asunto(), ahora, numeroRegistro, Idioma.deCodigo(registroEntradaInsertDTO.idioma()));
+```
+
+---
+
 ## Controladores Axelor
 
 Los métodos `@CallMethod` de controladores deben:

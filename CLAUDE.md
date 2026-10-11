@@ -154,6 +154,14 @@ Puntos concretos que siguen abiertos:
 - Los permisos de las subclases se conceden sin `condition` (p. ej. `PruebaV1.all`) y `AuthSecurity` **no recorre superclases**, así que no heredan las condiciones de los permisos de `Expediente`.
   Y como los genera el build por cada tipo de expediente, un trámite nuevo nace con el agujero abierto sin que nadie tenga que escribir nada: la solución **MUST** decidirse en el generador (`createdatainittipoexpediente`), no tipo a tipo.
 
+## Formato de código
+
+**En todo código que se escriba o edite —XML (`domains.xml`, `views.xml`, `menus.xml`, `TipoExpedienteInstance.xml`…) o Java/Kotlin— cada etiqueta/sentencia va completa en una sola línea, con todos sus atributos/parámetros en ella, aunque quede muy larga.** La regla completa (motivo: monitor de 27" y estructura visible de un vistazo; prohibición de reformatear ficheros existentes; ejemplos ❌/✅) está en el skill `k-code-quality`, fichero `proyecto.md`.
+
+Motivo: se trabaja con un monitor de 27" y las líneas largas no son problema, y una etiqueta/sentencia por línea permite ver de un vistazo la estructura del fichero completo.
+
+**MUST NOT** reescribir ni reformatear ficheros XML/Java existentes solo para aplicar esta regla: se aplica al escribir o editar código nuevo (o al tocar de verdad una etiqueta/sentencia concreta), no de forma retrospectiva sobre ficheros que no se están modificando.
+
 ## Markdown
 **MUST NOT** cortar el texto a una anchura fija (80, 100 columnas…).
 En documentos densos (catálogos de reglas, specs) se corta **por frases y de forma jerárquica**:
