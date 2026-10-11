@@ -532,9 +532,7 @@ The widget is used for `many-to-one` fields.
 
 ```xml
 <field name="customer" /> <!-- assuming it's m2o field -->
-<field name="some" x-type="many-to-one"
-  x-target="com.axelor.contact.db.Contact"
-  x-target-name="fullName" /> <!-- dummy m2o field -->
+<field name="some" x-type="many-to-one" x-target="com.axelor.contact.db.Contact" x-target-name="fullName" /> <!-- dummy m2o field -->
 ```
 
 ![ManyToOne widget](widgets/many-to-one.png)
@@ -573,8 +571,7 @@ The widget is used for `one-to-many` fields.
 
 ```xml
 <panel-related field="items" /> <!-- assuming it's o2m field -->
-<panel-related field="some" x-type="one-to-many"
-  x-target="com.axelor.sale.db.OrderItem" /> <!-- dummy o2m field -->
+<panel-related field="some" x-type="one-to-many" x-target="com.axelor.sale.db.OrderItem" /> <!-- dummy o2m field -->
 ```
 
 ![OneToMany widget](widgets/one-to-many.png)
@@ -632,14 +629,7 @@ but one additional icon to select existing records.
 This widget is supported on `one-to-many` and `many-to-many` fields. It allows to show a form view below the grid view for the currently selected row.
 
 ```xml
-<panel-related
-  field="items"
-  readonlyIf="confirmed"
-  editable="true"
-  orderBy="sequence"
-  onChange="com.axelor.sale.web.SaleOrderController:calculate"
-  widget="MasterDetail"
->
+<panel-related field="items" readonlyIf="confirmed" editable="true" orderBy="sequence" onChange="com.axelor.sale.web.SaleOrderController:calculate" widget="MasterDetail">
   <field name="product" onChange="action-order-line-change-product" />
   <field name="price" />
   <field name="quantity" />
@@ -662,14 +652,7 @@ The following attribute is supported:
 This widget is supported on `one-to-many` fields and top-level grids. It allows to show an expandable form view below each row.
 
 ```xml
-<panel-related
-  field="items"
-  readonlyIf="confirmed"
-  editable="true"
-  orderBy="sequence"
-  onChange="com.axelor.sale.web.SaleOrderController:calculate"
-  widget="Expandable"
->
+<panel-related field="items" readonlyIf="confirmed" editable="true" orderBy="sequence" onChange="com.axelor.sale.web.SaleOrderController:calculate" widget="Expandable">
   <field name="product" onChange="action-order-line-change-product"/>
   <field name="price"/>
   <field name="quantity"/>
@@ -692,19 +675,7 @@ This widget is supported on `one-to-many` fields. It allows to show a tree-like 
 With `editable="true"` (inline edit), when you edit a row at any nesting level, you can press `Ctrl+Enter` to add a subitem.
 
 ```xml
-<panel-related
-  title="Items (Tree)"
-  readonlyIf="confirmed"
-  field="items"
-  form-view="order-line-form"
-  grid-view="order-line-grid"
-  editable="true"
-  onChange="com.axelor.sale.web.SaleOrderController:computeItems"
-  widget="TreeGrid"
-  x-tree-field="items"
-  x-tree-limit="2"
-  x-tree-field-title="Add subline"
->
+<panel-related title="Items (Tree)" readonlyIf="confirmed" field="items" form-view="order-line-form" grid-view="order-line-grid" editable="true" onChange="com.axelor.sale.web.SaleOrderController:computeItems" widget="TreeGrid" x-tree-field="items" x-tree-limit="2" x-tree-field-title="Add subline">
   <field name="product" onChange="action-order-line-change-product"/>
   <field name="price" width="200" />
   <field name="quantity" width="150" />
@@ -848,9 +819,7 @@ The following attribute is supported:
 The button widget is used to show a clickable button on a form.
 
 ```xml
-<button name="customBtn" title="Click Me!" onClick="actions"
-  prompt="This is a confirmation message."
-  icon="check-square" />
+<button name="customBtn" title="Click Me!" onClick="actions" prompt="This is a confirmation message." icon="check-square" />
 <button name="customBtn" title="Button" link="https://axelor.com" />
 ```
 
@@ -873,8 +842,7 @@ The following attributes are supported:
 The `Progress` widget is used to show a progress bar.
 
 ```xml
-<field name="progress" title="Progress" widget="Progress"
-  x-colors="r:24,y:49,b:74,g:100" />
+<field name="progress" title="Progress" widget="Progress" x-colors="r:24,y:49,b:74,g:100" />
 ```
 
 ![Progress widget](widgets/progress.png)
@@ -1158,9 +1126,7 @@ and a selection of types:
 ```xml
 <selection name="my.reference.select">
   <option value="com.axelor.sale.db.Order">SaleOrder</option> <!-- 1 - define selection option with fully qualified type name as value -->
-  <option value="com.axelor.contact.db.Contact"
-    data-domain="self.email LIKE '%gmail%'"
-    data-grid="my-custom-grid-view">Contact</option> <!-- 2 - you can define extra attributes using `data-` prefix -->
+  <option value="com.axelor.contact.db.Contact" data-domain="self.email LIKE '%gmail%'" data-grid="my-custom-grid-view">Contact</option> <!-- 2 - you can define extra attributes using `data-` prefix -->
 </selection>
 ```
 
@@ -1193,11 +1159,7 @@ In edit mode, this widget is the same as [RefSelect](#refselect). But in readonl
 Example usage from `TeamTask`:
 
 ```xml
-<field name="relatedModel"
-  title="Link"
-  widget="RefLink"
-  selection="team.task.links"
-  x-related="relatedId" />
+<field name="relatedModel" title="Link" widget="RefLink" selection="team.task.links" x-related="relatedId" />
 ```
 
 The following attribute is supported:
@@ -1235,12 +1197,7 @@ provided:
 Example usage from `MetaJsonField`:
 
 ```xml
-<field name="contextFieldValue"
-  widget="eval-ref-select"
-  x-eval-target="contextFieldTarget"
-  x-eval-target-name="contextFieldTargetName"
-  x-eval-value="contextFieldValue"
-  x-eval-title="contextFieldTitle" />
+<field name="contextFieldValue" widget="eval-ref-select" x-eval-target="contextFieldTarget" x-eval-target-name="contextFieldTargetName" x-eval-value="contextFieldValue" x-eval-title="contextFieldTitle" />
 ```
 
 ---
@@ -1259,19 +1216,13 @@ This widget can be used to select string field value of a record.
 Example where we select model name of meta model:
 
 ```xml
-<field name="model" required="true" widget="ref-text"
-  x-target="com.axelor.meta.db.MetaModel"
-  x-target-name="fullName" />
+<field name="model" required="true" widget="ref-text" x-target="com.axelor.meta.db.MetaModel" x-target-name="fullName" />
 ```
 
 Example where we select name of meta view, add module name in selection list, and use a domain filter:
 
 ```xml
-<field name="view" widget="ref-text"
-  x-target="com.axelor.meta.db.MetaView"
-  x-target-name="name"
-  x-target-search="module"
-  x-domain="self.model = :model AND self.type IN ('form', 'grid')" />
+<field name="view" widget="ref-text" x-target="com.axelor.meta.db.MetaView" x-target-name="name" x-target-search="module" x-domain="self.model = :model AND self.type IN ('form', 'grid')" />
 ```
 
 ---
@@ -1331,14 +1282,7 @@ the button attributes without impact on the bound field.
 
 ```xml
 <panel>
-  <button
-    name="btnTotalAmount"
-    title="Total amount"
-    icon="bar-chart"
-    onClick="check-order-dates,com.axelor.sale.web.SaleOrderController:calculate,save"
-    widget="info-button"
-    x-field="totalAmount"
-  />
+  <button name="btnTotalAmount" title="Total amount" icon="bar-chart" onClick="check-order-dates,com.axelor.sale.web.SaleOrderController:calculate,save" widget="info-button" x-field="totalAmount"/>
   <field name="totalAmount" hidden="true"/>
 </panel>
 ```

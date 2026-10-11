@@ -18,8 +18,7 @@ Form and grid views can be altered by defining a new view that has the same `nam
 ## Example
 
 ```xml
-<form name="contact-form" title="Contact" model="com.axelor.contact.db.Contact"
-  id="sale-contact-form" extension="true">
+<form name="contact-form" title="Contact" model="com.axelor.contact.db.Contact" id="sale-contact-form" extension="true">
 
   <!-- Insert a dashlet after Contacts panel. -->
   <extend target="panel[@title='Contacts']">

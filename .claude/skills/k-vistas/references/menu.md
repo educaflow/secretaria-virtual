@@ -30,25 +30,11 @@
 
 ```xml
 <!-- Menú raíz -->
-<menuitem name="subsysFirma-menuitem"
-          title="Firmar documentos"
-          groups="admins"
-          order="550"/>
+<menuitem name="subsysFirma-menuitem" title="Firmar documentos" groups="admins" order="550"/>
 
 <!-- Entradas hijo con acción -->
-<menuitem name="subsysFirma-pendiente-menuitem"
-          parent="subsysFirma-menuitem"
-          title="Pendientes"
-          action="subsysFirma.Pendiente@TareaFirma-action"
-          groups="admins"
-          order="1"/>
+<menuitem name="subsysFirma-pendiente-menuitem" parent="subsysFirma-menuitem" title="Pendientes" action="subsysFirma.Pendiente@TareaFirma-action" groups="admins" order="1"/>
 
 <!-- Entrada con tag dinámico -->
-<menuitem name="subsysFirma-pendiente-menuitem"
-          parent="subsysFirma-menuitem"
-          title="Pendientes"
-          action="subsysFirma.Pendiente@TareaFirma-action"
-          tag-count="true"
-          tag-style="warning"
-          order="1"/>
+<menuitem name="subsysFirma-pendiente-menuitem" parent="subsysFirma-menuitem" title="Pendientes" action="subsysFirma.Pendiente@TareaFirma-action" tag-count="true" tag-style="warning" order="1"/>
 ```

@@ -11,9 +11,7 @@ Un grid es la vista tabular de Axelor para listar registros (filas) de un modelo
 ## Ejemplo de grid
 
 ```xml
-<grid name="subsysSistemaEducativo.Main@Ciclo.Curso-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Curso" canNew="true" newButtonTitle="Añadir un nuevo ciclo" allowSearchFields="true" orderBy="name" canEditOnClick="true"
-      canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"  title=""
->
+<grid name="subsysSistemaEducativo.Main@Ciclo.Curso-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Curso" canNew="true" newButtonTitle="Añadir un nuevo ciclo" allowSearchFields="true" orderBy="name" canEditOnClick="true" canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" title="">
     <field name="code" width="150px" />
     <field name="name" width="200px" title="Nombre" />
     <field name="leyEducativa"   />
@@ -47,13 +45,7 @@ Por eso **un grid con `action` no declara `canViewOnClick` ni `canEditOnClick`**
 | `actionSignal` | Valor de `_signal` que se envía en el contexto de esa acción. Si se omite, es el `name` del grid |
 
 ```xml
-<grid name="sysVentanilla.Main@Tramite-grid" model="com.educaflow.subsystem.expedientes.db.Tramite"
-      title="" orderBy="name" allowSearchFields="true"
-      action="sysVentanilla.Main@Tramite-seleccionar-action"
-      canAdvanceSearch="false" canRefresh="false" canNew="false"
-      editable="false" edit-icon="false" x-selector="none"
-      canEdit="false" canDelete="false" canSave="false"
->
+<grid name="sysVentanilla.Main@Tramite-grid" model="com.educaflow.subsystem.expedientes.db.Tramite" title="" orderBy="name" allowSearchFields="true" action="sysVentanilla.Main@Tramite-seleccionar-action" canAdvanceSearch="false" canRefresh="false" canNew="false" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false">
     <field name="name"/>
 </grid>
 ```

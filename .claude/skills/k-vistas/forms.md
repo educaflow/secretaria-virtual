@@ -3,8 +3,7 @@
 ## Plantilla básica de un formulario
 
 ```xml
-<form name="subsysSistemaEducativo.Main@Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-      width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+<form name="subsysSistemaEducativo.Main@Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
     <panel name="Ciclo" title="Ciclo">
         <field name="code"/>
         <field name="name"/>
@@ -16,10 +15,7 @@
       <field name="nivel" colSpan="4"                            grid-view="subsysSistemaEducativo.Ref@Nivel-grid"  showIf="grado.code=='D'" requiredIf="grado.code=='D'" domain="(self.code='D' OR self.code='E')"/>       
    </panel>
 
-    <panel-related name="modulos" field="modulos" title="Módulos" newButtonTitle="Añadir un nuevo módulo"
-        grid-view="subsysSistemaEducativo.Main@Ciclo.Curso.CursoModulo-grid" form-view="subsysSistemaEducativo.Main@Ciclo.Curso.CursoModulo-form"
-        colSpan="12" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
-    />
+    <panel-related name="modulos" field="modulos" title="Módulos" newButtonTitle="Añadir un nuevo módulo" grid-view="subsysSistemaEducativo.Main@Ciclo.Curso.CursoModulo-grid" form-view="subsysSistemaEducativo.Main@Ciclo.Curso.CursoModulo-form" colSpan="12" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"/>
    
     <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
         <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@Ciclo-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
@@ -53,10 +49,7 @@ IMPORTANTE:
 Cuando una entidad hija se edita desde un `<panel-related>`, su formulario es un **modal** con diferencias importantes respecto al form principal:
 
 ```xml
-<form name="subsysSistemaEducativo.Main@Ciclo.Curso-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
-      width="large"
-      onNew="subsysSistemaEducativo.Main@Ciclo.Curso-onNew-action"
-      canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+<form name="subsysSistemaEducativo.Main@Ciclo.Curso-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso" width="large" onNew="subsysSistemaEducativo.Main@Ciclo.Curso-onNew-action" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
     <panel name="Curso" title="">
         <field name="ciclo" showIf="false"/>   <!-- campo padre, oculto pero presente en el modelo -->
         <field name="code" colSpan="3"/>
@@ -64,12 +57,9 @@ Cuando una entidad hija se edita desde un `<panel-related>`, su formulario es un
     </panel>
 
     <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-        <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnDelete-action"
-                css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
-        <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnCancel-action"
-                colSpan="2" colOffset="6" outline="true"/>
-        <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnSave-action"
-                colSpan="2"/>
+        <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+        <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+        <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnSave-action" colSpan="2"/>
     </panel>
 </form>
 ```
@@ -155,6 +145,8 @@ Y por eso todo form que se abra en modal **MUST** tener su `buttons-panel` con a
 - Realmente no es necesario que estén exactamente estos botones sino que podría haber otros botones con otras acciones. Pero hay que distingir claramente las acciones principales de las secundarias y para eso se siguen estas pautas de colocación.
 - El panel de botones siempre debe incluir Borrar, Cancelar y Guardar salvo que se indique lo contrario o haya algo en el negocio que te haga pensar que no es necesario.
 
+> **NOTA:** los **trámites** NO usan este patrón de footer, sino su propio footer (2 paneles de 6 columnas con botones de 3 columnas), documentado en el skill `k-tipo-expediente` (vistas.md §4). `k-vistas` solo cubre las vistas que no son de trámite.
+
 ## Botones condicionales por estado (showIf en botones)
 
 Un `<button>` oculto con `showIf` **reserva sus columnas igual que un campo** (§huecos en el grid). Dos gemelos con `colOffset` en un panel plano nunca renderizan bien: el oculto reserva su sitio y el visible salta de fila.
@@ -174,15 +166,12 @@ Reglas:
 - ✅ CORRECTO (form modal de detalle con dos estados):
   ```xml
   <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-      <panel name="buttonsAlta" title="" colSpan="12" showFrame="false"
-             showIf="(id == null) &amp;&amp; (cid == null)">
+      <panel name="buttonsAlta" title="" colSpan="12" showFrame="false" showIf="(id == null) &amp;&amp; (cid == null)">
           <button name="btnCancelAlta" title="Cancelar" onClick="…-btnCancel-action" colSpan="2" colOffset="8" outline="true"/>
           <button name="btnSaveAlta" title="Guardar" onClick="…-btnSave-action" colSpan="2"/>
       </panel>
-      <panel name="buttonsEdicion" title="" colSpan="12" showFrame="false"
-             showIf="(id != null) || (cid != null)">
-          <button name="btnDelete" title="Borrar" onClick="…-btnDelete-action"
-                  css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+      <panel name="buttonsEdicion" title="" colSpan="12" showFrame="false" showIf="(id != null) || (cid != null)">
+          <button name="btnDelete" title="Borrar" onClick="…-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
           <button name="btnCancelSalir" title="Salir" onClick="…-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
           <button name="btnSaveEdicion" title="Guardar" onClick="…-btnSave-action" colSpan="2"/>
       </panel>

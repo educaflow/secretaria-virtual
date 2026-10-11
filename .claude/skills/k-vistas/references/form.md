@@ -28,9 +28,7 @@ Form view has two modes:
 A form view is defined like this:
 
 ```xml
-<form name="contact-form"
-      title="Contact"
-      model="com.axelor.contact.db.Contact"> <!-- 1 -->
+<form name="contact-form" title="Contact" model="com.axelor.contact.db.Contact"> <!-- 1 -->
   <panel name="overviewPanel" title="Overview"> <!-- 2 -->
     <field name="fullName" readonly="false"> <!-- 3 -->
       <editor> <!-- 4 -->
@@ -307,9 +305,7 @@ Dummy fields can be specified like:
 <field name="$another" type="integer" min="1" max="100" />
 
 <!-- relational fields -->
-<field name="some" type="many-to-one"
-  x-target="com.axelor.contact.db.Contact"
-  x-target-name="fullName" />
+<field name="some" type="many-to-one" x-target="com.axelor.contact.db.Contact" x-target-name="fullName" />
 ```
 
 Dummy field can also have `x-dirty="false"` attribute to avoid dirty flag on the form when

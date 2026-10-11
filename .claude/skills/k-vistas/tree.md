@@ -15,17 +15,12 @@ La vista `<tree>` muestra registros en estructura jerárquica de árbol con múl
     <column name="btnAccion" type="button" title="Acción"/>
 
     <!-- Nodo raíz (agrupador) — sin atributo parent -->
-    <node model="com.educaflow.subsystem.xyz.db.ModeloPadre"
-          domain="EXISTS (SELECT 1 FROM ModeloHijo h WHERE h.campoPadre=self)">
+    <node model="com.educaflow.subsystem.xyz.db.ModeloPadre" domain="EXISTS (SELECT 1 FROM ModeloHijo h WHERE h.campoPadre=self)">
         <field name="name" as="name"/>
     </node>
 
     <!-- Nodo hoja (registros reales) — con atributo parent -->
-    <node model="com.educaflow.subsystem.xyz.db.ModeloHijo"
-          domain="filtroJPQL"
-          parent="campoPadre"
-          draggable="false"
-          onClick="prefijo.Nombre@Entidad-event-action">
+    <node model="com.educaflow.subsystem.xyz.db.ModeloHijo" domain="filtroJPQL" parent="campoPadre" draggable="false" onClick="prefijo.Nombre@Entidad-event-action">
         <field name="name"/>
         <field name="campo1"/>
         <field name="campo2"/>
@@ -81,17 +76,11 @@ Define las columnas visibles del árbol. Todos los nodos comparten el mismo conj
 Define un nivel del árbol. Se declaran en orden de jerarquía: primero el nodo raíz (sin `parent`), luego los hijos (con `parent`). El árbol puede tener más de dos niveles añadiendo más nodos con sus respectivos `parent`.
 
 ```xml
-<node model="com.educaflow.subsystem.expedientes.db.Tramite"
-      domain="EXISTS (SELECT 1 FROM Expediente e WHERE e.tipoExpediente.tramite=self)"
-      orderBy="name">
+<node model="com.educaflow.subsystem.expedientes.db.Tramite" domain="EXISTS (SELECT 1 FROM Expediente e WHERE e.tipoExpediente.tramite=self)" orderBy="name">
     <field name="name" as="name"/>
 </node>
 
-<node model="com.educaflow.subsystem.expedientes.db.Expediente"
-      domain="abierto=true"
-      parent="tipoExpediente.tramite"
-      draggable="false"
-      onClick="subsysTramitador-event-view-action">
+<node model="com.educaflow.subsystem.expedientes.db.Expediente" domain="abierto=true" parent="tipoExpediente.tramite" draggable="false" onClick="subsysTramitador-event-view-action">
     <field name="name"/>
     <field name="numeroExpediente"/>
     <field name="createdBy"/>
@@ -159,9 +148,7 @@ Añade un botón en una columna de tipo `button`. El `name` debe coincidir con e
 Para abrir una vista tree desde un menú o acción se usa `type="tree"`:
 
 ```xml
-<action-view name="subsysExpedientes.Expediente@Esperando-action"
-             title="Expedientes esperando"
-             model="com.educaflow.subsystem.expedientes.db.Expediente">
+<action-view name="subsysExpedientes.Expediente@Esperando-action" title="Expedientes esperando" model="com.educaflow.subsystem.expedientes.db.Expediente">
     <view type="tree" name="subsysExpedientes.Expediente@Esperando-tree"/>
     <context name="_profile" expr="TRAMITADOR"/>
 </action-view>
@@ -188,17 +175,12 @@ El patrón más común. El nodo raíz actúa como agrupador usando un `EXISTS` p
     <column name="fechaUltimoEstado" type="date" width="100px" title="Fecha"/>
 
     <!-- Nodo agrupador: agrupa por tipo de trámite -->
-    <node model="com.educaflow.subsystem.expedientes.db.Tramite"
-          domain="EXISTS (SELECT 1 FROM Expediente e WHERE e.abierto=true AND e.tipoExpediente.tramite=self)">
+    <node model="com.educaflow.subsystem.expedientes.db.Tramite" domain="EXISTS (SELECT 1 FROM Expediente e WHERE e.abierto=true AND e.tipoExpediente.tramite=self)">
         <field name="name" as="name"/>
     </node>
 
     <!-- Nodo hoja: los expedientes reales -->
-    <node model="com.educaflow.subsystem.expedientes.db.Expediente"
-          domain="abierto=true"
-          parent="tipoExpediente.tramite"
-          draggable="false"
-          onClick="subsysTramitador-event-view-action">
+    <node model="com.educaflow.subsystem.expedientes.db.Expediente" domain="abierto=true" parent="tipoExpediente.tramite" draggable="false" onClick="subsysTramitador-event-view-action">
         <field name="name"/>
         <field name="numeroExpediente"/>
         <field name="nameState"/>
@@ -220,16 +202,12 @@ Se define una `<column type="button">` en el árbol y un `<button>` en el nodo h
     <column name="ayuda" type="button" title="Ayuda"/>
 
     <!-- Agrupador por el tipo de usuario al que va dirigido el trámite -->
-    <node model="com.educaflow.subsystem.common.db.TipoUsuario"
-          domain="EXISTS (SELECT 1 FROM Tramite t WHERE t.tipoUsuario=self)">
+    <node model="com.educaflow.subsystem.common.db.TipoUsuario" domain="EXISTS (SELECT 1 FROM Tramite t WHERE t.tipoUsuario=self)">
         <field name="tituloTramites" as="name"/>
     </node>
 
     <!-- Trámites con botones de acción -->
-    <node model="com.educaflow.subsystem.expedientes.db.Tramite"
-          parent="tipoUsuario"
-          draggable="false"
-          onClick="subsysExpedientes.Main@ContextoTramitacion-action">
+    <node model="com.educaflow.subsystem.expedientes.db.Tramite" parent="tipoUsuario" draggable="false" onClick="subsysExpedientes.Main@ContextoTramitacion-action">
         <field name="name" as="name"/>
         <button name="ayuda" onClick="sysTramites-mostrar-ayuda-action" icon="help" help="Descripción del trámite"/>
     </node>
@@ -248,19 +226,11 @@ Cuando el tree se usa dentro de un dashlet con `<search-fields>`, los parámetro
     <column name="numeroExpediente" width="100px" title="Número"/>
     <column name="fechaUltimoEstado" type="date" width="100px" title="Fecha"/>
 
-    <node model="com.educaflow.subsystem.expedientes.db.Tramite"
-          domain="EXISTS (SELECT 1 FROM Expediente e
-                          WHERE e.abierto=:estado
-                          AND ((:anyo is null) OR (:anyo=0) OR (YEAR(e.fechaUltimoEstado)=:anyo))
-                          AND e.tipoExpediente.tramite=self)">
+    <node model="com.educaflow.subsystem.expedientes.db.Tramite" domain="EXISTS (SELECT 1 FROM Expediente e WHERE e.abierto=:estado AND ((:anyo is null) OR (:anyo=0) OR (YEAR(e.fechaUltimoEstado)=:anyo)) AND e.tipoExpediente.tramite=self)">
         <field name="name" as="name"/>
     </node>
 
-    <node model="com.educaflow.subsystem.expedientes.db.Expediente"
-          domain="(self.abierto=:estado) AND ((:anyo is null) OR (:anyo=0) OR (YEAR(self.fechaUltimoEstado)=:anyo))"
-          parent="tipoExpediente.tramite"
-          draggable="false"
-          onClick="subsysTramitador-event-view-action">
+    <node model="com.educaflow.subsystem.expedientes.db.Expediente" domain="(self.abierto=:estado) AND ((:anyo is null) OR (:anyo=0) OR (YEAR(self.fechaUltimoEstado)=:anyo))" parent="tipoExpediente.tramite" draggable="false" onClick="subsysTramitador-event-view-action">
         <field name="name"/>
         <field name="numeroExpediente"/>
         <field name="fechaUltimoEstado"/>

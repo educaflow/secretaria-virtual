@@ -255,8 +255,7 @@ message under the field.
 <action-condition name="check-order-dates">
   <check field="orderDate"/>
   <check field="createDate"/>
-  <check field="createDate" if="orderDate &gt; createDate"
-    error="Order creation date is in the future."/>
+  <check field="createDate" if="orderDate &gt; createDate" error="Order creation date is in the future."/>
 </action-condition>
 ```
 
@@ -394,14 +393,8 @@ The `expr` has following format:
 The `<action-script>`, can be used to create complex actions using scripting languages.
 
 ```xml
-<action-script
-  name="create.invoice" <!-- 1 -->
-  model="com.axelor.sale.db.Order" <!-- 2 -->
-  >
-  <script
-    language="js" <!-- 3 -->
-    transactional="true" <!-- 4 -->
-    >
+<action-script name="create.invoice" model="com.axelor.sale.db.Order"> <!-- 1 --> <!-- 2 -->
+  <script language="js" transactional="true"> <!-- 3 --> <!-- 4 -->
   <![CDATA[
   var req = $request; <!-- 5 -->
   var res = $response; <!-- 6 -->
@@ -607,14 +600,12 @@ Special context variable names
 Examples:
 
 ```xml
-<action-view name="contact.all" title="Contacts"
-  model="com.axelor.contact.db.Contact"> <!-- 1 -->
+<action-view name="contact.all" title="Contacts" model="com.axelor.contact.db.Contact"> <!-- 1 -->
   <view type="grid" name="contact-grid"/> <!-- 2 -->
   <view type="form" name="contact-form"/> <!-- 3 -->
 </action-view>
 
-<action-view name="contact.friends" title="My Friends"
-  model="com.axelor.contact.db.Contact">
+<action-view name="contact.friends" title="My Friends" model="com.axelor.contact.db.Contact">
   <view type="grid" name="contact-grid"/>
   <view type="form" name="contact-form"/>
   <domain>self.circle.code = :circleCode</domain> <!-- 4 -->
@@ -660,27 +651,13 @@ hierarchical so menu items can be organized as parent child.
 example:
 
 ```xml
-<menuitem name="menu-contact-book"
-  title="Address Book" /> <!-- 1 -->
+<menuitem name="menu-contact-book" title="Address Book" /> <!-- 1 -->
 
-<menuitem name="menu-contact-friends"
-  parent="menu-contact-book"
-  title="All Contact"
-  action="contact.all"/> <!-- 2 --> <!-- 3 --> <!-- 4 -->
+<menuitem name="menu-contact-friends" parent="menu-contact-book" title="All Contact" action="contact.all"/> <!-- 2 --> <!-- 3 --> <!-- 4 -->
 
-<menuitem name="menu-mail-inbox"
-  parent="menu-mail"
-  title="Inbox"
-  action="mail.inbox"
-  tag-get="com.axelor.mail.web.MailController:inboxMenuTag()"
-  tag-style="warning"/> <!-- 5 -->
+<menuitem name="menu-mail-inbox" parent="menu-mail" title="Inbox" action="mail.inbox" tag-get="com.axelor.mail.web.MailController:inboxMenuTag()" tag-style="warning"/> <!-- 5 -->
 
-  <menuitem name="menu-mail-important"
-    parent="menu-mail"
-    title="Important"
-    action="mail.important"
-    tag="Important"
-    tag-style="important"/> <!-- 6 -->
+<menuitem name="menu-mail-important" parent="menu-mail" title="Important" action="mail.important" tag="Important" tag-style="important"/> <!-- 6 -->
 ```
 
 1. define a top-level menu with no parent

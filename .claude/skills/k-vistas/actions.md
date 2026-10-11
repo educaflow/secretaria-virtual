@@ -227,10 +227,8 @@ El `<action-group>` del botón (`Main-btnSave-action`) referencia siempre el mis
 
 <!-- Errores generales del formulario -->
 <action-validate name="subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-codeFormat-action">
-    <error message="El código no puede empezar por número"
-           if="code != null &amp;&amp; code ==~ /^[0-9].*/"/>
-    <alert message="El código contiene caracteres especiales. ¿Continuar?"
-           if="code != null &amp;&amp; code ==~ /.*[^a-zA-Z0-9].*/"/>
+    <error message="El código no puede empezar por número" if="code != null &amp;&amp; code ==~ /^[0-9].*/"/>
+    <alert message="El código contiene caracteres especiales. ¿Continuar?" if="code != null &amp;&amp; code ==~ /.*[^a-zA-Z0-9].*/"/>
 </action-validate>
 ```
 
@@ -263,10 +261,7 @@ Permite ejecutar acciones complejas mediante un script en `js` o `groovy`. Se ut
 
 ```xml
 <action-script name="subsysVentas.Pendiente@Factura-Remote-guardarFactura-action" model="com.axelor.sale.db.Order" >
-  <script
-          language="js"
-          transactional="true"
-  >
+  <script language="js" transactional="true">
     <![CDATA[
   var req = $request; 
   var res = $response; 

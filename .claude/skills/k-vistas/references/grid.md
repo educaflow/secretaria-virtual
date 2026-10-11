@@ -24,8 +24,7 @@ show only important information.
 A grid view can be defined like this:
 
 ```xml
-<grid name="contact-grid" title="Contacts"
-  model="com.axelor.contact.db.Contact"> <!-- 1 -->
+<grid name="contact-grid" title="Contacts" model="com.axelor.contact.db.Contact"> <!-- 1 -->
   <field name="fullName" /> <!-- 2 -->
   <field name="email" />
   <field name="phone" />

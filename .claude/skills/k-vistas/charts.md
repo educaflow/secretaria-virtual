@@ -9,8 +9,7 @@ La referencia técnica completa de todos los atributos está en `references/char
 ## Estructura básica
 
 ```xml
-<action-view name="{prefijo}.{Nombre}@{Entidad}-action"
-             title="Título de la pantalla">
+<action-view name="{prefijo}.{Nombre}@{Entidad}-action" title="Título de la pantalla">
     <view type="chart" name="{prefijo}.{Nombre}@{Entidad}-chart"/>
 </action-view>
 
@@ -22,8 +21,7 @@ La referencia técnica completa de todos los atributos está en `references/char
 </chart>
 
 <action-method name="action-{entidad}-{nombre}">
-    <call class="com.educaflow.subsys.{subsistema}.service.{Entidad}ChartService"
-          method="{nombre}"/>
+    <call class="com.educaflow.subsys.{subsistema}.service.{Entidad}ChartService" method="{nombre}"/>
 </action-method>
 ```
 
@@ -134,8 +132,7 @@ La acción debe devolver una `List<Map<String,Object>>` cuyas claves coincidan *
 
 ```xml
 <action-method name="action-correo-grafica-dia">
-    <call class="com.educaflow.subsys.correos.service.CorreoChartService"
-          method="graficaDia"/>
+    <call class="com.educaflow.subsys.correos.service.CorreoChartService" method="graficaDia"/>
 </action-method>
 ```
 
@@ -239,9 +236,7 @@ Permiten al usuario filtrar la gráfica mediante inputs. Los valores se usan com
     <search-fields>
         <field type="date"      name="fromDate" title="Desde"/>
         <field type="date"      name="toDate"   title="Hasta"/>
-        <field type="reference" name="centro"   title="Centro"
-               target="com.educaflow.subsystem.gestioncentro.db.Centro"
-               domain="..." x-required="true"/>
+        <field type="reference" name="centro"   title="Centro" target="com.educaflow.subsystem.gestioncentro.db.Centro" domain="..." x-required="true"/>
     </search-fields>
     <dataset type="sql">
         <![CDATA[
@@ -359,13 +354,11 @@ Cuando la gráfica es un dashlet sin entidad clara, puede usarse solo el prefijo
 > Este ejemplo ilustra la variante `type="sql"`. Recuerda que el **patrón por defecto del proyecto es `type="rpc"`** (`chart → <action-method> → servicio`, ver la subsección *type="rpc"*); usa SQL solo si se pide explícitamente.
 
 ```xml
-<action-view name="subsysNotificaciones.EnviadosPorDia@Correo-action"
-             title="Correos enviados por día">
+<action-view name="subsysNotificaciones.EnviadosPorDia@Correo-action" title="Correos enviados por día">
     <view type="chart" name="subsysNotificaciones.EnviadosPorDia@Correo-chart"/>
 </action-view>
 
-<chart name="subsysNotificaciones.EnviadosPorDia@Correo-chart"
-       title="Correos enviados por día">
+<chart name="subsysNotificaciones.EnviadosPorDia@Correo-chart" title="Correos enviados por día">
     <search-fields>
         <field type="date" name="fromDate" title="Desde"/>
         <field type="date" name="toDate"   title="Hasta"/>
@@ -398,8 +391,7 @@ Cuando la gráfica es un dashlet sin entidad clara, puede usarse solo el prefijo
 ## Integración con `<action-view>`
 
 ```xml
-<action-view name="subsysNotificaciones.EnviadosPorDia@Correo-action"
-             title="Correos enviados">
+<action-view name="subsysNotificaciones.EnviadosPorDia@Correo-action" title="Correos enviados">
     <view type="chart" name="subsysNotificaciones.EnviadosPorDia@Correo-chart"/>
 </action-view>
 ```

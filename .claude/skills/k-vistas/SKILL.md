@@ -28,10 +28,7 @@ Cada fichero XML de vistas debe tener **exactamente** esta declaración inicial:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://axelor.com/xml/ns/object-views
-https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 </object-views>
 ```
@@ -105,11 +102,7 @@ Se usan cuando otros formularios necesitan buscar o mostrar datos de esta entida
 ### `Ref@…-grid` — grid de búsqueda
 
 ```xml
-<grid name="subsysSistemaEducativo.Ref@Ciclo-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-      title="" orderBy="name"
-      editable="false" edit-icon="false" x-selector="none"
-      canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true"
->
+<grid name="subsysSistemaEducativo.Ref@Ciclo-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" title="" orderBy="name" editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
     <field name="name"/>
     <field name="familiaProfesional"/>
 </grid>
@@ -123,15 +116,13 @@ Diferencias respecto al `Main@…-grid`:
 ### `Ref@…-form` — formulario de solo lectura
 
 ```xml
-<form name="subsysSistemaEducativo.Ref@Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-      width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+<form name="subsysSistemaEducativo.Ref@Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
     <panel name="Ciclo" title="">
         <field name="name"               colSpan="6" readonly="true"/>
         <field name="familiaProfesional" colSpan="6" readonly="true"/>
     </panel>
     <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-        <button name="btnCancel" title="Salir" onClick="subsysSistemaEducativo.Ref@Ciclo-btnCancel-action"
-                colSpan="2" colOffset="10" outline="true"/>
+        <button name="btnCancel" title="Salir" onClick="subsysSistemaEducativo.Ref@Ciclo-btnCancel-action" colSpan="2" colOffset="10" outline="true"/>
     </panel>
 </form>
 
@@ -153,9 +144,7 @@ Un `Ref@…-form` es un bloque de **solo lectura**, pero su bloque lleva igualme
 ### Uso en campos relacionales
 
 ```xml
-<field name="ciclo" colSpan="6"
-       grid-view="subsysSistemaEducativo.Ref@Ciclo-grid"
-       form-view="subsysSistemaEducativo.Ref@Ciclo-form"/>
+<field name="ciclo" colSpan="6" grid-view="subsysSistemaEducativo.Ref@Ciclo-grid" form-view="subsysSistemaEducativo.Ref@Ciclo-form"/>
 ```
 
 - `grid-view` → abre el `Ref@…-grid` para buscar/seleccionar.
@@ -209,10 +198,7 @@ Este es el esqueleto XML completo que hay que seguir. Sustituir `Ciclo` y `Curso
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://axelor.com/xml/ns/object-views
-https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <?sv-view?>
     <action-view name="subsysSistemaEducativo.Main@Ciclo-action" title="Ciclos" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
@@ -222,37 +208,23 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="subsysSistemaEducativo.Main@Ciclo-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-          title="" orderBy="name" newButtonTitle="Añadir un nuevo ciclo" allowSearchFields="true"
-          canAdvanceSearch="false" canRefresh="false" canNew="true"
-          editable="false" edit-icon="false" x-selector="none"
-          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
-    >
+    <grid name="subsysSistemaEducativo.Main@Ciclo-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" title="" orderBy="name" newButtonTitle="Añadir un nuevo ciclo" allowSearchFields="true" canAdvanceSearch="false" canRefresh="false" canNew="true" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
         <field name="code" width="200px"/>
         <field name="name"/>
     </grid>
 
-    <form name="subsysSistemaEducativo.Main@Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+    <form name="subsysSistemaEducativo.Main@Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
         <panel name="Ciclo" title="Ciclo">
             <field name="code" colSpan="3"/>
             <field name="name" colSpan="6" colOffset="3"/>
         </panel>
 
-        <panel-related name="cursos" field="cursos" title="Cursos"
-            grid-view="subsysSistemaEducativo.Main@Ciclo.Curso-grid"
-            form-view="subsysSistemaEducativo.Main@Ciclo.Curso-form"
-            colSpan="12" newButtonTitle="Añadir un nuevo curso"
-            showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
-        />
+        <panel-related name="cursos" field="cursos" title="Cursos" grid-view="subsysSistemaEducativo.Main@Ciclo.Curso-grid" form-view="subsysSistemaEducativo.Main@Ciclo.Curso-form" colSpan="12" newButtonTitle="Añadir un nuevo curso" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"/>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@Ciclo-btnDelete-action"
-                    css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
-            <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Main@Ciclo-btnCancel-action"
-                    colSpan="2" colOffset="6" outline="true"/>
-            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Main@Ciclo-btnSave-action"
-                    colSpan="2"/>
+            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@Ciclo-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Main@Ciclo-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Main@Ciclo-btnSave-action" colSpan="2"/>
         </panel>
     </form>
 
@@ -280,20 +252,12 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 
     <?sv-view?>
-    <grid name="subsysSistemaEducativo.Main@Ciclo.Curso-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
-          title="" orderBy="name" newButtonTitle="Añadir un nuevo curso" allowSearchFields="true"
-          canAdvanceSearch="false" canRefresh="false" canNew="true"
-          editable="false" edit-icon="false" x-selector="none"
-          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
-    >
+    <grid name="subsysSistemaEducativo.Main@Ciclo.Curso-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Curso" title="" orderBy="name" newButtonTitle="Añadir un nuevo curso" allowSearchFields="true" canAdvanceSearch="false" canRefresh="false" canNew="true" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
         <field name="code" width="150px"/>
         <field name="name"/>
     </grid>
 
-    <form name="subsysSistemaEducativo.Main@Ciclo.Curso-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
-          width="large"
-          onNew="subsysSistemaEducativo.Main@Ciclo.Curso-onNew-action"
-          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+    <form name="subsysSistemaEducativo.Main@Ciclo.Curso-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso" width="large" onNew="subsysSistemaEducativo.Main@Ciclo.Curso-onNew-action" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="Curso" title="">
             <field name="ciclo" showIf="false"/>
             <field name="code" colSpan="3"/>
@@ -301,12 +265,9 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnDelete-action"
-                    css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
-            <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnCancel-action"
-                    colSpan="2" colOffset="6" outline="true"/>
-            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnSave-action"
-                    colSpan="2"/>
+            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnSave-action" colSpan="2"/>
         </panel>
     </form>
 
@@ -330,8 +291,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <?sv-validations?>
 
     <?sv-rules?>
-    <action-record name="subsysSistemaEducativo.Main@Ciclo.Curso-set-ciclo-parent-action"
-                   model="com.educaflow.subsystem.sistemaeducativo.db.Curso">
+    <action-record name="subsysSistemaEducativo.Main@Ciclo.Curso-set-ciclo-parent-action" model="com.educaflow.subsystem.sistemaeducativo.db.Curso">
         <field name="ciclo" expr="eval: __parent__"/>
     </action-record>
 
@@ -348,30 +308,21 @@ Las vistas `Ref@…-grid` y `Ref@…-form` van **siempre** en `views/Ref-{Entida
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object-views xmlns="http://axelor.com/xml/ns/object-views"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://axelor.com/xml/ns/object-views
-https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <?sv-view?>
-    <grid name="subsysSistemaEducativo.Ref@Ciclo-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-          title="" orderBy="name"
-          editable="false" edit-icon="false" x-selector="none"
-          canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true"
-    >
+    <grid name="subsysSistemaEducativo.Ref@Ciclo-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" title="" orderBy="name" editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <field name="name"/>
         <field name="familiaProfesional"/>
     </grid>
 
-    <form name="subsysSistemaEducativo.Ref@Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+    <form name="subsysSistemaEducativo.Ref@Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="Ciclo" title="">
             <field name="name"               colSpan="6" readonly="true"/>
             <field name="familiaProfesional" colSpan="6" readonly="true"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnCancel" title="Salir" onClick="subsysSistemaEducativo.Ref@Ciclo-btnCancel-action"
-                    colSpan="2" colOffset="10" outline="true"/>
+            <button name="btnCancel" title="Salir" onClick="subsysSistemaEducativo.Ref@Ciclo-btnCancel-action" colSpan="2" colOffset="10" outline="true"/>
         </panel>
     </form>
 
@@ -392,9 +343,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 Uso en un campo relacional de otro formulario:
 
 ```xml
-<field name="ciclo" colSpan="6"
-       grid-view="subsysSistemaEducativo.Ref@Ciclo-grid"
-       form-view="subsysSistemaEducativo.Ref@Ciclo-form"/>
+<field name="ciclo" colSpan="6" grid-view="subsysSistemaEducativo.Ref@Ciclo-grid" form-view="subsysSistemaEducativo.Ref@Ciclo-form"/>
 ```
 
 ---
