@@ -19,7 +19,7 @@ description: Este Skill permite diseñar y generar la estructura de carpetas, fi
 
 Un sistema y un subsistema son técnicamente idénticos en estructura. La diferencia es conceptual:
 
-- **Subsistema** — capacidad reutilizable que usan otros subsistemas o sistemas. No desaparecería si se eliminara un sistema concreto. Ejemplos: `firmas`, `registroentradasalida`, `sistemaeducativo`, `common`.
+- **Subsistema** — capacidad reutilizable que usan otros subsistemas o sistemas. No desaparecería si se eliminara un sistema concreto. Ejemplos reales del proyecto: `firmas`, `registroentradasalida`, `sistemaeducativo`, `common`, `tramitador` (motor de tramitación de expedientes que usan los trámites), `security`, `correos`, `notificaciones`, `sms`, `criptografia`, `registrousuario`.
 - **Sistema** — funcionalidad concreta ofrecida al usuario. No necesita ser reutilizada por nadie. Se eliminaría sin afectar al resto. Ejemplos: `actas`, `gestioncentro`.
 
 ## Reglas de dependencia
@@ -321,9 +321,24 @@ Para los marcadores (Processing Instructions) que separan las vistas y las secci
 
 Crear un **subsistema** cuando la capacidad es reutilizable (no necesariamente) por múltiples sistemas o por otros subsistemas (ej: firmas, registro de entrada/salida, certificados digitales).
 
-Crear un **sistema** es similar a un subsistema solo que no necesita ser reutilizada por nadie (Se podría eliminar sin problemas si se deja de usar). Un sistema no depende de otros sistemas pero sí de otros subsistemas. Ejemplos: `actas`, `importar`. Los trámites y sus tipos de expediente **no son sistemas**: viven en `tramites/` con arquitectura propia, fuera de este skill.
+Crear un **sistema** es similar a un subsistema solo que no necesita ser reutilizada por nadie (Se podría eliminar sin problemas si se deja de usar). Un sistema no depende de otros sistemas pero sí de otros subsistemas. Ejemplos: `actas`, `importar`. Los trámites y sus tipos de expediente **no son sistemas**: viven en `tramites/` con arquitectura propia, fuera de este skill. Su **motor**, sin embargo, **sí es un subsistema**: `subsystem/tramitador` (tramitación/core, tramitacion/eventmanager, tramitacion/validation). No hay que diseñar ni tocar ese motor desde este skill — lo documenta el skill **`k-tipo-expediente`**.
 
 La diferencia principal entre un sistema y un subsistema es que el sistema suele representar una funcionalidad que se ofrece a los usuarios y que ellos han solicitado. Es decir, es una diferencia desde el punto de vista del negocio. Por ejemplo, el registro de entrada/salida no es algo que los usuarios solicitan sino que es una necesidad que usan los expedientes. Mientras que el subsistema es una parte más genérica y reutilizable que puede ser usada por varios sistemas. Por ejemplo, el subsistema de `firmas` puede ser usado por múltiples sistemas para gestionar la firma de documentos, mientras que el sistema `actas` es una funcionalidad concreta que los usuarios han solicitado.
+
+## Política de truncado al arrancar
+
+Al arrancar la aplicación se **vacían** las tablas de la base de datos para partir de un estado limpio (en desarrollo). La política vive en `src/main/java/com/educaflow/secretariavirtual/startup/DataBaseStartup.java`:
+
+- `DataBaseStartup.truncateTables()` — llamado desde el arranque (`SecretariaVirtualModule`), delega en `BulkTables.truncateTables(...)` (`com.educaflow.base.infrastructure.db.BulkTables`), que desactiva los triggers, trunca y los reactiva dentro de una transacción.
+- `PREFIJOS_TRUNCADOS = ["meta_", "auth_"]` — se truncan **todas** las tablas cuyo nombre empieza por uno de estos prefijos (los metadatos y permisos de Axelor).
+- `TABLAS_EXCLUIDAS = {meta_file, meta_sequence, auth_user, auth_group, meta_filter}` — tablas con prefijo truncado que **se salvan** porque guardan datos reales (usuarios, grupos, ficheros, secuencias, filtros).
+- `TABLAS_INCLUIDAS = {security_ace_profile_global, security_ace_profile_tipo_usuario_tramite, security_ace_profile_tramite, security_ace_profile_tipo_expediente}` — tablas sin prefijo truncado que **también se truncan** expresamente (los perfiles ACE del subsistema `security`).
+
+El truncado real es `TRUNCATE TABLE <tabla> CASCADE;` (ver `Table.truncate()` en `com.educaflow.base.infrastructure.db.Table`): el **CASCADE arrastra a toda tabla con una FK hacia una tabla truncada**, esté o no en `TABLAS_EXCLUIDAS`. La exclusión solo libra a una tabla de ser truncada **directamente**, no de ser arrastrada por una FK propia.
+
+> **REGLA — ninguna tabla excluida puede apuntar a una truncada:** si una entidad de una tabla excluida ganara un `many-to-one`/`one-to-one` hacia una entidad de tabla truncada, el CASCADE la vaciaría en cada arranque sin avisar. Esto lo vigila el test **`src/test/java/com/educaflow/secretariavirtual/startup/TablasExcluidasDelTruncadoTest.java`**, que con ArchUnit (bytecode, sin cargar clases) comprueba que ninguna entidad excluida tiene FKs hacia tablas truncadas, además de validar la propia política (`seTrunca`) contra los tres casos.
+
+El método auxiliar `DataBaseStartup.seTrunca(tableName)` resume la política (incluida ⊃ excluida ⊃ prefijo) y es la fuente que usa el test.
 
 ---
 
