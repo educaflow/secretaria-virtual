@@ -87,7 +87,7 @@ const AVISO_PRESENTA_EL_MISMO =
 const PANEL_SOLICITUD_EN_PAPEL = 'panel:solicitudEscaneadaDatosSolicitud';
 
 // Panel que la plantilla común pinta con `showIf="presentadoEnRepresentacion"`
-// (`persona-solicitante-editable` de `tramites/shared/template-views.xml`): su ausencia
+// (`persona-solicitante-editable` de `tramites/shared/common-template-views.xml`): su ausencia
 // prueba que el expediente es para el propio usuario, no en representación de otro.
 const PANEL_PERSONA_SOLICITANTE = 'panel:persona-solicitante-editable';
 

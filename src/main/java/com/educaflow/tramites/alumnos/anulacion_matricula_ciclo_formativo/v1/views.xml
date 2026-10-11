@@ -5,7 +5,7 @@
 
         <!-- Los paneles subsanacion, verificacion, solicitud-escaneada-* y firma-solicitud, y los visores
              pdfSolicitud y pdfSolicitudFirmada de las fases comunes ENTRADA y VERIFICACION están en
-             tramites/shared/template-views.xml. -->
+             tramites/shared/common-template-views.xml. -->
 
         <!-- ================================================================================== -->
         <!-- Datos del alumno                                                                   -->

@@ -61,7 +61,7 @@ const FASE_INICIAL = 'Entrada';
 const ESTADO_INICIAL = 'Entrada de datos';
 
 // Panel que la plantilla común pinta con `showIf="presentadoEnRepresentacion"`
-// (`persona-solicitante-editable` de `tramites/shared/template-views.xml`): su
+// (`persona-solicitante-editable` de `tramites/shared/common-template-views.xml`): su
 // ausencia es la prueba en la UI de que el expediente NO es en representación de otra
 // persona (este trámite, de hecho, ni siquiera lo permite: `permitidoPresentarEnRepresentacion=false`
 // en su `TramiteInstance.xml`).

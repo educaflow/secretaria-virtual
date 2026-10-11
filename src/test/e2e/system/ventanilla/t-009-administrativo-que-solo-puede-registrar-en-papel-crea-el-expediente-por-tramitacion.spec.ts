@@ -84,7 +84,7 @@ const AVISO_EN_PAPEL =
 const AVISO_PRESENTA_EL_MISMO =
   'Para presentar la solicitud necesitará firmarla con su certificado digital desde este mismo ordenador';
 
-// Panel que la plantilla común (`tramites/shared/template-views.xml`) pinta con
+// Panel que la plantilla común (`tramites/shared/common-template-views.xml`) pinta con
 // `showIf="presentadoEnRepresentacion"`, en sus dos variantes: `persona-solicitante`
 // (solo lectura) y `persona-solicitante-editable`. Verlo o no verlo solo significa algo
 // en un formulario que lo incluya en su `<include-panels>`, que es una ALLOWLIST.

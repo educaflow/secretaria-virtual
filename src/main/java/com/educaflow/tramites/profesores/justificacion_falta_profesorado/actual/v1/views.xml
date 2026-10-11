@@ -79,7 +79,7 @@
         </panel>
         <!-- Los visores pdfSolicitud, pdfSolicitudFirmada y pdfJustificanteRegistroEntrada, y los paneles
              subsanacion, verificacion, solicitud-escaneada-* y firma-solicitud de las fases comunes ENTRADA y
-             VERIFICACION están en tramites/shared/template-views.xml. -->
+             VERIFICACION están en tramites/shared/common-template-views.xml. -->
         <panel name="pdfResolucion" title="Resolución" >
             <field name="visorResolucion" showTitle="false" readonly="true" colSpan="12">
                 <viewer depends="pdfResolucion" ><![CDATA[

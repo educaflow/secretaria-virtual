@@ -80,7 +80,7 @@ const AVISO_PRESENTA_EL_MISMO =
 const PANEL_SOLICITUD_EN_PAPEL = 'panel:solicitudEscaneadaDatosSolicitud';
 
 // Panel que la plantilla común pinta con `showIf="presentadoEnRepresentacion"`
-// (`persona-solicitante-editable` de `tramites/shared/template-views.xml`): su
+// (`persona-solicitante-editable` de `tramites/shared/common-template-views.xml`): su
 // presencia es la prueba en la UI de que el expediente SÍ es en representación de
 // otra persona. Sus campos nacen con la identidad de quien presenta (el propio
 // alumnofamiliar) y en solo lectura, porque no es él quien los teclea: lo hace el

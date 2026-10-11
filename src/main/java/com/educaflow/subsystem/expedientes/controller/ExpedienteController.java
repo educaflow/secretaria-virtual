@@ -16,7 +16,7 @@ import java.util.Optional;
 
 /**
  * El botón «Añadir nota» del panel de notas que llevan todas las pantallas de un expediente
- * ({@code subsysExpedientes-template-notas-panel}, en {@code tramites/shared/template-views.xml}).
+ * ({@code subsysExpedientes-template-notas-panel}, en {@code tramites/shared/common-template-views.xml}).
  */
 public class ExpedienteController {
 

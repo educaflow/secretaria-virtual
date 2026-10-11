@@ -66,7 +66,7 @@ const PREGUNTA_PARA_QUIEN = '¿Para quién es el expediente?';
 const FASE_INICIAL = 'Entrada';
 const ESTADO_INICIAL_EN_PAPEL = 'Pendiente de adjuntar la solicitud en papel escaneada';
 
-// Panel común (`solicitud-escaneada-upload` de `tramites/shared/template-views.xml`) y
+// Panel común (`solicitud-escaneada-upload` de `tramites/shared/common-template-views.xml`) y
 // aviso del form de PENDIENTE_DOCUMENTO_ESCANEADO con perfil TRAMITADOR: verlos prueba
 // que la aplicación trata el expediente como registrado en papel.
 const PANEL_SOLICITUD_ESCANEADA = 'panel:solicitud-escaneada-upload';
