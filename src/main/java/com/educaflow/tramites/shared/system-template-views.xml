@@ -3,7 +3,7 @@
 
     <form name="subsysExpedientes-system-templates-form" title="Expediente" model="com.educaflow.subsystem.expedientes.db.Expediente">
 
-        <panel name="subsysExpedientes-template-header-panel" colSpan="12" title="Información general" >
+        <panel name="subsysExpedientes-template-header-panel" colSpan="12" title="Información general" canCollapse="true" collapseIf="true">
             <!--
                 Dos filas de 12. Al añadir la fase, meter los cinco elementos en una sola fila
                 obligaba a recortar "Creado por" (3->2) y "Estado" (4->3), y los campos readonly se
