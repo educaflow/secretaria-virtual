@@ -24,7 +24,7 @@
         <enum name="perfilEstado" ref="com.educaflow.subsystem.expedientes.db.Profile" title="Le toca a" help="Perfil que tiene que actuar en el estado actual del expediente" />
         <datetime name="fechaUltimoEstado" title="Fecha último estado" />
         <boolean name="abierto" title="Abierto" />
-        <one-to-many name="historialEstados" ref="HistorialEstado" mappedBy="expediente" />
+        <one-to-many name="historialEstados" ref="HistorialEstado" mappedBy="expediente" orderBy="fecha" />
         <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro"  />
         <many-to-one name="usuarioRegistrador" ref="com.axelor.auth.db.User" help="Usuario que registra el expediente" />
         <one-to-one name="personaSolicitante" ref="com.educaflow.subsystem.common.db.Persona" help="Persona que solicita, por ejemplo el padre" />
