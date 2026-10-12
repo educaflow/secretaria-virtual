@@ -445,7 +445,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
                     log.error("No se ha podido firmar en el servidor el documento id={} de la tarea de firma id={}", documentoFirma.getId(), tareaFirma.getId(), ex);
                 }
 
-                throw new ValidationException(BusinessMessages.single(I18n.get("No se han podido firmar los documentos: %s").formatted(motivo)).toString());
+                throw new ValidationException(BusinessMessages.single(I18n.get("No se han podido firmar los documentos: %s").formatted(motivo)).toUserString());
             }
         }
 
