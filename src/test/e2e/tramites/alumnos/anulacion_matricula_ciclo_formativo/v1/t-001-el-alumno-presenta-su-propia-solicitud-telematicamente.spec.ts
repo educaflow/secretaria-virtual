@@ -34,9 +34,31 @@ async function abrirAltaDelTramite(page: Page): Promise<void> {
   await expect(page.getByRole('tab', { name: PANTALLA_ALTA, exact: true })).toBeVisible();
 }
 
+const TELEFONO_ALUMNO = '644495188';
+
+/**
+ * Pone el teléfono del usuario conectado desde su pantalla de «Preferencias» (menú de usuario) y
+ * devuelve el que tenía antes. Los datos demo no le dan teléfono a alumno1, así que el test lo fija
+ * él mismo en vez de depender de lo que haya en la base de datos. Guardar recarga la aplicación.
+ */
+async function fijarTelefonoDelUsuario(page: Page, telefono: string): Promise<string> {
+  await page.getByRole('toolbar', { name: /User Menu/i }).getByRole('button').first().click();
+  // El nombre accesible de la entrada es el del usuario; «Preferencias» es su subtexto.
+  await page.getByRole('menuitem').filter({ hasText: 'Preferencias' }).click();
+  const dialogo = page.getByRole('dialog');
+  const campo = dialogo.getByLabel('Teléfono');
+  await expect(campo).toBeVisible();
+  const anterior = await campo.inputValue();
+  await campo.fill(telefono);
+  await dialogo.getByRole('button', { name: 'Aceptar' }).click();
+  await expect(dialogo).toHaveCount(0);
+  return anterior;
+}
+
 test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
   test('El alumno presenta su propia solicitud telemáticamente', async ({ page }) => {
     let numero = '';
+    let telefonoAnterior: string | null = null;
     try {
       // --- Tramo único: CREADOR (alumno1@mislata.es) ---
       // Given: que `alumno1@mislata.es` (contraseña `demo1234`) es alumno de CIPFP Mislata y solo
@@ -44,6 +66,9 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       await ensureLoggedOut(page);
       await login(page, 'alumno1@mislata.es', 'demo1234');
 
+      // And: que su teléfono es 644495188 (los datos demo no se lo dan: lo pone él mismo desde
+      // «Preferencias» y el teardown le devuelve el que tenía).
+      telefonoAnterior = await fijarTelefonoDelUsuario(page, TELEFONO_ALUMNO);
       // When: inicia sesión, abre «Mis trámites» → «Nuevo trámite», despliega «Trámites para el alumno»
       // y pulsa sobre «Anulación de matrícula en ciclo formativo».
       await abrirAltaDelTramite(page);
@@ -103,7 +128,7 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       // el «Teléfono» viene precargado con el de quien ha entrado (alumno1: 644495188) y es
       // editable, y el resto de campos están vacíos y son editables…
       const panelDatosAlumno = page.getByRole('region', { name: 'Datos del alumno/a' });
-      await expect(panelDatosAlumno.getByLabel('Teléfono')).toHaveValue('644495188');
+      await expect(panelDatosAlumno.getByLabel('Teléfono')).toHaveValue(TELEFONO_ALUMNO);
       await expect(panelDatosAlumno.getByLabel('Teléfono')).toBeEnabled();
       for (const campo of ['NIA', 'Dirección', 'Código Postal']) {
         await expect(panelDatosAlumno.getByLabel(campo)).toHaveValue('');
@@ -134,6 +159,10 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       // Se comprueba por el NÚMERO del expediente que este test creó, nunca por «el primero».
       if (numero) {
         await expect(page.getByRole('tab', { name: new RegExp(numero) })).toHaveCount(0).catch(() => {});
+      }
+      // Se devuelve a alumno1 el teléfono que tenía antes del test (vacío con los datos demo).
+      if (telefonoAnterior !== null) {
+        await fijarTelefonoDelUsuario(page, telefonoAnterior);
       }
       await logout(page).catch(() => {});
     }

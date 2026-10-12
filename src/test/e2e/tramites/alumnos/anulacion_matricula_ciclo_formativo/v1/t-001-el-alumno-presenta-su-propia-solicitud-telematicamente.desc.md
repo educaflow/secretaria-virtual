@@ -64,6 +64,7 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 ## Pasos
 
 - **Given** que `alumno1@mislata.es` (contraseña `demo1234`) es alumno de CIPFP Mislata y solo tiene ese centro, y que por ser alumno tiene el perfil `CREADOR` sobre los trámites de alumno.
+- **And** su teléfono es «644495188»: los datos demo no se lo dan, así que el test lo pone desde «Preferencias» (menú de usuario) tras iniciar sesión, y al terminar le devuelve el que tenía antes (vacío con los datos demo).
 - **When** inicia sesión, abre «Mis trámites» → «Nuevo trámite», despliega «Trámites para el alumno» y pulsa sobre «Anulación de matrícula en ciclo formativo».
 - **Then** se abre la pantalla «Nuevo expediente» con la ayuda del trámite, el campo «Centro» ya relleno con «CIPFP Mislata» y de solo lectura, **sin** la pregunta «¿Cómo se presenta?» (la forma la fija la entrada de menú) y **sin** la pregunta «¿Para quién es el expediente?» (es alumno y no familiar, así que el expediente solo puede ser para él mismo).
 - **When** pulsa «Crear expediente».

@@ -126,6 +126,23 @@ async function abrirNuevoExpediente(page: Page): Promise<void> {
 }
 
 /**
+ * Despliega la cabecera «Información general» del expediente, que nace plegada
+ * (`canCollapse="true" collapseIf="true"`). El front monta el panel desplegado y lo pliega
+ * un instante después, cuando evalúa `collapseIf`: pulsar antes de ese plegado lo dejaría
+ * plegado al final. Por eso primero se espera a que el botón de plegar/desplegar de la
+ * región declare `aria-expanded="false"` (el plegado ya aplicado), luego se pulsa y por
+ * último se espera a `aria-expanded="true"`. No se usa la visibilidad de los campos de la
+ * cabecera para decidir si pulsar: no distingue «aún sin plegar» de «ya desplegada» y
+ * produjo fallos intermitentes.
+ */
+async function desplegarCabeceraInformacionGeneral(page: Page): Promise<void> {
+  const botonPlegar = page.getByRole('region', { name: 'Información general' }).getByRole('button').first();
+  await expect(botonPlegar).toHaveAttribute('aria-expanded', 'false');
+  await botonPlegar.click();
+  await expect(botonPlegar).toHaveAttribute('aria-expanded', 'true');
+}
+
+/**
  * Borra el expediente cuya pestaña se titula `titulo`. El botón abre un diálogo de
  * confirmación de Axelor ("Se va a eliminar el expediente y no podrá recuperarlo")
  * que hay que aceptar. Al borrarlo el asistente vuelve a la elección de trámite.
@@ -225,6 +242,9 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       const pestanaExpediente = page.getByRole('tab', { name: TITULO_EXPEDIENTE });
       await expect(pestanaExpediente).toBeVisible();
       tituloExpediente = (await pestanaExpediente.getByTestId('title').innerText()).trim();
+      // La cabecera «Información general» (creado por, fase, estado…) sale plegada al abrir
+      // el expediente: hay que desplegarla para poder leer sus campos.
+      await desplegarCabeceraInformacionGeneral(page);
       await expect(page.getByTestId('field:namePhase').getByRole('textbox')).toHaveValue(
         FASE_INICIAL,
       );

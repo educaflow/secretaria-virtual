@@ -230,6 +230,23 @@ async function abrirExpedienteDesdeBandeja(
 }
 
 /**
+ * Despliega la cabecera «Información general» del expediente, que nace plegada
+ * (`canCollapse="true" collapseIf="true"`). El front monta el panel desplegado y lo pliega
+ * un instante después, cuando evalúa `collapseIf`: pulsar antes de ese plegado lo dejaría
+ * plegado al final. Por eso primero se espera a que el botón de plegar/desplegar de la
+ * región declare `aria-expanded="false"` (el plegado ya aplicado), luego se pulsa y por
+ * último se espera a `aria-expanded="true"`. No se usa la visibilidad de los campos de la
+ * cabecera para decidir si pulsar: no distingue «aún sin plegar» de «ya desplegada» y
+ * produjo fallos intermitentes.
+ */
+async function desplegarCabeceraInformacionGeneral(page: Page): Promise<void> {
+  const botonPlegar = page.getByRole('region', { name: 'Información general' }).getByRole('button').first();
+  await expect(botonPlegar).toHaveAttribute('aria-expanded', 'false');
+  await botonPlegar.click();
+  await expect(botonPlegar).toHaveAttribute('aria-expanded', 'true');
+}
+
+/**
  * Borra el expediente `numero`. «Borrar el expediente» solo lo ofrece, en papel,
  * PENDIENTE_DOCUMENTO_ESCANEADO (TRAMITADOR), que se abre desde «Tramitación» →
  * «Pendientes de mí». ENTRADA_DATOS abierto como CREADOR (el administrativo que lo registró,
@@ -241,7 +258,12 @@ async function abrirExpedienteDesdeBandeja(
 async function borrarExpediente(page: Page, numero: string, enEntradaDatos: boolean): Promise<void> {
   if (enEntradaDatos) {
     await abrirExpedienteDesdeBandeja(page, numero, 'misTramites-menuitem', 'misTramites-pendientesDeMi-menuitem');
+    // Se despliega ANTES de pulsar «Atrás» para que, tras el cambio de estado, esperar a que
+    // la cabecera vuelva a salir plegada (el expediente se recarga) sirva de señal de que la
+    // recarga ya ocurrió y no se pulse sobre la vista anterior, que se plegaría de nuevo.
+    await desplegarCabeceraInformacionGeneral(page);
     await page.getByRole('button', { name: 'Atrás' }).click();
+    await desplegarCabeceraInformacionGeneral(page);
     await expect(page.getByTestId('field:nameState').getByRole('textbox')).toHaveValue(
       ESTADO_INICIAL_EN_PAPEL,
     );
@@ -360,6 +382,9 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // Número completo del expediente (`<nº>/<año>-<código del centro>`): el título sin
       // el sufijo `-<trámite> V1`.
       numeroExpediente = tituloExpediente.slice(0, -SUFIJO_TITULO_EXPEDIENTE.length);
+      // La cabecera «Información general» (creado por, fase, estado…) sale plegada al abrir
+      // el expediente: hay que desplegarla para poder leer sus campos.
+      await desplegarCabeceraInformacionGeneral(page);
       await expect(page.getByTestId('field:namePhase').getByRole('textbox')).toHaveValue(
         FASE_INICIAL,
       );
@@ -427,6 +452,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // solicitud escaneada —lo único que `StateEventValidatorImpl` exige para CONTINUAR
       // desde PENDIENTE_DOCUMENTO_ESCANEADO— y mira allí.
       await abrirExpedienteComoTramitador(page, numeroExpediente);
+      await desplegarCabeceraInformacionGeneral(page);
       await expect(page.getByTestId('field:nameState').getByRole('textbox')).toHaveValue(
         ESTADO_INICIAL_EN_PAPEL,
       );
@@ -438,6 +464,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
         .setInputFiles({ name: NOMBRE_PDF, mimeType: 'application/pdf', buffer: pdfMinimo() });
       await expect(panelSolicitudEscaneada.getByRole('button', { name: NOMBRE_PDF })).toBeVisible();
       await page.getByRole('button', { name: 'Siguiente' }).click();
+      await desplegarCabeceraInformacionGeneral(page);
       await expect(page.getByTestId('field:nameState').getByRole('textbox')).toHaveValue(
         ESTADO_ENTRADA_DATOS,
       );

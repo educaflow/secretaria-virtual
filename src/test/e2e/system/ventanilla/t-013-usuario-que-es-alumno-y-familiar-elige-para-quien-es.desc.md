@@ -59,5 +59,5 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 8. **Cuando** marca "Para la persona que lo presenta" y pulsa "Crear expediente".
 
 ## Resultado esperado
-- El asistente se cierra y se abre el expediente recién creado de "Anulación de matrícula en ciclo formativo" en su primer estado, en el centro "CIPFP Mislata".
+- El asistente se cierra y se abre el expediente recién creado de "Anulación de matrícula en ciclo formativo" en su primer estado, en el centro "CIPFP Mislata". La cabecera "Información general" del expediente sale plegada, así que para leer la fase, el estado y quién lo creó se despliega primero.
 - El expediente queda presentado por el propio usuario (no registrado como presentado en papel) y para él mismo, no en representación de otra persona.

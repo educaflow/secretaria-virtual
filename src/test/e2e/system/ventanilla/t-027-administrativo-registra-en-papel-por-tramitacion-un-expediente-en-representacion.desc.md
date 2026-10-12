@@ -57,6 +57,6 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 6. **Cuando** marca "Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)", elige el idioma "Castellano" y pulsa "Crear expediente".
 
 ## Resultado esperado
-- El asistente se cierra y se abre el expediente recién creado de "Anulación de matrícula en ciclo formativo" en la fase "Entrada", estado "Pendiente de adjuntar la solicitud en papel escaneada", con el panel para adjuntar la solicitud escaneada y su aviso.
-- Lo ha registrado el administrativo ("Creado por").
+- El asistente se cierra y se abre el expediente recién creado de "Anulación de matrícula en ciclo formativo". La cabecera "Información general" sale plegada, así que se despliega y muestra la fase "Entrada" y el estado "Pendiente de adjuntar la solicitud en papel escaneada", y el expediente tiene el panel para adjuntar la solicitud escaneada y su aviso.
+- Lo ha registrado el administrativo ("Creado por", en la cabecera "Información general" ya desplegada).
 - El expediente persistido está en el centro "CIPFP Mislata", registrado en papel (`presentadoEnPapel = true`) y en representación de otra persona (`presentadoEnRepresentacion = true`), con `usuarioRegistrador` el administrativo.

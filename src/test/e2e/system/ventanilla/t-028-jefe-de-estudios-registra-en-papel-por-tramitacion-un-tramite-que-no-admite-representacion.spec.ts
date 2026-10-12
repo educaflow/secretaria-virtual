@@ -203,6 +203,21 @@ async function abrirEntradaDeMenu(page: Page, grupo: string, entrada: string): P
   await item.click();
 }
 
+/**
+ * Despliega la cabecera «Información general» del expediente, que nace plegada
+ * (`canCollapse="true" collapseIf="true"`). El front monta el panel desplegado y lo pliega
+ * un instante después, cuando evalúa `collapseIf`: pulsar antes de ese plegado lo dejaría
+ * plegado al final. Por eso primero se espera a que el botón de plegar/desplegar de la
+ * región declare `aria-expanded="false"` (el plegado ya aplicado), luego se pulsa y por
+ * último se espera a `aria-expanded="true"`.
+ */
+async function desplegarCabeceraInformacionGeneral(page: Page): Promise<void> {
+  const botonPlegar = page.getByRole('region', { name: 'Información general' }).getByRole('button').first();
+  await expect(botonPlegar).toHaveAttribute('aria-expanded', 'false');
+  await botonPlegar.click();
+  await expect(botonPlegar).toHaveAttribute('aria-expanded', 'true');
+}
+
 /** Filas de datos de un listado de expedientes (la fila de búsqueda no lleva `row:`). */
 function filasDeExpedientes(page: Page): Locator {
   return page.getByRole('grid').locator('[data-testid^="row:"]');
@@ -327,6 +342,9 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       const tituloExpediente = (await pestanaExpediente.getByTestId('title').innerText()).trim();
       // El número completo es `<nº>/<año>-<código de centro>`: el título sin el sufijo.
       numeroExpediente = tituloExpediente.slice(0, -SUFIJO_TITULO_EXPEDIENTE.length);
+      // La cabecera «Información general» (fase, estado, «Creado por») sale plegada: hay
+      // que desplegarla para poder leer sus campos.
+      await desplegarCabeceraInformacionGeneral(page);
       await expect(page.getByTestId('field:namePhase').getByRole('textbox')).toHaveValue(
         FASE_INICIAL,
       );
