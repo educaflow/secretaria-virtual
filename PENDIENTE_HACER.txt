@@ -30,3 +30,5 @@ Que haya una relación entre los familiares y los alumnos poruqe ahora no se sab
 
 
 Al firmar en el servidor la firma puedes ser inválida si ha caducado
+
+Al registrarse el usuario tiene que aceptar que se le sea notificado por los canales que existen (correo, sms, etc) Y que se pueda consultar desde el usuario los canales que ha aceptado y revocar el consentimiento.
