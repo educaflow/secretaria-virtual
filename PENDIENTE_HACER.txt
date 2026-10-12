@@ -32,3 +32,6 @@ Que haya una relación entre los familiares y los alumnos poruqe ahora no se sab
 Al firmar en el servidor la firma puedes ser inválida si ha caducado
 
 Al registrarse el usuario tiene que aceptar que se le sea notificado por los canales que existen (correo, sms, etc) Y que se pueda consultar desde el usuario los canales que ha aceptado y revocar el consentimiento.
+
+Al subir el pdf de la solicitud en un tramite entregado en papel. se necesita la fechaHoraPdfSolicitudFirmada y esa no se puede saber ya que realmente es la fecha en la que se presentó el papel y no la fecha en la que se sube el PDF.
+Por lo que  al entregar en papel tiene que poder el usuario (será un administrativo) establecer el valor de  fechaHoraPdfSolicitudFirmada
