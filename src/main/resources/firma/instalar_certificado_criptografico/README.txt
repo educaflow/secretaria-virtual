@@ -5,6 +5,11 @@ secretario@mislata.es), emitidos por la CA FALSA de demo: salen de ../demo/certi
 install.sh saca el DNI de cada uno de data-demo/input/usuarios-demo.xml buscando por su email.
 Pero los scripts se pueden aplicar a certificados reales.
 
+Antes de nada hay que tener OpenSC instalado. Para ello (Debian/Ubuntu, pide sudo) ejecutar
+"./install_opensc.sh"
+que instala opensc, pcscd, pcsc-tools y libccid, activa el servicio pcscd, pone disable_popups = true en
+/etc/opensc/opensc.conf y muestra la ruta de la libreria opensc-pkcs11.so que necesita la aplicacion. Es idempotente.
+
 Para configurarlo todo ejecutar
 "./install.sh"
 
