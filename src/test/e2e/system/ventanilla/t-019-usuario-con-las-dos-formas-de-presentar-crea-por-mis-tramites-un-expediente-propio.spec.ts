@@ -71,14 +71,14 @@ const ESTADO_INICIAL = 'Entrada de datos';
 // Panel del form plantilla del tipo (`views.xml` de la raíz de la versión) con los datos
 // de la persona interesada. Está en el `<include-panels>` del form de ENTRADA_DATOS con
 // perfil CREADOR, que es el que abre el alta cuando lo presenta él mismo.
-const PANEL_DATOS_PROFESOR = 'panel:datos-profesor';
+const PANEL_DATOS_PROFESOR = 'panel:datos-profesor-readonly';
 
 // Panel que la plantilla común pinta con `showIf="presentadoEnRepresentacion"`
-// (`persona-solicitante-editable` de `tramites/shared/common-template-views.xml`): su
+// (`persona-solicitante` de `tramites/shared/common-template-views.xml`): su
 // ausencia es la prueba en la UI de que el expediente NO es en representación de otra
 // persona (este trámite, de hecho, ni siquiera lo permite:
 // `permitidoPresentarEnRepresentacion=false` en su `TramiteInstance.xml`).
-const PANEL_PERSONA_SOLICITANTE = 'panel:persona-solicitante-editable';
+const PANEL_PERSONA_SOLICITANTE = 'panel:persona-solicitante';
 
 // Título de la pestaña del expediente creado: <nº>/<año>-<código del centro>-<trámite> V1
 // (p. ej. `00095/2026-46019660-Justificación de falta del profesorado V1`).

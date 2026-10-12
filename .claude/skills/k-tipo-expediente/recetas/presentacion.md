@@ -18,7 +18,7 @@ El registro de entrada asienta el documento **firmado por el usuario** (`Registr
 Dependencias:
 
 - El registro lo crea `EventContext` contra `subsystem/registroentradasalida` (`phaseeventmanager.md` §3); no hay que inyectar ni resolver nada del registro en el trámite.
-- Lo que hacen igual todos los tipos está en `tramites/util/entrada/` (`EntradaHelper`, `CamposEntrada`) y `tramites/util/verificacion/` (`VerificacionHelper`); los paneles, en `tramites/shared/common-template-views.xml` (`vistas.md` §3.2).
+- Lo que hacen igual todos los tipos está en `tramites/util/entrada/` (`EntradaHelper`, `CamposEntrada`) y `tramites/util/verificacion/` (`VerificacionHelper`); los paneles, en los `common-template-views.xml` de `tramites/shared` (`vistas.md` §3.2).
 - **MUST NOT** copiar esa lógica a la carpeta del tipo: CPD rompe el build si dos trámites repiten código. El tipo solo escribe lo que se ve en esta receta, incluidas las reglas de validación, que van en su validador (`validator.md` §3.2).
 
 ## 0. La máquina de estados
@@ -81,13 +81,13 @@ Dependencias:
 2. **Anexos**: un `MetaFile` por cada fichero que el usuario aporta. Pueden ser imágenes o PDF; el registro los admite todos como anexos.
 3. **Par original/firmado**: es el mismo par de `recetas/firma.md` §1.2. El original lo genera el trigger de `GUARDAR_DATOS`; el firmado lo produce `PRESENTAR` (en servidor), lo sube el usuario (AutoFirma) o, en papel, es el escaneado que adjunta el `TRAMITADOR`.
 4. **Resguardo**: el `MetaFile` que devuelve el registro de entrada; se guarda para enseñárselo al usuario (§6.1).
-5. **Verificación**: el resultado (enum propio del tipo, con los ítems `CORRECTO` y `SUBSANAR`) y el texto de lo que hay que subsanar.
-- Los campos de 3, 4 y 5 son los **campos comunes**: **MUST** llamarse exactamente así, porque los paneles comunes los nombran (`vistas.md` §3.2). No están en `Expediente`: los declara cada tipo.
+5. **Verificación**: el resultado (enum con los ítems `CORRECTO` y `SUBSANAR`) y el texto de lo que hay que subsanar.
+- Los campos de 3, 4 y 5 son los **campos comunes**: **MUST** llamarse exactamente así, porque los paneles comunes los nombran (`vistas.md` §3.2). No están en `Expediente`: los hereda todo tipo que extienda de `ExpedienteResoluble` (con el enum compartido `ResultadoVerificacion`), y si no, los declara el tipo como en el ejemplo (`modelo.md` §4.1).
 - `personaSolicitante`, `personaInteresada`, `numeroExpediente`, `centro` y `claveCertificado` ya están heredados de `Expediente` (`modelo.md` §2). **MUST NOT** redeclararlos: son justo los que `createRegistroEntrada` lee del expediente (§5.3).
 
 - ✅ CORRECTO: `<many-to-one name="pdfSolicitudFirmada" .../>`
 - ❌ INCORRECTO: `<many-to-one name="pdfSolicitudFirmado" .../>` o `solicitudFirmada` (los paneles comunes pintarían un campo vacío)
-- ❌ INCORRECTO: `<enum name="ResultadoVerificacion">` compartido entre tipos (los enums son del tipo y llevan su sufijo, `modelo.md` §3)
+- ❌ INCORRECTO: `<enum name="ResultadoVerificacion">` en el `domains.xml` de un tipo (ese nombre es el enum compartido de `ExpedienteResoluble`; el de un tipo lleva su sufijo, `modelo.md` §3)
 
 ### 1.1 `CAMPOS_ENTRADA` en `<Code>Util`
 
@@ -100,6 +100,8 @@ public static final CamposEntrada<MiTramiteV1> CAMPOS_ENTRADA = new CamposEntrad
         MiTramiteV1::getPdfSolicitudFirmada,
         MiTramiteV1::setPdfSolicitudFirmada,
         MiTramiteV1::setPdfJustificanteRegistroEntrada,
+        MiTramiteV1::setFechaHoraPdfSolicitudFirmada,
+        MiTramiteV1::setFechaHoraPdfJustificanteRegistroEntrada,
         MiTramiteV1Util::borrarSubsanacion);
 
 public static void borrarSubsanacion(MiTramiteV1 expediente) {
@@ -108,13 +110,14 @@ public static void borrarSubsanacion(MiTramiteV1 expediente) {
 }
 ```
 
-- El orden de los cinco argumentos es el del record: la solicitud generada, la que se registra, dónde se deja la firmada en servidor, dónde se deja el resguardo y cómo se vacía la subsanación.
+- El orden de los siete argumentos es el del record: la solicitud generada, la que se registra, dónde se deja la firmada en servidor, dónde se deja el resguardo, dónde se dejan sus dos fechas y cómo se vacía la subsanación.
+- `EntradaHelper.presentar` pone en las dos fechas la del asiento (`registroEntrada.getFecha()`), sea cual sea el modo (firma en servidor, AutoFirma o escaneado en papel).
 - `borrarSubsanacion` la llama `EntradaHelper.presentar`: al volver a presentar, lo que el verificador pidió subsanar queda atendido.
 
 ## 2. Evento inicial (`InitialEventManagerImpl`)
 
 - `createRegistroEntrada` compone el solicitante y el interesado del asiento (`nombre + " " + apellidos` y `dni`) con `personaSolicitante` y `personaInteresada`, que **ya** rellena el motor al crear el expediente y completa la entrada de datos (`modelo.md` §2.1). El `InitialEventManagerImpl` **MUST NOT** tocarlas.
-- En el modo representación `personaInteresada` nace vacía: el estado de entrada de datos **MUST** pedir y validar su nombre, apellidos y DNI (panel común `persona-interesada` y su acción de `onLoad`, `vistas.md` §3.1), o el asiento saldrá sin interesado.
+- En el modo representación `personaInteresada` nace vacía: el estado de entrada de datos **MUST** pedir y validar su nombre, apellidos y DNI (panel común `solicitanteinteresada.persona-interesada` y su acción de `onLoad`, `vistas.md` §3.1), o el asiento saldrá sin interesado.
 - **MUST** fijar el estado inicial según `presentadoEnPapel`: `States.Entrada.PENDIENTE_DOCUMENTO_ESCANEADO` en papel, `States.Entrada.ENTRADA_DATOS` si no (`phaseeventmanager.md` §2.1).
 
 ## 3. El documento (`documentospdf/solicitud.xml`)
@@ -130,7 +133,7 @@ public static void borrarSubsanacion(MiTramiteV1 expediente) {
 ```xml
 <form state="ENTRADA_DATOS" profile="CREADOR">
     <include-panels>
-        -subsanacion
+        -expedienteresoluble.subsanacion
         -datos-interesado
         datos-solicitud
         justificante-upload
@@ -147,10 +150,10 @@ public static void borrarSubsanacion(MiTramiteV1 expediente) {
 </form>
 <form state="ENTRADA_DATOS">
     <include-panels>
-        -subsanacion
+        -expedienteresoluble.subsanacion
         -datos-interesado
         -datos-solicitud
-        -justificante-view
+        -justificante-readonly
     </include-panels>
     <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
         <help variant="info" colSpan="12">La solicitud está pendiente de que el interesado complete y guarde sus datos</help>
@@ -165,9 +168,9 @@ public static void borrarSubsanacion(MiTramiteV1 expediente) {
 ```
 
 - El form del `CREADOR` incluye editables los paneles de datos y el de subida del anexo (`widget="binary-link"`, `vistas.md` §6); el genérico los incluye todos con `-`, solo `EXIT` y el panel `avisoEstadoExpediente` (`vistas.md` §6.1).
-- `-subsanacion` (panel común) va el primero en los forms de la fase `ENTRADA` en los que se corrige la solicitud: solo se ve cuando el verificador ha pedido subsanar, y le dice al usuario qué tiene que corregir.
+- `-expedienteresoluble.subsanacion` (panel común) va el primero en los forms de la fase `ENTRADA` en los que se corrige la solicitud: solo se ve cuando el verificador ha pedido subsanar, y le dice al usuario qué tiene que corregir.
 - El form del `CREADOR` **MUST NOT** llevar el botón `BACK`: en este estado es solo del papel, y va en el form `profile="TRAMITADOR"` (§5.5).
-- Los paneles de datos viven en el form plantilla de la raíz (`vistas.md` §1); los comunes, en `tramites/shared/common-template-views.xml` (`vistas.md` §3.2).
+- Los paneles de datos viven en el form plantilla de la raíz (`vistas.md` §1); los comunes, en los `common-template-views.xml` de `tramites/shared` (`vistas.md` §3.2).
 
 ### 4.2 Validator (`entrada/StateEventValidatorImpl.kt`)
 
@@ -240,9 +243,9 @@ public void triggerDelete(MiTramiteV1 exp, MiTramiteV1 original, EventContext ev
 
 ### 5.1 Vista
 
-Es, tal cual, la de `recetas/firma.md` §1.3: `-pdfSolicitud` (el visor común del PDF, `vistas.md` §3.2), `firma-solicitud` (el panel común con un panel por situación de firma, **sin guion**), el `onLoad` que rellena `situacionFirma`/`firmaEnServidor`, `BACK` a la izquierda y los dos botones `PRESENTAR` a la derecha. El genérico incluye `-pdfSolicitud`, el panel `avisoEstadoExpediente` y `EXIT`.
+Es, tal cual, la de `recetas/firma.md` §1.3: `-expedienteresoluble.ver-pdfSolicitud` (el visor común del PDF, `vistas.md` §9), `firma.firma-solicitud` (el panel común con un panel por situación de firma, **sin guion**), el `onLoad` que rellena `situacionFirma`/`firmaEnServidor`, `BACK` a la izquierda y los dos botones `PRESENTAR` a la derecha. El genérico incluye `-expedienteresoluble.ver-pdfSolicitud`, el panel `avisoEstadoExpediente` y `EXIT`.
 
-- **MUST** enseñar el PDF que se va a firmar (`-pdfSolicitud`), no los campos de datos: el usuario firma un documento y tiene que ver ese documento.
+- **MUST** enseñar el PDF que se va a firmar (`-expedienteresoluble.ver-pdfSolicitud`), no los campos de datos: el usuario firma un documento y tiene que ver ese documento.
 - Los dos `PRESENTAR` llevan `prompt` de confirmación: la presentación no se deshace (§5.4).
 - Las acciones `exp-<Code>-…` del `onLoad` y de los botones **MUST** declararse en el `entrada/views.xml` de cada tipo: sus nombres son globales y llevan el `<Code>`.
 
@@ -340,7 +343,7 @@ Si el verificador necesita que el usuario corrija algo, lo devuelve a `ENTRADA` 
 El `TRAMITADOR` registra una solicitud entregada en papel (`perfiles.md`): el documento a registrar no es un PDF generado y firmado electrónicamente, sino la solicitud **firmada a mano y escaneada**, que va en el mismo campo `pdfSolicitudFirmada`. Es parte de la fase común, no una variante opcional.
 
 1. El `InitialEventManagerImpl` hace nacer el expediente en `PENDIENTE_DOCUMENTO_ESCANEADO` cuando `presentadoEnPapel` es `true` (§2).
-2. En ese estado el `TRAMITADOR` sube el escaneado con el panel común `solicitud-escaneada-upload`; `CONTINUAR` exige que sea un PDF y pasa a `ENTRADA_DATOS`.
+2. En ese estado el `TRAMITADOR` sube el escaneado con el panel común `presentadoenpapel.solicitud-escaneada-upload`; `CONTINUAR` exige que sea un PDF y pasa a `ENTRADA_DATOS`.
 3. En `ENTRADA_DATOS` copia los datos de la solicitud con el form `profile="TRAMITADOR"`, incluidas las personas, que en papel nacen vacías (`modelo.md` §2.1). Puede volver al escaneado con `BACK`.
 4. `GUARDAR_DATOS` registra directamente con `entradaHelper.presentar(...)` (§4.3): no pasa por `PENDIENTE_PRESENTACION` ni por la firma.
 5. Los `trigger*` que comparten los dos modos deciden con `original.getPresentadoEnPapel()`; los que son de un solo modo lo exigen con `EntradaHelper.exigePresentadoEnPapel(original, true|false)`.
@@ -349,8 +352,8 @@ El `TRAMITADOR` registra una solicitud entregada en papel (`perfiles.md`): el do
 <!-- entrada/views.xml -->
 <form state="PENDIENTE_DOCUMENTO_ESCANEADO" profile="TRAMITADOR">
     <include-panels>
-        -subsanacion
-        solicitud-escaneada-upload
+        -expedienteresoluble.subsanacion
+        presentadoenpapel.solicitud-escaneada-upload
     </include-panels>
     <footer>
         <buttons-left>
@@ -365,11 +368,11 @@ El `TRAMITADOR` registra una solicitud entregada en papel (`perfiles.md`): el do
 
 <form state="ENTRADA_DATOS" profile="TRAMITADOR" onLoad="subsysExpedientes-persona-interesada-onLoad-action">
     <include-panels>
-        -subsanacion
+        -expedienteresoluble.subsanacion
         datos-interesado-editable
         datos-solicitud
         justificante-upload
-        -solicitud-escaneada-view
+        -presentadoenpapel.solicitud-escaneada-readonly
     </include-panels>
 
     <!-- Este form lo ve también el TRAMITADOR que abre un expediente telemático (perfiles.md §3) -->
@@ -430,10 +433,10 @@ Toda presentación acaba aquí. El `TRAMITADOR` comprueba la solicitud y dice un
 <form state="PENDIENTE_VERIFICACION" profile="TRAMITADOR">
     <include-panels>
         -datos-interesado
-        -datos-solicitud-view
-        -justificante-view
-        -pdfSolicitudFirmada        <!-- lo que se presentó: la firmada o, en papel, la escaneada -->
-        verificacion                <!-- sin guion: resultadoVerificacion y textoSubsanacion se editan -->
+        -datos-solicitud-readonly
+        -justificante-readonly
+        -expedienteresoluble.ver-pdfSolicitudFirmada        <!-- lo que se presentó: la firmada o, en papel, la escaneada -->
+        expedienteresoluble.verificacion                <!-- sin guion: resultadoVerificacion y textoSubsanacion se editan -->
     </include-panels>
     <footer>
         <buttons-left/>
@@ -445,8 +448,8 @@ Toda presentación acaba aquí. El `TRAMITADOR` comprueba la solicitud y dice un
 <form state="PENDIENTE_VERIFICACION">
     <include-panels>
         -datos-interesado
-        -datos-solicitud-view
-        -pdfJustificanteRegistroEntrada   <!-- su resguardo sellado, con número de registro -->
+        -datos-solicitud-readonly
+        -expedienteresoluble.ver-pdfJustificanteRegistroEntrada   <!-- su resguardo sellado, con número de registro -->
     </include-panels>
     <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
         <help variant="info" colSpan="12">La solicitud está pendiente de que la secretaría del centro la verifique</help>
@@ -467,7 +470,7 @@ Toda presentación acaba aquí. El `TRAMITADOR` comprueba la solicitud y dice un
 ### 6.2 Validator (`verificacion/StateEventValidatorImpl.kt`)
 
 ```kotlin
-import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionMiTramiteV1 as ResultadoVerificacion
+import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionMiTramiteV1 as ResultadoVerificacion  // con ExpedienteResoluble: ...db.ResultadoVerificacion
 ...
 @BeanValidationRulesForStateAndEvent
 fun getForStatePendienteVerificacionInEventVerificar(): BeanValidationRules = rules {
@@ -494,7 +497,7 @@ VerificacionHelper verificacionHelper;
 
 @WhenEvent
 public void triggerVerificar(MiTramiteV1 exp, MiTramiteV1 original, EventContext eventContext) throws BusinessException {
-    ResultadoVerificacionMiTramiteV1 resultadoVerificacion = exp.getResultadoVerificacion();
+    ResultadoVerificacionMiTramiteV1 resultadoVerificacion = exp.getResultadoVerificacion();  // con ExpedienteResoluble: ResultadoVerificacion
     switch (resultadoVerificacion) {
         case CORRECTO -> {
             exp.setTextoSubsanacion(null);
@@ -516,7 +519,7 @@ public void triggerVerificar(MiTramiteV1 exp, MiTramiteV1 original, EventContext
 ```
 
 - `avisarDeSubsanacion(expediente, textoSubsanacion)` avisa por correo al solicitante (`personaSolicitante`) de lo que tiene que subsanar. Es una cortesía: si no hay a quién escribir (p. ej. en papel no se indicó correo del solicitante) no envía nada, devuelve `false` y la verificación sigue. **MUST NOT** condicionar la transición a su resultado.
-- Con `SUBSANAR`, `resultadoVerificacion` y `textoSubsanacion` **se conservan**: el panel `-subsanacion` de la fase `ENTRADA` enseña el texto, y los vacía `borrarSubsanacion` cuando se vuelve a presentar (§5.3).
+- Con `SUBSANAR`, `resultadoVerificacion` y `textoSubsanacion` **se conservan**: el panel `-expedienteresoluble.subsanacion` de la fase `ENTRADA` enseña el texto, y los vacía `borrarSubsanacion` cuando se vuelve a presentar (§5.3).
 - Con `CORRECTO` se vacía el texto que hubiera quedado tecleado.
 - El switch **MUST** quedarse en cada tipo: el destino de `CORRECTO` es un estado de su fase propia, y solo él puede nombrar su `States`.
 - Lo que el tipo haga además (guardas de quién puede verificar, fecha y autor de la verificación) va al principio del trigger.
@@ -528,10 +531,10 @@ public void triggerVerificar(MiTramiteV1 exp, MiTramiteV1 original, EventContext
 - [ ] `<Code>Util`: `CAMPOS_ENTRADA` y `borrarSubsanacion`.
 - [ ] Evento inicial: fija el estado según `presentadoEnPapel` y **no** toca las personas; la entrada de datos pide y valida las que nacen vacías en el modo del trámite (`modelo.md` §2.1).
 - [ ] Documento: XML en `documentospdf/` con el hueco de la firma marcado con `campoFirma`; mismo nombre de campo de firma en la `<action-method>` y en el trigger.
-- [ ] `ENTRADA_DATOS`: forms `CREADOR`, `TRAMITADOR` y genérico, con `-subsanacion`; validator con **todos** los campos tecleados y **ninguno** de los PDF; trigger que genera `pdfSolicitud` y, telemáticamente, vacía el firmado y transita sin registrar; en papel, `entradaHelper.presentar`.
-- [ ] `PENDIENTE_PRESENTACION`: vista con `-pdfSolicitud` y `firma-solicitud`, validator de `recetas/firma.md` §1; trigger con `exigePresentadoEnPapel(original, false)`, `firmarSolicitudSiEsEnServidor`, `presentar`, transición y `finally` que vacía la clave; `triggerBack` vacía la clave y decide con `EntradaHelper.estaEn`.
-- [ ] `PENDIENTE_DOCUMENTO_ESCANEADO`: form `TRAMITADOR` con `solicitud-escaneada-upload`, validator del PDF escaneado (`validator.md` §3.2), `triggerContinuar` con `exigePresentadoEnPapel(original, true)`.
-- [ ] `PENDIENTE_VERIFICACION`: el `TRAMITADOR` ve `-pdfSolicitudFirmada` y edita `verificacion`; el genérico, `-pdfJustificanteRegistroEntrada`; validator de `resultadoVerificacion` y `textoSubsanacion` (`validator.md` §3.2); trigger con `avisarDeSubsanacion` y el destino según el resultado y el modo.
+- [ ] `ENTRADA_DATOS`: forms `CREADOR`, `TRAMITADOR` y genérico, con `-expedienteresoluble.subsanacion`; validator con **todos** los campos tecleados y **ninguno** de los PDF; trigger que genera `pdfSolicitud` y, telemáticamente, vacía el firmado y transita sin registrar; en papel, `entradaHelper.presentar`.
+- [ ] `PENDIENTE_PRESENTACION`: vista con `-expedienteresoluble.ver-pdfSolicitud` y `firma.firma-solicitud`, validator de `recetas/firma.md` §1; trigger con `exigePresentadoEnPapel(original, false)`, `firmarSolicitudSiEsEnServidor`, `presentar`, transición y `finally` que vacía la clave; `triggerBack` vacía la clave y decide con `EntradaHelper.estaEn`.
+- [ ] `PENDIENTE_DOCUMENTO_ESCANEADO`: form `TRAMITADOR` con `presentadoenpapel.solicitud-escaneada-upload`, validator del PDF escaneado (`validator.md` §3.2), `triggerContinuar` con `exigePresentadoEnPapel(original, true)`.
+- [ ] `PENDIENTE_VERIFICACION`: el `TRAMITADOR` ve `-expedienteresoluble.ver-pdfSolicitudFirmada` y edita `expedienteresoluble.verificacion`; el genérico, `-expedienteresoluble.ver-pdfJustificanteRegistroEntrada`; validator de `resultadoVerificacion` y `textoSubsanacion` (`validator.md` §3.2); trigger con `avisarDeSubsanacion` y el destino según el resultado y el modo.
 
 ## 8. Anti-patrones
 

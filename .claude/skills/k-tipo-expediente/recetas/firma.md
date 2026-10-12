@@ -22,7 +22,7 @@ Dependencias: §1 y §2 firman con `subsystem/criptografia` (a través de `trami
 - Con firma en servidor, el usuario teclea la clave de su certificado (PIN del dispositivo o contraseña del fichero) en `claveCertificado`, y el trigger firma con ella. Con AutoFirma, el usuario sube el PDF firmado y el validator comprueba la firma.
 - El código común vive en `tramites/util/firma/`: `FirmaServidorRules.kt` (reglas del validator) y `FirmaServidorHelper` (firmar en el trigger).
   Lo que la vista pregunta en el `onLoad` no es de los trámites: lo da `CertificadoDigitalController` del subsistema `criptografia`.
-- La firma de **la solicitud** en la fase común `ENTRADA` (`recetas/presentacion.md` §5) ya la tiene montada lo común: el panel `firma-solicitud` de `tramites/shared/common-template-views.xml` (§1.3) y `EntradaHelper.firmarSolicitudSiEsEnServidor` (§1.5). Esta sección explica cómo funciona por dentro y qué escribe cada tipo.
+- La firma de **la solicitud** en la fase común `ENTRADA` (`recetas/presentacion.md` §5) ya la tiene montada lo común: el panel `firma.firma-solicitud` de `tramites/shared/firma/common-template-views.xml` (§1.3) y `EntradaHelper.firmarSolicitudSiEsEnServidor` (§1.5). Esta sección explica cómo funciona por dentro y qué escribe cada tipo.
 
 ### 1.2 Documento y modelo (`documentospdf/` y `domains.xml`)
 
@@ -39,13 +39,13 @@ Dependencias: §1 y §2 firman con `subsystem/criptografia` (a través de `trami
 
 ### 1.3 Vista (`views.xml` de la fase)
 
-Los paneles son comunes: el visor `pdfSolicitud` y el panel `firma-solicitud` de `tramites/shared/common-template-views.xml` (`vistas.md` §3.2). Lo que escribe cada tipo, en el `views.xml` de la fase, son el form con sus botones y las acciones con prefijo `exp-<Code>-`: sus nombres son globales, y ponerlas junto a su botón hace que copiar la fase se lo lleve todo.
+Los paneles son comunes: el visor `expedienteresoluble.ver-pdfSolicitud` de `tramites/shared/expedienteresoluble/common-template-views.xml` (`vistas.md` §9) y el panel `firma.firma-solicitud` de `tramites/shared/firma/common-template-views.xml` (`vistas.md` §3.2). Lo que escribe cada tipo, en el `views.xml` de la fase, son el form con sus botones y las acciones con prefijo `exp-<Code>-`: sus nombres son globales, y ponerlas junto a su botón hace que copiar la fase se lo lleve todo.
 
 ```xml
 <form state="PENDIENTE_PRESENTACION" profile="CREADOR" onLoad="exp-MiTramiteV1-PENDIENTE_PRESENTACION-onLoad-action">
     <include-panels>
-        -pdfSolicitud
-        firma-solicitud
+        -expedienteresoluble.ver-pdfSolicitud
+        firma.firma-solicitud
     </include-panels>
 
     <!-- Dos botones del mismo evento; se muestra uno u otro -->
@@ -85,19 +85,19 @@ Los paneles son comunes: el visor `pdfSolicitud` y el panel `firma-solicitud` de
 </action-record>
 ```
 
-1. **El panel común `firma-solicitud`** trae lo que antes declaraba cada tipo inline:
+1. **El panel común `firma.firma-solicitud`** trae lo que antes declaraba cada tipo inline:
    - Los campos de vista `situacionFirma` (string) y `firmaEnServidor` (boolean): llevan `type=` porque no existen en la entidad. Solo viajan del servidor al cliente para decidir qué se pinta.
    - Un panel por situación con `showIf="situacionFirma=='X'"`: ahí sí se compara con el valor concreto, porque el texto de ayuda y si se pide PIN o contraseña dependen de cada uno. El `<field name="claveCertificado" widget="password">` solo aparece en `DISPOSITIVO_SIN_PIN` (título "PIN") y `FICHERO_SIN_CLAVE` (título "Contraseña"). `SIN_DNI` lleva un `<help variant="warning">`.
-   - **MUST** incluirse **sin guion**: con `-firma-solicitud`, `claveCertificado` quedaría de solo lectura y no se podría firmar en servidor.
+   - **MUST** incluirse **sin guion**: con `-firma.firma-solicitud`, `claveCertificado` quedaría de solo lectura y no se podría firmar en servidor.
 2. **`onLoad` del form** → `action-group` → `action-record` que rellena esos dos campos con `call:` a `CertificadoDigitalController`: `getSituacionFirma()` da el nombre del enum e `isFirmaEnServidor()` el boolean. Es del tipo porque una `action-record` lleva `model`.
 3. **Dos botones `PRESENTAR`**, mismo `name` (mismo evento) y `showIf` excluyentes; con `SIN_DNI` no se muestra ninguno:
    - AutoFirma: `showIf="situacionFirma=='SIN_CERTIFICADO'"` y `serial:` con la `action-method` que llama a `FirmaClienteController.firmarDocumentoEnCampo(...)` **antes** del evento.
    - Servidor: `showIf="firmaEnServidor"` y `serial:` con el evento **y después** la `action-record` que pone `claveCertificado` a `null`, para que la clave no se quede en el formulario.
 4. `firmarDocumentoEnCampo(id, campoOrigen, campoDestino, nombreCampoFirma)` lanza AutoFirma sobre el `MetaFile` del campo origen, deja el firmado en el destino y exige firmar con el DNI del usuario autenticado (revienta con `RuntimeException` si no tiene DNI válido). El nombre del campo de firma **MUST** ser el mismo que use el trigger (§1.5), para que la firma caiga en el mismo sitio se firme donde se firme.
-5. Para firmar así **otro** documento que no sea la solicitud, el tipo declara en su form plantilla un panel propio con el mismo patrón que `firma-solicitud` (míralo en `tramites/shared/common-template-views.xml`) y su propio par de campos.
+5. Para firmar así **otro** documento que no sea la solicitud, el tipo declara en su form plantilla un panel propio con el mismo patrón que `firma.firma-solicitud` (míralo en `tramites/shared/firma/common-template-views.xml`) y su propio par de campos.
 
-- ✅ CORRECTO: `firma-solicitud` en el `<include-panels>` (sin guion)
-- ❌ INCORRECTO: `-firma-solicitud` (la clave del certificado queda de solo lectura)
+- ✅ CORRECTO: `firma.firma-solicitud` en el `<include-panels>` (sin guion)
+- ❌ INCORRECTO: `-firma.firma-solicitud` (la clave del certificado queda de solo lectura)
 - ❌ INCORRECTO: declarar inline en el form de cada tipo los paneles `firmaSolicitudSinCertificado`, `firmaSolicitudFicheroSinClave`… (ya están en el panel común)
 - ✅ CORRECTO: `showIf="firmaEnServidor"` en el botón de firma en servidor
 - ❌ INCORRECTO: `showIf="situacionFirma=='DISPOSITIVO_CON_PIN' || situacionFirma=='DISPOSITIVO_SIN_PIN' || ..."` (enumera la clasificación del enum; una situación nueva se quedaría sin botón)
@@ -188,7 +188,7 @@ public void triggerBack(MiTramiteV1 exp, MiTramiteV1 original, EventContext even
 
 - [ ] Documento: el hueco de la firma lleva `campoFirma`.
 - [ ] Modelo: par `MetaFile` original/firmado (`pdfSolicitud`/`pdfSolicitudFirmada`); sin redeclarar `claveCertificado`; sin `situacionFirma` en el `domains.xml`.
-- [ ] Vista: `-pdfSolicitud` y `firma-solicitud` (sin guion); `onLoad` con la `action-record` de `situacionFirma`/`firmaEnServidor`; dos botones `PRESENTAR` con `showIf` excluyentes; `action-record` que vacía la clave tras el evento de servidor.
+- [ ] Vista: `-expedienteresoluble.ver-pdfSolicitud` y `firma.firma-solicitud` (sin guion); `onLoad` con la `action-record` de `situacionFirma`/`firmaEnServidor`; dos botones `PRESENTAR` con `showIf` excluyentes; `action-record` que vacía la clave tras el evento de servidor.
 - [ ] Validator: dos `field(...)`, dos ramas complementarias sobre `isFirmaEnServidor()`.
 - [ ] Trigger: `entradaHelper.firmarSolicitudSiEsEnServidor(...)`, mismo nombre de campo de firma que la `action-method`, `finally` que vacía la clave, y `triggerBack` que también la vacía.
 

@@ -20,11 +20,10 @@ const DIRECTOR = PROFESOR;
 const FOOTER = 'panel:subsysExpedientes-template-footer-panel';
 
 // Panel que enseña el PDF de la resolución (un `iframe` contra el MetaFile que el evento
-// RESOLVER genera, firma con el certificado del director y registra de salida). Se localiza
-// por su `name`, no por su título: «Resolución» es también el título del panel `resolucion-view`.
-const PANEL_PDF_RESOLUCION = 'panel:pdfResolucion';
+// RESOLVER genera, firma con el certificado del director y registra de salida: el registrado).
+const PANEL_PDF_RESOLUCION = 'panel:ver-pdfResolucionFirmadaRegistroSalida';
 // Panel de solo lectura con el sentido de la resolución (y el motivo, si es un rechazo).
-const PANEL_RESOLUCION_VIEW = 'panel:resolucion-view';
+const PANEL_RESOLUCION_READONLY = 'panel:resolucion-readonly';
 
 
 const BOTON_PRESENTAR = 'Firmar y Presentar la solicitud';
@@ -360,9 +359,8 @@ test.describe('Justificación de falta del profesorado — RESOLUCION', () => {
         // lectura. «Motivo del rechazo» solo se pinta cuando la resolución es un rechazo
         // (`showIf="tipoResolucion == 'RECHAZAR'"`), así que su presencia con el texto tecleado es
         // lo que distingue esta pantalla de la del expediente aceptado.
-        // Se localiza por su `name` y no por su título: en esta pantalla hay DOS paneles titulados
-        // «Resolución», el del PDF (`pdfResolucion`) y este, el del sentido de la resolución.
-        const panelResolucion = pantallaRechazado.getByTestId(PANEL_RESOLUCION_VIEW);
+        // Se localiza por su `name` y no por su título, que comparte con otros paneles de la pantalla.
+        const panelResolucion = pantallaRechazado.getByTestId(PANEL_RESOLUCION_READONLY);
         await expect(panelResolucion).toBeVisible();
         const resolucion = panelResolucion.getByRole('combobox', { name: 'Resolución' });
         await expect(resolucion).toHaveValue('Resolver negativamente(Rechazar)');

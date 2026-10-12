@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <form name="subsysExpedientes-common-templates-form" title="Expediente" model="com.educaflow.subsystem.expedientes.db.Expediente">
+
+        <!-- En papel, pdfSolicitudFirmada no es la solicitud generada firmada digitalmente sino la que la persona
+             entregó firmada a mano, escaneada. -->
+        <panel name="solicitud-escaneada-upload" title="Solicitud entregada en papel" colSpan="12">
+            <field name="pdfSolicitudFirmada" title="Solicitud escaneada (PDF)" widget="binary-link" x-accept=".pdf" colSpan="8"/>
+        </panel>
+
+        <panel name="solicitud-escaneada-readonly" title="Solicitud entregada en papel" colSpan="12" showIf="presentadoEnPapel">
+            <field name="pdfSolicitudFirmada" title="Solicitud escaneada (PDF)" widget="binary-link" readonly="true" colSpan="8"/>
+            <field name="presentadoEnPapel" hidden="true"/>
+        </panel>
+
+    </form>
+
+
+</object-views>

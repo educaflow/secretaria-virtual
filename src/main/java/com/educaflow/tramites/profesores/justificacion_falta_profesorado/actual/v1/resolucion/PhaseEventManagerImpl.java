@@ -95,10 +95,13 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
         CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
         AlmacenClave almacenClaveDirector = certificadoDigitalService.getByCentroCargo(justificacionFaltaProfesorado.getCentro(), CargoCodigo.DIRECTOR);
         DocumentoPdf resolucionFirmada = resolucion.firmar(almacenClaveDirector, new CampoFirma(CAMPO_FIRMA_RESOLUCION));
-        MetaFile pdfResolucion = MetaFileHelper.createMetaFile(resolucionFirmada);
+        MetaFile pdfResolucionFirmada = MetaFileHelper.createMetaFile(resolucionFirmada);
 
-        RegistroSalida registroSalida = eventContext.createRegistroSalida(pdfResolucion, List.of(justificacionFaltaProfesorado.getJustificante()));
-        justificacionFaltaProfesorado.setPdfResolucion(registroSalida.getDocumento());
+        RegistroSalida registroSalida = eventContext.createRegistroSalida(pdfResolucionFirmada, List.of(justificacionFaltaProfesorado.getJustificante()));
+        justificacionFaltaProfesorado.setPdfResolucionFirmada(pdfResolucionFirmada);
+        justificacionFaltaProfesorado.setFechaHoraPdfResolucionFirmada(registroSalida.getFecha());
+        justificacionFaltaProfesorado.setPdfResolucionFirmadaRegistroSalida(registroSalida.getDocumento());
+        justificacionFaltaProfesorado.setFechaHoraPdfResolucionFirmadaRegistroSalida(registroSalida.getFecha());
         avisoRegistroHelper.avisarDeRegistroSalida(justificacionFaltaProfesorado, registroSalida);
     }
 

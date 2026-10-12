@@ -196,7 +196,7 @@ test.describe('Justificación de falta del profesorado — ENTRADA', () => {
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de presentación');
 
       // And: la nueva pantalla muestra la solicitud generada en PDF …
-      const pdfSolicitud = page.getByRole('region', { name: 'Solicitud a firmar' }).locator('iframe');
+      const pdfSolicitud = page.getByTestId('panel:ver-pdfSolicitud').locator('iframe');
       await expect(pdfSolicitud).toBeVisible();
       await expect(pdfSolicitud).toHaveAttribute('src', /MetaFile\/\d+\/content\/download/);
       // … y ofrece los botones «Atrás» y el de firmar y presentar.
@@ -215,7 +215,7 @@ test.describe('Justificación de falta del profesorado — ENTRADA', () => {
 
       // … como PENDIENTE_PRESENTACION no tiene pantalla para ese perfil, el sistema abre la
       // vista genérica de solo consulta, que muestra la solicitud en PDF …
-      const pdfConsulta = page.getByRole('region', { name: 'Solicitud a firmar' }).locator('iframe');
+      const pdfConsulta = page.getByTestId('panel:ver-pdfSolicitud').locator('iframe');
       await expect(pdfConsulta).toBeVisible();
       await expect(pdfConsulta).toHaveAttribute('src', /MetaFile\/\d+\/content\/download/);
       // … y el aviso «La solicitud está pendiente de que el profesor la firme y la presente»;

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <form name="subsysExpedientes-common-templates-form" title="Expediente" model="com.educaflow.subsystem.expedientes.db.Expediente">
+
+        <!-- La firma de la solicitud por quien la presenta: un panel por situación de firma. situacionFirma y
+             firmaEnServidor son campos de vista, no del modelo: los rellena en el onLoad del form la
+             action-record exp-<Code>-set-situacionFirma-action de cada tipo (recetas/firma.md del skill
+             k-tipo-expediente). Se incluye SIN guion: con guion claveCertificado quedaría de solo lectura. -->
+        <panel name="firma-solicitud" colSpan="12" showFrame="false">
+            <panel name="firmaSolicitudSituacion" title="" colSpan="12" showFrame="false" readonly="true">
+                <field name="situacionFirma" type="string" showIf="false" readonly="true"/>
+                <field name="firmaEnServidor" type="boolean" showIf="false" readonly="true"/>
+            </panel>
+
+            <panel name="firmaSolicitudSinCertificado" title="Firma de la solicitud" colSpan="12" showIf="situacionFirma=='SIN_CERTIFICADO'">
+                <help variant="info" colSpan="12"><![CDATA[Para presentar la solicitud debe tener la aplicación de <a href="https://sede.serviciosmin.gob.es/es-es/firmaelectronica/paginas/autofirma.aspx" target="_blank">AutoFirma</a> instalada y un certificado digital válido]]></help>
+            </panel>
+
+            <panel name="firmaSolicitudDispositivoConPin" title="Firma de la solicitud" colSpan="12" showIf="situacionFirma=='DISPOSITIVO_CON_PIN'">
+                <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
+            </panel>
+
+            <panel name="firmaSolicitudDispositivoSinPin" title="Firma de la solicitud" colSpan="12" showIf="situacionFirma=='DISPOSITIVO_SIN_PIN'">
+                <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca el PIN de su dispositivo criptográfico.]]></help>
+                <field name="claveCertificado" title="PIN" widget="password" required="true" colSpan="4"/>
+            </panel>
+
+            <panel name="firmaSolicitudFicheroConClave" title="Firma de la solicitud" colSpan="12" showIf="situacionFirma=='FICHERO_CON_CLAVE'">
+                <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
+            </panel>
+
+            <panel name="firmaSolicitudFicheroSinClave" title="Firma de la solicitud" colSpan="12" showIf="situacionFirma=='FICHERO_SIN_CLAVE'">
+                <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca la contraseña de su certificado.]]></help>
+                <field name="claveCertificado" title="Contraseña" widget="password" required="true" colSpan="4"/>
+            </panel>
+
+            <panel name="firmaSolicitudSinDni" title="Firma de la solicitud" colSpan="12" showIf="situacionFirma=='SIN_DNI'">
+                <help variant="warning" colSpan="12"><![CDATA[No es posible firmar la solicitud porque su usuario no tiene un documento de identidad. Póngase en contacto con el administrador.]]></help>
+            </panel>
+        </panel>
+
+    </form>
+
+
+</object-views>

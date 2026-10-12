@@ -20,10 +20,10 @@ const DIRECTOR = PROFESOR;
 const FOOTER = 'panel:subsysExpedientes-template-footer-panel';
 
 // Panel que enseña el PDF de la resolución (un `iframe` contra el MetaFile que el evento
-// RESOLVER genera, firma con el certificado del director y registra de salida).
-const PANEL_PDF_RESOLUCION = 'panel:pdfResolucion';
+// RESOLVER genera, firma con el certificado del director y registra de salida: el registrado).
+const PANEL_PDF_RESOLUCION = 'panel:ver-pdfResolucionFirmadaRegistroSalida';
 // Panel de solo lectura con el sentido de la resolución (y el motivo, si es un rechazo).
-const PANEL_RESOLUCION_VIEW = 'panel:resolucion-view';
+const PANEL_RESOLUCION_READONLY = 'panel:resolucion-readonly';
 
 
 const BOTON_PRESENTAR = 'Firmar y Presentar la solicitud';
@@ -342,9 +342,8 @@ test.describe('Justificación de falta del profesorado — RESOLUCION', () => {
         await expect(iframeResolucion).toHaveAttribute('src', /com\.axelor\.meta\.db\.MetaFile\/\d+/);
 
         // And (cont.): … y el bloque «Resolución» …
-        // Se localiza por su `name` y no por su título: en esta pantalla hay DOS paneles titulados
-        // «Resolución», el del PDF (`pdfResolucion`) y este, el del sentido de la resolución.
-        const panelResolucion = pantallaAceptado.getByTestId(PANEL_RESOLUCION_VIEW);
+        // Se localiza por su `name` y no por su título, que comparte con otros paneles de la pantalla.
+        const panelResolucion = pantallaAceptado.getByTestId(PANEL_RESOLUCION_READONLY);
         await expect(panelResolucion).toBeVisible();
         // Dentro del bloque, el sentido de la resolución, también en solo lectura: el campo se
         // titula «Resolución» y lleva lo que el director eligió.

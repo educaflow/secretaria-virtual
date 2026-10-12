@@ -23,7 +23,7 @@ El form plantilla está en la raíz y no en cada fase porque los paneles se comp
 <!-- <vN>/entrada/views.xml -->
 <form state="ENTRADA_DATOS" profile="CREADOR">
     <include-panels>
-        -subsanacion                 <!-- panel común (§3.2), no está en la plantilla del tipo -->
+        -expedienteresoluble.subsanacion                 <!-- panel común (§3.2), no está en la plantilla del tipo -->
         -datos-interesado            <!-- con guion: se incluye con TODOS sus fields readonly -->
         datos-solicitud              <!-- sin guion: editable -->
         justificante-upload
@@ -61,6 +61,7 @@ En el atributo `state` va el **nombre del estado** tal cual, igual que en el `Ti
 - Búsqueda — **tres escalones**, en este orden:
   1. Nombre que **empieza por `subsysExpedientes`** → SOLO el form `subsysExpedientes-system-templates-form` del `tramites/shared/system-template-views.xml`: ahí viven los paneles globales del subsistema de expedientes (`subsysExpedientes-template-header-panel`, `subsysExpedientes-template-footer-panel`, `subsysExpedientes-template-notas-panel`) y las action-views/forms del historial de estados. **MUST NOT** venir cualificado con puntos: si los lleva, el build falla, porque todos los paneles del subsistema viven en ese único fichero de la raíz de `shared`.
   2. Nombre **punteado** `bbb.ccc.<panel>` (el último segmento es el panel, el resto la carpeta bajo `tramites/shared`) → el form `subsysExpedientes-common-templates-form` del `common-template-views.xml` de ESA subcarpeta de `shared` (`bbb.ccc.<panel>` → `tramites/shared/bbb/ccc/common-template-views.xml`). Puede haber **VARIOS** `common-template-views.xml`, uno por carpeta bajo `shared` (la raíz incluida); si el de esa carpeta no existe, el build falla. El form plantilla local del tipo **NO participa** en los nombres punteados.
+     - **MUST**: si los paneles de esa subcarpeta usan campos de una entidad base, el tipo **MUST** heredar de ella; p. ej. `expedienteresoluble.*` exige `extends="ExpedienteResoluble"`. Cómo se organiza `shared`: `SKILL.md` §1.8.
   3. Nombre **simple** → primero el form plantilla local del tipo (el `views.xml` de la raíz de la versión, `exp-<Code>-Templates`); si no está ahí, el `common-template-views.xml` de la RAÍZ de `tramites/shared`. Un panel local con el mismo nombre que uno global lo **sobreescribe en silencio** (incluidos los de cabecera y footer).
 - Por defecto se antepone la cabecera global (`subsysExpedientes-template-header-panel`, del `tramites/shared/system-template-views.xml`): pinta "Creado por", la **fase** y el **estado** actuales, la fecha del último estado, a quién le toca y el botón "Ver el historial de estados" (con los registros de entrada/salida de cada estado). Todo gratis, sin declarar nada.
   - `header="false"` en `<include-panels>` la quita.
@@ -71,13 +72,13 @@ En el atributo `state` va el **nombre del estado** tal cual, igual que en el `Ti
 
 ### 3.1 Paneles comunes de las personas
 
-`tramites/shared/common-template-views.xml` trae estos paneles, incluibles desde cualquier tipo, y sus dos acciones:
+`tramites/shared/solicitanteinteresada/common-template-views.xml` trae estos paneles, incluibles desde cualquier tipo con nombre punteado; sus dos acciones están en `tramites/shared/system-template-views.xml`:
 
 | Panel / acción | Qué es |
 |---|---|
-| `persona-solicitante` | Nombre, apellidos, DNI, email y teléfono de quien presenta, de solo lectura; solo se ve si `presentadoEnRepresentacion` |
-| `persona-solicitante-editable` | Lo mismo en un `<editor>`, para el estado en que se teclea: en papel y en representación nadie más lo rellena |
-| `persona-interesada` | Un `<editor>` sobre `personaInteresada` con su identificación y sus datos de contacto (email, teléfono, dirección, municipio, CP) |
+| `solicitanteinteresada.persona-solicitante-readonly` | Nombre, apellidos, DNI, email y teléfono de quien presenta, de solo lectura; solo se ve si `presentadoEnRepresentacion` |
+| `solicitanteinteresada.persona-solicitante` | Lo mismo en un `<editor>`, para el estado en que se teclea: en papel y en representación nadie más lo rellena |
+| `solicitanteinteresada.persona-interesada` | Un `<editor>` sobre `personaInteresada` con su identificación y sus datos de contacto (email, teléfono, dirección, municipio, CP) |
 | `subsysExpedientes-persona-interesada-onLoad-action` | Pone de solo lectura nombre, apellidos y DNI del interesado salvo en representación o en papel |
 | `subsysExpedientes-persona-solicitante-onLoad-action` | Pone de solo lectura nombre, apellidos, DNI, email y teléfono del solicitante salvo en papel |
 
@@ -109,28 +110,32 @@ Si el tipo necesita otro conjunto de datos (p. ej. el NIA), declara en su form p
 
 ### 3.2 Paneles comunes de las fases `ENTRADA` y `VERIFICACION`
 
-`tramites/shared/common-template-views.xml` trae también los paneles de las dos fases comunes (`SKILL.md` §1.2). **MUST** incluirse desde ahí: **MUST NOT** redeclararlos en el form plantilla del tipo (un panel local con el mismo nombre taparía al común, §3).
+Los paneles de las dos fases comunes (`SKILL.md` §1.2) están repartidos por `tramites/shared`:
+
+- En `tramites/shared/presentadoenpapel/common-template-views.xml`: los de la solicitud escaneada (tabla de abajo). Se incluyen con nombre punteado.
+- En `tramites/shared/expedienteresoluble/common-template-views.xml`: los de la verificación. Se incluyen con nombre punteado y **solo** desde un tipo con `extends="ExpedienteResoluble"` (§3).
+- En `tramites/shared/firma/common-template-views.xml`: el de la firma de la solicitud. Se incluye con nombre punteado.
+
+**MUST** incluirlos desde ahí: **MUST NOT** redeclararlos en el form plantilla del tipo.
 
 | Panel | Qué pinta | Campos del tipo que necesita | Se incluye |
 |---|---|---|---|
-| `subsanacion` | Lo que el verificador ha pedido subsanar; solo se ve mientras `textoSubsanacion` tiene valor | `textoSubsanacion` | con `-`, el primero, en los forms de la fase `ENTRADA` en los que se corrige la solicitud |
-| `solicitud-escaneada-upload` | Subida del PDF de la solicitud entregada en papel (`binary-link`, solo `.pdf`) | `pdfSolicitudFirmada` | sin guion, en `PENDIENTE_DOCUMENTO_ESCANEADO` |
-| `solicitud-escaneada-view` | Descarga de esa solicitud escaneada; solo se ve si `presentadoEnPapel` | `pdfSolicitudFirmada` | con `-`, en el form `profile="TRAMITADOR"` de `ENTRADA_DATOS` |
-| `verificacion` | `resultadoVerificacion` (`RadioSelect`) y, si vale `SUBSANAR`, `textoSubsanacion` | `resultadoVerificacion`, `textoSubsanacion` | sin guion, en `PENDIENTE_VERIFICACION` |
-| `pdfSolicitud` | Visor (§9) de la solicitud a firmar | `pdfSolicitud` | con `-`, en `PENDIENTE_PRESENTACION` |
-| `pdfSolicitudFirmada` | Visor de la solicitud presentada: la firmada o, en papel, la escaneada | `pdfSolicitudFirmada` | con `-`, donde quien tramita necesite verla |
-| `pdfJustificanteRegistroEntrada` | Visor del resguardo de la presentación | `pdfJustificanteRegistroEntrada` | con `-`, en los forms genéricos tras presentar |
-| `firma-solicitud` | Los campos de vista `situacionFirma`/`firmaEnServidor` y un panel por situación de firma, con `claveCertificado` donde se pide (`recetas/firma.md` §1.3) | ninguno propio (`claveCertificado` es de `Expediente`) | **sin guion**, en `PENDIENTE_PRESENTACION` |
+| `presentadoenpapel.solicitud-escaneada-upload` | Subida del PDF de la solicitud entregada en papel (`binary-link`, solo `.pdf`) | `pdfSolicitudFirmada` | sin guion, en `PENDIENTE_DOCUMENTO_ESCANEADO` |
+| `presentadoenpapel.solicitud-escaneada-readonly` | Descarga de esa solicitud escaneada; solo se ve si `presentadoEnPapel` | `pdfSolicitudFirmada` | con `-`, en el form `profile="TRAMITADOR"` de `ENTRADA_DATOS` |
 
-- **CRITICAL**: estos paneles nombran campos que **no son de `Expediente`**: cada tipo los declara en su `domains.xml` con **ese mismo nombre** (`SKILL.md` §1.2) — salvo los tres `pdf*`, que ya hereda todo tipo que extienda de `ExpedienteResoluble` (`modelo.md` §1). Si el tipo no declara el campo, el build no falla: el panel pinta un campo vacío.
-- El panel `verificacion` compara `resultadoVerificacion=='SUBSANAR'`: el enum del tipo **MUST** tener un ítem con ese nombre.
-- Las acciones `exp-<Code>-…` que acompañan a `firma-solicitud` (el `onLoad`, AutoFirma, vaciar la clave) **no** son comunes: se declaran en el `views.xml` de la fase de cada tipo (`recetas/firma.md` §1.3).
+- **CRITICAL**: estos paneles nombran campos que **no son de `Expediente`**: cada tipo los declara en su `domains.xml` con **ese mismo nombre** (`SKILL.md` §1.2) — salvo los que ya hereda todo tipo que extienda de `ExpedienteResoluble` (`modelo.md` §1). Si el tipo no declara el campo, el build no falla: el panel pinta un campo vacío.
+- Los paneles para **ver y descargar los PDF** de `ExpedienteResoluble` están en `tramites/shared/expedienteresoluble/common-template-views.xml` (§9), no aquí.
+- Los tres paneles de la **verificación** están en `tramites/shared/expedienteresoluble/common-template-views.xml` y se incluyen con nombre punteado:
+  - `expedienteresoluble.verificacion` (**sin guion**, en `PENDIENTE_VERIFICACION`): `resultadoVerificacion` (`RadioSelect`) y, si vale `SUBSANAR`, `textoSubsanacion`.
+  - `-expedienteresoluble.subsanacion` (el primero, en los forms de la fase `ENTRADA` en los que se corrige la solicitud): lo que hay que subsanar; solo se ve mientras `textoSubsanacion` tiene valor.
+  - `-expedienteresoluble.verificacion-readonly` (donde haga falta consultar la verificación ya hecha): `resultadoVerificacion`, `fechaVerificacion` y, solo si es `SUBSANAR`, `textoSubsanacion`.
+- Los paneles de la verificación comparan `resultadoVerificacion=='SUBSANAR'`: el enum **MUST** tener un ítem con ese nombre.
+- El panel de la firma de la solicitud está en `tramites/shared/firma/common-template-views.xml` y se incluye con nombre punteado y **sin guion**, `firma.firma-solicitud`, en `PENDIENTE_PRESENTACION`: los campos de vista `situacionFirma`/`firmaEnServidor` y un panel por situación de firma, con `claveCertificado` donde se pide (`recetas/firma.md` §1.3).
+- Las acciones `exp-<Code>-…` que acompañan a `firma.firma-solicitud` (el `onLoad`, AutoFirma, vaciar la clave) **no** son comunes: se declaran en el `views.xml` de la fase de cada tipo (`recetas/firma.md` §1.3).
 - Qué form incluye cada panel, estado a estado: `recetas/presentacion.md`.
 
-- ✅ CORRECTO: `firma-solicitud` (sin guion)
-- ❌ INCORRECTO: `-firma-solicitud` (`claveCertificado` queda de solo lectura y no se puede firmar en servidor)
-- ❌ INCORRECTO: `<panel name="pdfSolicitud" ...>` en el form plantilla del tipo (tapa en silencio al común)
-- ❌ INCORRECTO: incluir `-pdfSolicitudFirmada` en un tipo cuyo campo se llama `pdfSolicitudFirmado` (el visor sale vacío)
+- ✅ CORRECTO: `firma.firma-solicitud` (sin guion)
+- ❌ INCORRECTO: `-firma.firma-solicitud` (`claveCertificado` queda de solo lectura y no se puede firmar en servidor)
 
 ## 4. `<footer>`
 
@@ -184,8 +189,8 @@ Si no se le explica nada, no sabe si el expediente está atascado, si le toca a 
 ```xml
 <form state="PENDIENTE_VERIFICACION">
     <include-panels>
-        -datos-solicitud-view
-        -pdfJustificanteRegistroEntrada
+        -datos-solicitud-readonly
+        -expedienteresoluble.ver-pdfJustificanteRegistroEntrada
     </include-panels>
 
     <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
@@ -203,7 +208,7 @@ Si no se le explica nada, no sabe si el expediente está atascado, si le toca a 
 
 ❌ Incorrecto: el mismo form sin el panel (el usuario ve los datos y un botón "Salir" sin saber qué pasa con su solicitud), o con `name="avisoPendienteVerificacionGenerica"` (nombre propio por estado en lugar del fijo), o con el texto "Estado: PENDIENTE_VERIFICACION" (repite la cabecera).
 
-La pantalla del estado en que el usuario firma y presenta un documento (el panel común `firma-solicitud`, el `onLoad` que rellena sus campos de vista y los dos botones `PRESENTAR`) está en la receta `recetas/firma.md` §1.3.
+La pantalla del estado en que el usuario firma y presenta un documento (el panel común `firma.firma-solicitud`, el `onLoad` que rellena sus campos de vista y los dos botones `PRESENTAR`) está en la receta `recetas/firma.md` §1.3.
 
 Dentro de los paneles de la plantilla, los `<field>` admiten los atributos Axelor normales; los que se ven en los trámites reales: `widget="RadioSelect"` con `x-direction` en los campos de tipo enumerado (obligatorio: §6.3), `showIf`/`hideIf` por valor de otro campo, `widget="binary-link"` con `x-accept=".pdf"` para restringir el tipo de fichero subido, `<help variant="info">` condicionales con `showIf`, y en campos de referencia `grid-view`/`form-view`/`domain`/`onChange` (las `action-record`/`action-method` propias se declaran en el `views.xml` de la fase cuyo form incluye el panel, no en el de la raíz).
 
@@ -240,12 +245,12 @@ La convención de `k-vistas` (`forms.md`, «Campos de tipo enumerado: `RadioSele
 - No cuentan los `<field>` hijos de un `panel-related`.
 - Lo comprueban los tests W1–W3 (`SKILL.md` §3.3).
 
-## 7. Paneles gemelos `-view` para el modo lectura
+## 7. Paneles gemelos `-readonly` para el modo lectura
 
-Cuando la versión de solo lectura de un panel necesita **otro layout** (otros `colSpan`, otros títulos, campos que sobran), el prefijo `-` no basta (reutiliza el layout de edición tal cual): la convención es declarar en la plantilla un **panel gemelo** con sufijo `-view`, ya maquetado para lectura y con sus fields `readonly="true"`, y elegir por estado cuál se incluye (`datos-solicitud` y `datos-solicitud-view` en el form plantilla; los estados de edición incluyen el primero y los de lectura el segundo).
+Cuando la versión de solo lectura de un panel necesita **otro layout** (otros `colSpan`, otros títulos, campos que sobran), el prefijo `-` no basta (reutiliza el layout de edición tal cual): la convención es declarar en la plantilla un **panel gemelo** con sufijo `-readonly`, ya maquetado para lectura y con sus fields `readonly="true"`, y elegir por estado cuál se incluye (`datos-solicitud` y `datos-solicitud-readonly` en el form plantilla; los estados de edición incluyen el primero y los de lectura el segundo).
 
-- `-panel` → mismo layout, fields readonly. `panel-view` → layout propio de lectura.
-- El gemelo `-view` se incluye normalmente también con `-` (`-datos-solicitud-view`) por si algún field no lleva el readonly explícito.
+- `-panel` → mismo layout, fields readonly. `panel-readonly` → layout propio de lectura.
+- El gemelo `-readonly` se incluye normalmente también con `-` (`-datos-solicitud-readonly`) por si algún field no lleva el readonly explícito.
 
 ## 8. Maestro-detalle: entidades hija
 
@@ -259,7 +264,17 @@ El `domains.xml` del tipo puede declarar entidades hija (one-to-many del expedie
 
 ## 9. Patrón: visor de PDF embebido
 
-Para mostrar un campo `many-to-one` a `MetaFile`, panel con un field *dummy* cuyo `<viewer>` pinta un iframe al download inline. Un panel con nombre por cada PDF, para incluirlo por estado. Los visores de `pdfSolicitud`, `pdfSolicitudFirmada` y `pdfJustificanteRegistroEntrada` **ya son comunes** (§3.2): declara en el form plantilla del tipo solo los de sus propios documentos.
+Los seis PDF de `ExpedienteResoluble` (`pdfSolicitud`, `pdfSolicitudFirmada`, `pdfJustificanteRegistroEntrada`, `pdfResolucion`, `pdfResolucionFirmada`, `pdfResolucionFirmadaRegistroSalida`) **ya tienen paneles comunes** en `tramites/shared/expedienteresoluble/common-template-views.xml`, dos por PDF, que se incluyen con nombre punteado (§3) y con `-`:
+
+- `expedienteresoluble.ver-<pdf>`: el visor embebido y su `fechaHora<Pdf>`.
+- `expedienteresoluble.descargar-<pdf>`: el enlace de descarga (`binary-link`) y su `fechaHora<Pdf>`.
+- **MUST NOT** redeclarar en el form plantilla del tipo un visor o una descarga de esos seis PDF: se incluye el común.
+- Solo los puede incluir un tipo con `extends="ExpedienteResoluble"` (§3). Un tipo que extienda de `Expediente` declara sus propios `pdf*` y sus visores con el patrón de abajo.
+
+- ✅ CORRECTO: `-expedienteresoluble.ver-pdfSolicitudFirmada`
+- ❌ INCORRECTO: `-pdfSolicitudFirmada` (ese panel ya no existe: el build falla)
+
+Para un PDF **propio** del tipo, panel con un field *dummy* cuyo `<viewer>` pinta un iframe al download inline, uno por PDF, para incluirlo por estado:
 
 - El `name` del dummy no existe en la entidad; el campo real va en el `depends` del viewer. Dale un nombre que diga qué muestra (`visorResolucion`), distinto en cada panel.
 - El `title` del panel dice qué documento es: cada visor el suyo, no «Documento» en todos.
@@ -294,7 +309,8 @@ Para mostrar un campo `many-to-one` a `MetaFile`, panel con un field *dummy* cuy
 - **MUST NOT** duplicar el form plantilla en las carpetas de fase: es uno solo, en la raíz de la versión.
 - **MUST NOT** confiar en `readonly`/`showIf` como seguridad: la defensa real es la whitelist del validator (`k-secure-coding`).
 - **MUST NOT** nombrar un panel local igual que uno global salvo que quieras sobreescribirlo a propósito; nunca los de las fases comunes (§3.2).
-- **MUST NOT** incluir `firma-solicitud` con guion ni poner botón a un evento de sistema.
+- **MUST NOT** incluir `firma.firma-solicitud` con guion ni poner botón a un evento de sistema.
+- **MUST NOT** incluir un panel de una subcarpeta de `shared` cuyos campos sean de una entidad base de la que el tipo no hereda, p. ej. `expedienteresoluble.*` sin `extends="ExpedienteResoluble"` (§3, `SKILL.md` §1.8): pinta campos vacíos y el build no avisa.
 - **MUST NOT** confiar en el prefijo `-` para "desactivar" un panel con botones ni un `panel-related`: solo pone readonly los `<field>` (§3).
 - **MUST NOT** usar en un `showIf`/`hideIf`/`readonlyIf`/`requiredIf` un campo que el panel no declara como `<field>`: sin su `<field hidden="true"/>` la condición evalúa siempre a falso (§6.2).
 - **MUST NOT** dejar un form de solo `EXIT` sin el panel `avisoEstadoExpediente` (§6.1): el usuario no sabría en qué situación está su expediente.

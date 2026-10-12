@@ -6,11 +6,11 @@
     <!-- *********************************************************************************************  -->
     <form state="ENTRADA_DATOS" profile="CREADOR" onLoad="exp-AnulacionMatriculaCicloFormativoV1-ENTRADA_DATOS-onLoad-action">
         <include-panels>
-            -subsanacion
-            persona-solicitante-editable
+            -expedienteresoluble.subsanacion
+            solicitanteinteresada.persona-solicitante
             datos-alumno
             matricula
-            -solicitud-escaneada-view
+            -presentadoenpapel.solicitud-escaneada-readonly
         </include-panels>
 
         <panel name="avisoEntradaDatosCreador" colSpan="12" showFrame="false">
@@ -35,11 +35,11 @@
          quien presenta telemáticamente (CREADOR) y este para quien registra el papel (TRAMITADOR). -->
     <form state="ENTRADA_DATOS" profile="TRAMITADOR" onLoad="exp-AnulacionMatriculaCicloFormativoV1-ENTRADA_DATOS-onLoad-action">
         <include-panels>
-            -subsanacion
-            persona-solicitante-editable
+            -expedienteresoluble.subsanacion
+            solicitanteinteresada.persona-solicitante
             datos-alumno
             matricula
-            -solicitud-escaneada-view
+            -presentadoenpapel.solicitud-escaneada-readonly
         </include-panels>
 
         <panel name="avisoEntradaDatosTramitador" colSpan="12" showFrame="false">
@@ -62,8 +62,8 @@
 
     <form state="ENTRADA_DATOS">
         <include-panels>
-            -subsanacion
-            -persona-solicitante
+            -expedienteresoluble.subsanacion
+            -solicitanteinteresada.persona-solicitante-readonly
             -datos-alumno
             -matricula
         </include-panels>
@@ -85,9 +85,9 @@
     <!-- *********************************************************************************************  -->
     <form state="PENDIENTE_PRESENTACION" profile="CREADOR" onLoad="exp-AnulacionMatriculaCicloFormativoV1-PENDIENTE_PRESENTACION-onLoad-action">
         <include-panels>
-            -subsanacion
-            -pdfSolicitud
-            firma-solicitud
+            -expedienteresoluble.subsanacion
+            -expedienteresoluble.ver-pdfSolicitud
+            firma.firma-solicitud
         </include-panels>
 
         <panel name="avisoPendientePresentacionCreador" colSpan="12" showFrame="false">
@@ -109,7 +109,7 @@
         <include-panels>
             -datos-alumno
             -matricula
-            -solicitud-descarga
+            -expedienteresoluble.descargar-pdfSolicitud
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
@@ -131,8 +131,8 @@
          TRAMITADOR, así que es él quien adjunta la solicitud escaneada. -->
     <form state="PENDIENTE_DOCUMENTO_ESCANEADO" profile="TRAMITADOR">
         <include-panels>
-            -subsanacion
-            solicitud-escaneada-upload
+            -expedienteresoluble.subsanacion
+            presentadoenpapel.solicitud-escaneada-upload
         </include-panels>
 
         <panel name="avisoPendienteDocumentoEscaneadoTramitador" colSpan="12" showFrame="false">

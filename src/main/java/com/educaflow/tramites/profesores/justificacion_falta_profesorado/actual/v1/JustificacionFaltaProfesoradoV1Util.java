@@ -24,6 +24,8 @@ public final class JustificacionFaltaProfesoradoV1Util {
             JustificacionFaltaProfesoradoV1::getPdfSolicitudFirmada,
             JustificacionFaltaProfesoradoV1::setPdfSolicitudFirmada,
             JustificacionFaltaProfesoradoV1::setPdfJustificanteRegistroEntrada,
+            JustificacionFaltaProfesoradoV1::setFechaHoraPdfSolicitudFirmada,
+            JustificacionFaltaProfesoradoV1::setFechaHoraPdfJustificanteRegistroEntrada,
             JustificacionFaltaProfesoradoV1Util::borrarSubsanacion);
 
     public static void borrarSubsanacion(JustificacionFaltaProfesoradoV1 expediente) {

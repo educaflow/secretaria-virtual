@@ -248,7 +248,7 @@ Dentro del `design.md`, este modo añade además la subsección `### Tests E2E s
 | La pieza de **firma en cliente** (par de campos + `<action-method>` con botón `serial:` + `FirmaPdf` en el validador) | algún documento se firma con AutoFirma | las tres piezas no existen |
 | Las acciones `FIRMAR_SERVIDOR` y sus constantes con el nombre del campo de firma | algún documento se firma en servidor por cargo | no se declaran |
 | Las acciones `REGISTRO_ENTRADA` / `REGISTRO_SALIDA` | el trámite registra entrada o salida | el `triggerInitialEvent` **MUST** declarar explícitamente que no hace falta rellenar `personaSolicitante`/`personaInteresada` |
-| Paneles gemelos `<panel>-view` | la vista de lectura necesita **otro layout**; con el prefijo `-` basta en el caso normal | se usa solo el prefijo `-` |
+| Paneles gemelos `<panel>-readonly` | la vista de lectura necesita **otro layout**; con el prefijo `-` basta en el caso normal | se usa solo el prefijo `-` |
 | `<action-method>` propias de una fase | esa fase encadena una acción antes de un evento | no se declaran |
 | Grids y forms auxiliares de entidades hija | el `domains.xml` declara entidades hija (`one-to-many`) | no se declaran |
 | Filas de la tabla de ficheros por fase | **una vez por fase** (`PhaseEventManagerImpl`, `StateEventValidatorImpl`, `views.xml`) | — |

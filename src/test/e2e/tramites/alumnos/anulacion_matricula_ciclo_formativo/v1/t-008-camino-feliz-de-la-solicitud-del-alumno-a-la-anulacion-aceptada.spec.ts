@@ -223,7 +223,7 @@ test.describe('Anulación de matrícula en ciclo formativo — camino feliz', ()
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Anulación aceptada');
       // La resolución firmada por el secretario y el director, ya registrada de salida, se ve en un
       // `iframe` contra su MetaFile: que el `src` apunte a un MetaFile es lo que prueba que hay documento.
-      const iframeResolucion = page.getByTestId('panel:resolucion-firmada').locator('iframe');
+      const iframeResolucion = page.getByTestId('panel:ver-pdfResolucionFirmadaRegistroSalida').locator('iframe');
       await expect(iframeResolucion).toBeVisible();
       await expect(iframeResolucion).toHaveAttribute('src', /com\.axelor\.meta\.db\.MetaFile\/\d+/);
     } finally {

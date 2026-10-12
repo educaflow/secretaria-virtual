@@ -11,23 +11,10 @@
         <!-- Datos del centro y del curso -->
         <string name="cursoAcademico" title="Curso académico" />
 
-        <date name="fechaSolicitud" title="Fecha de la solicitud" />
-
-        <!-- Presentación -->
-        <datetime name="fechaHoraPresentacion" title="Fecha y hora de presentación" />
-
-        <!-- Verificación de la secretaría -->
-        <enum name="resultadoVerificacion" title="Resultado de la verificación" ref="ResultadoVerificacionAnulacionMatriculaCicloFormativoV1" />
-        <string name="textoSubsanacion" title="Qué hay que subsanar" large="true" />
-        <date name="fechaVerificacion" title="Fecha de la verificación" />
-
         <!-- Resolución que propone la secretaría -->
         <enum name="tipoResolucion" title="Tipo resolución" ref="TipoResolucionAnulacionMatriculaCicloFormativoV1" />
         <string name="motivoRechazo" title="Motivo del rechazo" large="true" />
 
-        <!-- Los documentos del trámite (pdfSolicitud, pdfSolicitudFirmada,
-             pdfJustificanteRegistroEntrada, pdfResolucion y pdfResolucionFirmada) ya están en
-             ExpedienteResoluble, la base compartida de los trámites con resolución. -->
 
         <!-- Lo reescribe entero el build (RichDomainXmlTask): MUST NOT escribirse aquí nada propio. -->
         <extra-code-model>
@@ -59,10 +46,6 @@
         </extra-code-model>
     </entity>
 
-    <enum name="ResultadoVerificacionAnulacionMatriculaCicloFormativoV1">
-        <item name="CORRECTO" title="La solicitud es correcta"/>
-        <item name="SUBSANAR" title="Pedir subsanación"/>
-    </enum>
 
     <enum name="TipoResolucionAnulacionMatriculaCicloFormativoV1">
         <item name="ACEPTAR"  title="Aceptar la anulación"/>

@@ -29,8 +29,18 @@
         <datetime name="fechaHoraPdfJustificanteRegistroEntrada" title="Fecha y hora de creación del justificante del registro de entrada" />
         <datetime name="fechaHoraPdfResolucion" title="Fecha y hora de creación de la resolución" />
         <datetime name="fechaHoraPdfResolucionFirmada" title="Fecha y hora de firma de la resolución" />
-        <datetime name="fechaHoraPdfResolucionRegistroSalida" title="Fecha y hora de creación de la resolución en el registro de salida" />
+        <datetime name="fechaHoraPdfResolucionFirmadaRegistroSalida" title="Fecha y hora de creación de la resolución en el registro de salida" />
+
+        <!-- Verificación de la solicitud (fase común VERIFICACION) -->
+        <enum name="resultadoVerificacion" title="Resultado de la verificación" ref="ResultadoVerificacion" />
+        <string name="textoSubsanacion" title="Qué hay que subsanar" large="true" />
+        <date name="fechaVerificacion" title="Fecha de la verificación" />
 
     </entity>
+
+    <enum name="ResultadoVerificacion">
+        <item name="CORRECTO" title="La solicitud es correcta"/>
+        <item name="SUBSANAR" title="Pedir subsanación"/>
+    </enum>
 
 </domain-models>

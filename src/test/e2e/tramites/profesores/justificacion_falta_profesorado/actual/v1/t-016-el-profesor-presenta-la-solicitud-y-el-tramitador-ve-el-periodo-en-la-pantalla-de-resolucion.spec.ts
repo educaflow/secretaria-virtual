@@ -23,7 +23,7 @@ const FOOTER = 'panel:subsysExpedientes-template-footer-panel';
 // Panel que enseña el PDF de la solicitud (un `iframe` contra el MetaFile generado al
 // guardar los datos). Es el documento que el servidor firma y que se presenta por registro
 // de entrada; el evento PRESENTAR no lo modifica (la firma se guarda como un fichero nuevo).
-const PANEL_PDF_SOLICITUD = 'panel:pdfSolicitud';
+const PANEL_PDF_SOLICITUD = 'panel:ver-pdfSolicitud';
 
 
 const BOTON_PRESENTAR = 'Firmar y Presentar la solicitud';

@@ -2,7 +2,7 @@
 <object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://axelor.com/xml/ns/object-views" xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <form name="exp-JustificacionFaltaProfesoradoV1-Templates" width="large" title="Justificación de falta del profesorado" model="com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1" groups="admins,users">
-        <panel name="datos-profesor" title="Datos del profesor interesado">
+        <panel name="datos-profesor-readonly" title="Datos del profesor interesado">
             <field name="personaInteresada.nombre" colSpan="4" readonly="true"/>
             <field name="personaInteresada.apellidos" colSpan="4" readonly="true"/>
             <field name="personaInteresada.dni" title="DNI" colSpan="4" readonly="true"/>
@@ -11,9 +11,9 @@
         <!-- En papel el profesor no ha entrado en la aplicación: su identificación y su contacto los teclea quien
              registra la solicitud. Mismo patrón que el panel común persona-interesada, solo con la identificación
              y el contacto, que el Tramitador copia al solicitante para avisarle. -->
-        <panel name="datos-profesor-editable" title="Datos del profesor interesado" colSpan="12">
+        <panel name="datos-profesor" title="Datos del profesor interesado" colSpan="12">
             <field name="personaInteresada" showTitle="false" colSpan="12" canNew="false" canSelect="false" canRemove="false" x-show-icons="false">
-                <editor x-show-titles="true">
+                <editor x-show-titles="true" x-viewer="true">
                     <field name="nombre"    colSpan="4" required="true"/>
                     <field name="apellidos" colSpan="5" required="true"/>
                     <field name="dni" title="DNI/NIE" colSpan="3" required="true"/>
@@ -46,19 +46,19 @@
             <field name="motivoFalta" colSpan="7" widget="RadioSelect" x-direction="vertical" />
             <field name="otroMotivo" colSpan="5" showIf="motivoFalta == 'OTROS'"/>
         </panel>
-        <panel name="datos-falta-view" title="Datos de la falta">
-            <field name="tipoJornadaFalta" colSpan="12"  x-direction="horizontal"/>
+        <panel name="datos-falta-readonly" title="Datos de la falta">
+            <field name="tipoJornadaFalta" colSpan="12" readonly="true" />
 
-            <panel name="datos-falta-view-un-dia" colSpan="12" showFrame="false" showIf="tipoJornadaFalta == 'UN_DIA_COMPLETO' || tipoJornadaFalta == 'UNAS_HORAS_UN_DIA'">
+            <panel name="datos-falta-readonly-un-dia" colSpan="12" showFrame="false" showIf="tipoJornadaFalta == 'UN_DIA_COMPLETO' || tipoJornadaFalta == 'UNAS_HORAS_UN_DIA'">
                 <field name="fechaInicio" title="Fecha" colSpan="3" readonly="true"/>
                 <field name="horaInicio" colSpan="3" readonly="true" showIf="tipoJornadaFalta == 'UNAS_HORAS_UN_DIA'"/>
                 <field name="horaFin" colSpan="3" readonly="true" showIf="tipoJornadaFalta == 'UNAS_HORAS_UN_DIA'"/>
             </panel>
-            <panel name="datos-falta-view-varios-dias-completos" colSpan="12" showFrame="false" showIf="!tipoJornadaFalta || tipoJornadaFalta == 'VARIOS_DIAS_COMPLETOS'">
+            <panel name="datos-falta-readonly-varios-dias-completos" colSpan="12" showFrame="false" showIf="!tipoJornadaFalta || tipoJornadaFalta == 'VARIOS_DIAS_COMPLETOS'">
                 <field name="fechaInicio" colSpan="3" readonly="true"/>
                 <field name="fechaFin" colSpan="3" readonly="true" showIf="tipoJornadaFalta == 'VARIOS_DIAS_COMPLETOS'"/>
             </panel>
-            <panel name="datos-falta-view-varios-dias-primero-parcial" colSpan="12" showFrame="false" showIf="tipoJornadaFalta == 'VARIOS_DIAS_PRIMERO_PARCIAL'">
+            <panel name="datos-falta-readonly-varios-dias-primero-parcial" colSpan="12" showFrame="false" showIf="tipoJornadaFalta == 'VARIOS_DIAS_PRIMERO_PARCIAL'">
                 <field name="fechaInicio" colSpan="3" readonly="true"/>
                 <field name="horaInicio" colSpan="3" readonly="true"/>
                 <field name="fechaFin" colSpan="3" readonly="true"/>
@@ -74,32 +74,23 @@
             <help variant="info" colSpan="6" colOffset="8" showIf="motivoFalta=='PERMISO_MEDICO_EDUCATIVO_ASISTENCIAL' || motivoFalta=='TRASLADO_DOMICILIO' || motivoFalta=='ASISTENCIA_PRUEBAS_EXAMENES' || motivoFalta=='FALLECIMIENTO_ENFERMEDAD_GRAVE_FAMILIAR' || motivoFalta=='DEBER_INEXCUSABLE' || motivoFalta=='FUNCIONES_REPRESENTATIVAS'">Es necesario aportar justificante</help>
             <help variant="info" colSpan="6" colOffset="8" showIf="motivoFalta=='NACIMIENTO_ADOPCION_ACOGIMIENTO'">Es necesario aportar el libro de familia o justificante del médico</help>
         </panel>
-        <panel name="justificante-view" title="Adjuntar justificante">
+        <panel name="justificante-readonly" title="Adjuntar justificante">
             <field name="justificante" title="Foto o PDF del justificante" widget="binary-link" colSpan="4" readonly="true"/>
         </panel>
-        <!-- Los visores pdfSolicitud, pdfSolicitudFirmada y pdfJustificanteRegistroEntrada, y los paneles
-             subsanacion, verificacion, solicitud-escaneada-* y firma-solicitud de las fases comunes ENTRADA y
-             VERIFICACION están en tramites/shared/common-template-views.xml. -->
-        <panel name="pdfResolucion" title="Resolución" >
-            <field name="visorResolucion" showTitle="false" readonly="true" colSpan="12">
-                <viewer depends="pdfResolucion" ><![CDATA[
-                    <>
-                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfResolucion.id}/content/download?inline=true&name=${pdfResolucion.fileName}`} ></Box>
-                    </>
-                    ]]></viewer>
-            </field>
-        </panel>
-
+        <!-- Los paneles subsanacion, verificacion, solicitud-escaneada-* y firma-solicitud de las fases comunes
+             ENTRADA y VERIFICACION están en tramites/shared/common-template-views.xml, y los de ver y descargar
+             los PDF (expedienteresoluble.ver-pdf* / expedienteresoluble.descargar-pdf*) en
+             tramites/shared/expedienteresoluble/common-template-views.xml. -->
         <panel name="resolucion" title="Resolver expediente">
             <field name="tipoResolucion" widget="RadioSelect" colSpan="12" x-direction="horizontal" />
             <field name="motivoRechazo" colSpan="12"  showIf="tipoResolucion == 'RECHAZAR'" help="Este texto se imprimirá tal cual en la resolución que recibirá el profesor"/>
             <field name="motivoDevolucion" colSpan="12"  showIf="tipoResolucion == 'DEVOLVER'" help="Explique a la jefatura de estudios por qué le devuelve la solicitud"/>
         </panel>
-        <panel name="resolucion-view" title="Resolución">
+        <panel name="resolucion-readonly" title="Resolución">
             <field name="tipoResolucion" title="Resolución"  colSpan="12" x-direction="horizontal" readonly="true"  />
             <field name="motivoRechazo" colSpan="12" readonly="true" showIf="tipoResolucion == 'RECHAZAR'"/>
         </panel>
-        <panel name="devolucion-view" title="Devuelto por la dirección" colSpan="12" showIf="(motivoDevolucion!=null) &amp;&amp; (motivoDevolucion!='')">
+        <panel name="devolucion-readonly" title="Devuelto por la dirección" colSpan="12" showIf="(motivoDevolucion!=null) &amp;&amp; (motivoDevolucion!='')">
             <field name="motivoDevolucion" colSpan="12" readonly="true"/>
         </panel>
     </form>

@@ -12,7 +12,7 @@
         <include-panels>
             -datos-alumno
             -matricula
-            -resolucion-a-firmar
+            -expedienteresoluble.ver-pdfResolucion
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
@@ -38,7 +38,7 @@
         <include-panels>
             -datos-alumno
             -matricula
-            -resolucion-a-firmar
+            -expedienteresoluble.ver-pdfResolucion
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">

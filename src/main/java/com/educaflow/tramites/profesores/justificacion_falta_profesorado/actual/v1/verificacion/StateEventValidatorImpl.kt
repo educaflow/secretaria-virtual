@@ -9,7 +9,7 @@ import com.educaflow.base.infrastructure.validation.rules.MaxLength
 import com.educaflow.base.infrastructure.validation.rules.MinLength
 import com.educaflow.base.infrastructure.validation.rules.Required
 import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1 as model
-import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionJustificacionFaltaProfesoradoV1 as ResultadoVerificacion
+import com.educaflow.subsystem.expedientes.db.ResultadoVerificacion as ResultadoVerificacion
 
 class StateEventValidatorImpl: StateEventValidator {
 

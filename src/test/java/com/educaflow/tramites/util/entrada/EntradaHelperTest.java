@@ -27,6 +27,7 @@ import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.Phase;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.State;
 import com.educaflow.tramites.util.firma.FirmaServidorHelper;
 import com.educaflow.tramites.util.registro.AvisoRegistroHelper;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,6 +72,8 @@ class EntradaHelperTest {
     private final MetaFile pdfSolicitud = new MetaFile();
     private MetaFile pdfSolicitudFirmada;
     private MetaFile pdfJustificanteRegistroEntrada;
+    private LocalDateTime fechaHoraPdfSolicitudFirmada;
+    private LocalDateTime fechaHoraPdfJustificanteRegistroEntrada;
     private boolean subsanacionBorrada;
 
     private final CamposEntrada<PruebaV1> campos = new CamposEntrada<>(
@@ -78,6 +81,8 @@ class EntradaHelperTest {
             exp -> pdfSolicitudFirmada,
             (exp, metaFile) -> pdfSolicitudFirmada = metaFile,
             (exp, metaFile) -> pdfJustificanteRegistroEntrada = metaFile,
+            (exp, fechaHora) -> fechaHoraPdfSolicitudFirmada = fechaHora,
+            (exp, fechaHora) -> fechaHoraPdfJustificanteRegistroEntrada = fechaHora,
             exp -> subsanacionBorrada = true);
 
     @BeforeEach
@@ -124,11 +129,13 @@ class EntradaHelperTest {
     }
 
     @Test
-    void presentar_registraLaSolicitudFirmadaGuardaElResguardoAvisaAlSolicitanteYBorraLaSubsanacion() {
+    void presentar_registraLaSolicitudFirmadaGuardaElResguardoConSusFechasAvisaAlSolicitanteYBorraLaSubsanacion() {
         MetaFile anexo = new MetaFile();
         MetaFile resguardo = new MetaFile();
         RegistroEntrada registroEntrada = new RegistroEntrada();
         registroEntrada.setDocumentoResguardoPresentacion(resguardo);
+        LocalDateTime fechaAsiento = LocalDateTime.of(2026, 9, 1, 10, 0);
+        registroEntrada.setFecha(fechaAsiento);
         pdfSolicitudFirmada = new MetaFile();
         EventContext eventContext = mock(EventContext.class);
         when(eventContext.createRegistroEntrada(pdfSolicitudFirmada, List.of(anexo))).thenReturn(registroEntrada);
@@ -137,6 +144,8 @@ class EntradaHelperTest {
 
         assertAll(
                 () -> assertSame(resguardo, pdfJustificanteRegistroEntrada),
+                () -> assertSame(fechaAsiento, fechaHoraPdfSolicitudFirmada),
+                () -> assertSame(fechaAsiento, fechaHoraPdfJustificanteRegistroEntrada),
                 () -> assertTrue(subsanacionBorrada));
         verify(avisoRegistroHelper).avisarDeRegistroEntrada(expediente, registroEntrada);
     }
@@ -182,11 +191,12 @@ class EntradaHelperTest {
 
     @Test
     void camposEntrada_sinAlgunoDeLosCampos_lanzaNullPointer() {
-        assertThrows(NullPointerException.class, () -> new CamposEntrada<PruebaV1>(null, exp -> null, (exp, m) -> { }, (exp, m) -> { }, exp -> { }));
-        assertThrows(NullPointerException.class, () -> new CamposEntrada<PruebaV1>(exp -> null, null, (exp, m) -> { }, (exp, m) -> { }, exp -> { }));
-        assertThrows(NullPointerException.class, () -> new CamposEntrada<PruebaV1>(exp -> null, exp -> null, null, (exp, m) -> { }, exp -> { }));
-        assertThrows(NullPointerException.class, () -> new CamposEntrada<PruebaV1>(exp -> null, exp -> null, (exp, m) -> { }, null, exp -> { }));
-        assertThrows(NullPointerException.class, () -> new CamposEntrada<PruebaV1>(exp -> null, exp -> null, (exp, m) -> { }, (exp, m) -> { }, null));
-        assertNull(pdfJustificanteRegistroEntrada);
+        assertThrows(NullPointerException.class, () -> new CamposEntrada<PruebaV1>(null, exp -> null, (exp, m) -> { }, (exp, m) -> { }, (exp, f) -> { }, (exp, f) -> { }, exp -> { }));
+        assertThrows(NullPointerException.class, () -> new CamposEntrada<PruebaV1>(exp -> null, null, (exp, m) -> { }, (exp, m) -> { }, (exp, f) -> { }, (exp, f) -> { }, exp -> { }));
+        assertThrows(NullPointerException.class, () -> new CamposEntrada<PruebaV1>(exp -> null, exp -> null, null, (exp, m) -> { }, (exp, f) -> { }, (exp, f) -> { }, exp -> { }));
+        assertThrows(NullPointerException.class, () -> new CamposEntrada<PruebaV1>(exp -> null, exp -> null, (exp, m) -> { }, null, (exp, f) -> { }, (exp, f) -> { }, exp -> { }));
+        assertThrows(NullPointerException.class, () -> new CamposEntrada<PruebaV1>(exp -> null, exp -> null, (exp, m) -> { }, (exp, m) -> { }, null, (exp, f) -> { }, exp -> { }));
+        assertThrows(NullPointerException.class, () -> new CamposEntrada<PruebaV1>(exp -> null, exp -> null, (exp, m) -> { }, (exp, m) -> { }, (exp, f) -> { }, null, exp -> { }));
+        assertThrows(NullPointerException.class, () -> new CamposEntrada<PruebaV1>(exp -> null, exp -> null, (exp, m) -> { }, (exp, m) -> { }, (exp, f) -> { }, (exp, f) -> { }, null));
     }
 }

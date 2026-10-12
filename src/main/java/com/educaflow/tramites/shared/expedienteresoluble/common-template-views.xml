@@ -3,6 +3,124 @@
 
     <form name="subsysExpedientes-common-templates-form" title="Expediente" model="com.educaflow.subsystem.expedientes.db.Expediente">
 
+        <panel name="ver-pdfSolicitud" title="Solicitud" colSpan="12">
+            <field name="fechaHoraPdfSolicitud" colSpan="4" readonly="true"/>
+            <field name="visorPdfSolicitud" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfSolicitud"><![CDATA[
+                    <>
+                    <Box as="iframe" height="600" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitud.id}/content/download?inline=true&name=${pdfSolicitud.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+        <panel name="descargar-pdfSolicitud" title="Solicitud">
+            <field name="pdfSolicitud" title="" widget="binary-link" colSpan="10" readonly="true"/>
+            <field name="fechaHoraPdfSolicitud" title="" colSpan="2" readonly="true"/>
+        </panel>
+
+        <panel name="ver-pdfSolicitudFirmada" title="Solicitud firmada" colSpan="12">
+            <field name="fechaHoraPdfSolicitudFirmada" colSpan="4" readonly="true"/>
+            <field name="visorPdfSolicitudFirmada" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfSolicitudFirmada"><![CDATA[
+                    <>
+                    <Box as="iframe" height="600" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitudFirmada.id}/content/download?inline=true&name=${pdfSolicitudFirmada.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+        <panel name="descargar-pdfSolicitudFirmada" title="Solicitud firmada">
+            <field name="pdfSolicitudFirmada" title="" widget="binary-link" colSpan="10" readonly="true"/>
+            <field name="fechaHoraPdfSolicitudFirmada" title="" colSpan="2" readonly="true"/>
+        </panel>
+
+        <panel name="ver-pdfJustificanteRegistroEntrada" title="Justificante de presentación" colSpan="12">
+            <field name="fechaHoraPdfJustificanteRegistroEntrada" colSpan="4" readonly="true"/>
+            <field name="visorPdfJustificanteRegistroEntrada" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfJustificanteRegistroEntrada"><![CDATA[
+                    <>
+                    <Box as="iframe" height="600" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfJustificanteRegistroEntrada.id}/content/download?inline=true&name=${pdfJustificanteRegistroEntrada.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+        <panel name="descargar-pdfJustificanteRegistroEntrada" title="Justificante de presentación">
+            <field name="pdfJustificanteRegistroEntrada" title="" widget="binary-link" colSpan="10" readonly="true"/>
+            <field name="fechaHoraPdfJustificanteRegistroEntrada" title="" colSpan="2" readonly="true"/>
+        </panel>
+
+        <panel name="ver-pdfResolucion" title="Resolución sin firmar" colSpan="12">
+            <field name="fechaHoraPdfResolucion" colSpan="4" readonly="true"/>
+            <field name="visorPdfResolucion" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfResolucion"><![CDATA[
+                    <>
+                    <Box as="iframe" height="600" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfResolucion.id}/content/download?inline=true&name=${pdfResolucion.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+        <panel name="descargar-pdfResolucion" title="Resolución sin firmar">
+            <field name="pdfResolucion" title="" widget="binary-link" colSpan="10" readonly="true"/>
+            <field name="fechaHoraPdfResolucion" title="" colSpan="2" readonly="true"/>
+        </panel>
+
+        <panel name="ver-pdfResolucionFirmada" title="Resolución firmada" colSpan="12">
+            <field name="fechaHoraPdfResolucionFirmada" colSpan="4" readonly="true"/>
+            <field name="visorPdfResolucionFirmada" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfResolucionFirmada"><![CDATA[
+                    <>
+                    <Box as="iframe" height="600" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfResolucionFirmada.id}/content/download?inline=true&name=${pdfResolucionFirmada.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+        <panel name="descargar-pdfResolucionFirmada" title="Resolución firmada">
+            <field name="pdfResolucionFirmada" title="" widget="binary-link" colSpan="10" readonly="true"/>
+            <field name="fechaHoraPdfResolucionFirmada" title="" colSpan="2" readonly="true"/>
+        </panel>
+
+        <panel name="ver-pdfResolucionFirmadaRegistroSalida" title="Resolución registrada" colSpan="12">
+            <field name="fechaHoraPdfResolucionFirmadaRegistroSalida" colSpan="4" readonly="true"/>
+            <field name="visorPdfResolucionFirmadaRegistroSalida" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfResolucionFirmadaRegistroSalida"><![CDATA[
+                    <>
+                    <Box as="iframe" height="600" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfResolucionFirmadaRegistroSalida.id}/content/download?inline=true&name=${pdfResolucionFirmadaRegistroSalida.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+        <panel name="descargar-pdfResolucionFirmadaRegistroSalida" title="Resolución registrada">
+            <field name="pdfResolucionFirmadaRegistroSalida" title="" widget="binary-link" colSpan="10" readonly="true"/>
+            <field name="fechaHoraPdfResolucionFirmadaRegistroSalida" title="" colSpan="2" readonly="true"/>
+        </panel>
+
+        <!-- ================================================================================== -->
+        <!-- Verificación (fase común VERIFICACION)                                             -->
+        <!-- ================================================================================== -->
+
+        <!-- Donde el verificador dice si la solicitud es correcta o hay que subsanarla. Se incluye SIN guion. -->
+        <panel name="verificacion" title="Verificación de la solicitud" colSpan="12">
+            <field name="resultadoVerificacion" colSpan="12" widget="RadioSelect" x-direction="horizontal" required="true"/>
+            <field name="textoSubsanacion" colSpan="12" showIf="resultadoVerificacion=='SUBSANAR'" requiredIf="resultadoVerificacion=='SUBSANAR'" help="Este texto se le enviará por correo a quien presentó la solicitud y lo verá al subsanarla"/>
+        </panel>
+
+        <!-- Para quien introduce los datos: lo que el verificador ha pedido subsanar. Solo se ve mientras hay algo
+             pendiente de subsanar. Se incluye CON guion. -->
+        <panel name="subsanacion" title="Qué hay que subsanar" colSpan="12" showIf="(textoSubsanacion!=null) &amp;&amp; (textoSubsanacion!='')">
+            <field name="textoSubsanacion" showTitle="false" readonly="true" colSpan="12"/>
+        </panel>
+
+        <!-- El resultado de la verificación, de solo lectura. El texto solo se ve si se pidió subsanar. -->
+        <panel name="verificacion-readonly" title="Verificación de la solicitud" colSpan="12">
+            <field name="resultadoVerificacion" colSpan="8" readonly="true"/>
+            <field name="fechaVerificacion" colSpan="4" readonly="true"/>
+            <field name="textoSubsanacion" colSpan="12" readonly="true" showIf="resultadoVerificacion=='SUBSANAR'"/>
+        </panel>
 
     </form>
 

@@ -85,8 +85,8 @@ const AVISO_PRESENTA_EL_MISMO =
   'Para presentar la solicitud necesitará firmarla con su certificado digital desde este mismo ordenador';
 
 // Panel que la plantilla común (`tramites/shared/common-template-views.xml`) pinta con
-// `showIf="presentadoEnRepresentacion"`, en sus dos variantes: `persona-solicitante`
-// (solo lectura) y `persona-solicitante-editable`. Verlo o no verlo solo significa algo
+// `showIf="presentadoEnRepresentacion"`, en sus dos variantes: `persona-solicitante-readonly`
+// (solo lectura) y `persona-solicitante`. Verlo o no verlo solo significa algo
 // en un formulario que lo incluya en su `<include-panels>`, que es una ALLOWLIST.
 const PANEL_PERSONA_SOLICITANTE = 'Persona que presenta la solicitud';
 
@@ -401,7 +401,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // acción, no lo persistido. Aquí solo se deja constancia de que en esta pantalla
       // tampoco asoma el panel del solicitante; ojo: por sí sola esta línea NO prueba
       // nada, porque ninguno de los dos forms de PENDIENTE_DOCUMENTO_ESCANEADO incluye
-      // `persona-solicitante` en su `<include-panels>` (que es una ALLOWLIST), así que
+      // `persona-solicitante-readonly` en su `<include-panels>` (que es una ALLOWLIST), así que
       // faltaría igual con `presentadoEnRepresentacion = true`. La prueba de verdad se
       // hace abajo, sobre el expediente ya creado.
       await expect(page.getByText(PANEL_PERSONA_SOLICITANTE)).toHaveCount(0);
@@ -423,7 +423,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // TRAMITADOR incluye `subsanacion` + `solicitud-escaneada-upload` y el genérico
       // `datos-alumno` + `matricula`. El primer estado que sí lo incluye es el siguiente
       // de la misma fase, ENTRADA_DATOS, cuyo form de TRAMITADOR lista
-      // `persona-solicitante-editable`. Por eso el test avanza un estado: adjunta la
+      // `persona-solicitante`. Por eso el test avanza un estado: adjunta la
       // solicitud escaneada —lo único que `StateEventValidatorImpl` exige para CONTINUAR
       // desde PENDIENTE_DOCUMENTO_ESCANEADO— y mira allí.
       await abrirExpedienteComoTramitador(page, numeroExpediente);
@@ -444,7 +444,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       enEntradaDatos = true;
 
       // Control positivo, para que la ausencia de abajo NO pueda volver a ser vacua: los
-      // otros paneles de la MISMA lista `<include-panels>` que `persona-solicitante-editable`
+      // otros paneles de la MISMA lista `<include-panels>` que `persona-solicitante`
       // (`datos-alumno`, con su panel interno `alumno`, y `matricula`) sí están pintados.
       // Es decir, se está mirando el formulario que SÍ pintaría al solicitante.
       await expect(page.getByTestId('panel:alumno')).toBeVisible();
@@ -455,7 +455,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // `showIf="presentadoEnRepresentacion"` es falso, o sea porque el expediente quedó
       // PERSISTIDO con `presentadoEnRepresentacion = false`: el interesado es el propio
       // administrativo que lo registró y no hay nadie a quien represente.
-      await expect(page.getByTestId('panel:persona-solicitante-editable')).toHaveCount(0);
+      await expect(page.getByTestId('panel:persona-solicitante')).toHaveCount(0);
       await expect(page.getByText(PANEL_PERSONA_SOLICITANTE)).toHaveCount(0);
     } finally {
       // Teardown: borrar el expediente creado aunque una aserción haya fallado — la

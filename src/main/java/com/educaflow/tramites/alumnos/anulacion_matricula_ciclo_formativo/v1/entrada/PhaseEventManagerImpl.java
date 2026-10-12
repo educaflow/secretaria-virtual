@@ -18,7 +18,6 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -64,15 +63,15 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
     public void triggerGuardarDatos(AnulacionMatriculaCicloFormativoV1 expediente, AnulacionMatriculaCicloFormativoV1 original, EventContext eventContext) throws BusinessException {
         AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, "Solo puede modificar sus propias solicitudes");
 
-        expediente.setFechaSolicitud(LocalDate.now(Convert.defaultZoneId));
-
         DocumentoPdf solicitudPdf = expediente.getDocumentoPdf(AnulacionMatriculaCicloFormativoV1.TipoDocumentoPdf.SOLICITUD);
         expediente.setPdfSolicitud(MetaFileHelper.createMetaFile(solicitudPdf));
+        expediente.setFechaHoraPdfSolicitud(LocalDateTime.now(Convert.defaultZoneId));
 
         if (Boolean.TRUE.equals(original.getPresentadoEnPapel())) {
             presentar(expediente, eventContext);
         } else {
             expediente.setPdfSolicitudFirmada(null);
+            expediente.setFechaHoraPdfSolicitudFirmada(null);
             eventContext.updateState(States.Entrada.PENDIENTE_PRESENTACION);
         }
     }
@@ -114,10 +113,9 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
      * escaneada) y la pasa a verificación.
      */
     private void presentar(AnulacionMatriculaCicloFormativoV1 expediente, EventContext eventContext) {
+        // Deja en fechaHoraPdfJustificanteRegistroEntrada la fecha de presentación: la anulación surte efecto desde
+        // ella, y la resolución la imprime.
         entradaHelper.presentar(expediente, AnulacionMatriculaCicloFormativoV1Util.CAMPOS_ENTRADA, List.of(), eventContext);
-
-        // La anulación surte efecto desde esta fecha, y la resolución la imprime.
-        expediente.setFechaHoraPresentacion(LocalDateTime.now(Convert.defaultZoneId));
 
         eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
     }

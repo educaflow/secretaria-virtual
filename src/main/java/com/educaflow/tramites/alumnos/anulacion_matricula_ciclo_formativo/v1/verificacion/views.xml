@@ -6,12 +6,12 @@
     <!-- *********************************************************************************************  -->
     <form state="PENDIENTE_VERIFICACION" profile="TRAMITADOR">
         <include-panels>
-            -persona-solicitante
+            -solicitanteinteresada.persona-solicitante-readonly
             -datos-alumno
             -matricula
-            -presentacion-descarga
-            -pdfSolicitudFirmada
-            verificacion
+            -expedienteresoluble.descargar-pdfJustificanteRegistroEntrada
+            -expedienteresoluble.ver-pdfSolicitudFirmada
+            expedienteresoluble.verificacion
         </include-panels>
 
         <panel name="avisoPendienteVerificacionTramitador" colSpan="12" showFrame="false">
@@ -30,8 +30,8 @@
         <include-panels>
             -datos-alumno
             -matricula
-            -presentacion
-            -solicitud-firmada-descarga
+            -expedienteresoluble.ver-pdfJustificanteRegistroEntrada
+            -expedienteresoluble.descargar-pdfSolicitudFirmada
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">

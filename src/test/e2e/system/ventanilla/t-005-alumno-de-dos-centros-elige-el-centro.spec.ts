@@ -70,7 +70,7 @@ const PANEL_SOLICITUD_EN_PAPEL = 'panel:solicitudEscaneadaDatosSolicitud';
 
 // Panel que la plantilla común pinta con `showIf="presentadoEnRepresentacion"`: su
 // ausencia prueba que el expediente es para el propio alumno, no en representación.
-const PANEL_PERSONA_SOLICITANTE = 'panel:persona-solicitante-editable';
+const PANEL_PERSONA_SOLICITANTE = 'panel:persona-solicitante';
 
 // Título de la pestaña del expediente creado: <nº>/<año>-<código del centro>-<trámite> V1
 // (p. ej. `00005/2026-03012165-Anulación de matrícula en ciclo formativo V1`).

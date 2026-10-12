@@ -3,7 +3,7 @@ package com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.ve
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.util.Convert;
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
-import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionAnulacionMatriculaCicloFormativoV1;
+import com.educaflow.subsystem.expedientes.db.ResultadoVerificacion;
 import com.educaflow.subsystem.expedientes.db.repo.AnulacionMatriculaCicloFormativoV1Repository;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.EventContext;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.OnEnterState;
@@ -46,7 +46,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
 
         expediente.setFechaVerificacion(LocalDate.now(Convert.defaultZoneId));
 
-        ResultadoVerificacionAnulacionMatriculaCicloFormativoV1 resultadoVerificacion = expediente.getResultadoVerificacion();
+        ResultadoVerificacion resultadoVerificacion = expediente.getResultadoVerificacion();
         switch (resultadoVerificacion) {
             case CORRECTO -> {
                 expediente.setTextoSubsanacion(null);

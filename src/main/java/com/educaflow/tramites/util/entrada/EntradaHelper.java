@@ -59,10 +59,16 @@ public class EntradaHelper {
      * Asienta en el registro de entrada la solicitud que hay en {@code pdfSolicitudFirmada} (la firmada o, en
      * papel, la escaneada), guarda el resguardo, se lo envía al solicitante por correo y SMS y da por atendida la
      * subsanación que se hubiera pedido.
+     *
+     * <p>La fecha de la solicitud firmada y la del resguardo son la del asiento: la solicitud queda fijada al
+     * presentarla, sea cual sea el modo (firmada en el servidor en el mismo evento, con AutoFirma justo antes de
+     * dispararlo o escaneada en papel).
      */
     public <T extends Expediente> void presentar(T expediente, CamposEntrada<T> campos, List<MetaFile> anexos, EventContext eventContext) {
         RegistroEntrada registroEntrada = eventContext.createRegistroEntrada(campos.getPdfSolicitudFirmada().apply(expediente), anexos);
         campos.setPdfJustificanteRegistroEntrada().accept(expediente, registroEntrada.getDocumentoResguardoPresentacion());
+        campos.setFechaHoraPdfSolicitudFirmada().accept(expediente, registroEntrada.getFecha());
+        campos.setFechaHoraPdfJustificanteRegistroEntrada().accept(expediente, registroEntrada.getFecha());
         avisoRegistroHelper.avisarDeRegistroEntrada(expediente, registroEntrada);
 
         campos.borrarSubsanacion().accept(expediente);

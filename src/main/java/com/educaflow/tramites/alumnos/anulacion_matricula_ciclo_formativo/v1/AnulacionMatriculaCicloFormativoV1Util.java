@@ -41,6 +41,8 @@ public final class AnulacionMatriculaCicloFormativoV1Util {
             AnulacionMatriculaCicloFormativoV1::getPdfSolicitudFirmada,
             AnulacionMatriculaCicloFormativoV1::setPdfSolicitudFirmada,
             AnulacionMatriculaCicloFormativoV1::setPdfJustificanteRegistroEntrada,
+            AnulacionMatriculaCicloFormativoV1::setFechaHoraPdfSolicitudFirmada,
+            AnulacionMatriculaCicloFormativoV1::setFechaHoraPdfJustificanteRegistroEntrada,
             AnulacionMatriculaCicloFormativoV1Util::borrarSubsanacion);
 
     public static void borrarSubsanacion(AnulacionMatriculaCicloFormativoV1 expediente) {

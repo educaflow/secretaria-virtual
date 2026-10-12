@@ -62,7 +62,7 @@ const ESTADO_INICIAL = 'Entrada de datos';
 
 // Panel que la plantilla común pinta con `showIf="presentadoEnRepresentacion"`: su
 // ausencia prueba que el expediente es para el propio alumno, no en representación.
-const PANEL_PERSONA_SOLICITANTE = 'panel:persona-solicitante-editable';
+const PANEL_PERSONA_SOLICITANTE = 'panel:persona-solicitante';
 
 // Título de la pestaña del expediente creado: <nº>/<año>-<código del centro>-<trámite> V1.
 const TITULO_EXPEDIENTE = new RegExp(`^\\d+/\\d{4}-\\d+-${TRAMITE} V1$`);

@@ -10,7 +10,7 @@ import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.common.db.Persona;
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
-import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionAnulacionMatriculaCicloFormativoV1;
+import com.educaflow.subsystem.expedientes.db.ResultadoVerificacion;
 import com.educaflow.tramites.util.entrada.CamposEntrada;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +21,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.quality.Strictness;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -354,7 +355,7 @@ class AnulacionMatriculaCicloFormativoV1UtilTest {
     @Test
     void borrarSubsanacion_expedienteConSubsanacionPedida_vaciaElResultadoYElTexto() {
         AnulacionMatriculaCicloFormativoV1 expediente = new AnulacionMatriculaCicloFormativoV1();
-        expediente.setResultadoVerificacion(ResultadoVerificacionAnulacionMatriculaCicloFormativoV1.SUBSANAR);
+        expediente.setResultadoVerificacion(ResultadoVerificacion.SUBSANAR);
         expediente.setTextoSubsanacion("Falta indicar el ciclo en el que está matriculado");
         expediente.setMotivoRechazo(MOTIVO_RECHAZO);
 
@@ -372,12 +373,16 @@ class AnulacionMatriculaCicloFormativoV1UtilTest {
         MetaFile pdfSolicitud = new MetaFile();
         MetaFile pdfSolicitudFirmada = new MetaFile();
         MetaFile resguardo = new MetaFile();
+        LocalDateTime fechaHoraSolicitudFirmada = LocalDateTime.of(2026, 9, 1, 10, 0);
+        LocalDateTime fechaHoraResguardo = LocalDateTime.of(2026, 9, 1, 10, 1);
         expediente.setPdfSolicitud(pdfSolicitud);
         expediente.setTextoSubsanacion("Falta indicar el ciclo en el que está matriculado");
 
         CamposEntrada<AnulacionMatriculaCicloFormativoV1> campos = AnulacionMatriculaCicloFormativoV1Util.CAMPOS_ENTRADA;
         campos.setPdfSolicitudFirmada().accept(expediente, pdfSolicitudFirmada);
         campos.setPdfJustificanteRegistroEntrada().accept(expediente, resguardo);
+        campos.setFechaHoraPdfSolicitudFirmada().accept(expediente, fechaHoraSolicitudFirmada);
+        campos.setFechaHoraPdfJustificanteRegistroEntrada().accept(expediente, fechaHoraResguardo);
         campos.borrarSubsanacion().accept(expediente);
 
         assertAll(
@@ -385,6 +390,8 @@ class AnulacionMatriculaCicloFormativoV1UtilTest {
                 () -> assertSame(pdfSolicitudFirmada, campos.getPdfSolicitudFirmada().apply(expediente)),
                 () -> assertSame(pdfSolicitudFirmada, expediente.getPdfSolicitudFirmada()),
                 () -> assertSame(resguardo, expediente.getPdfJustificanteRegistroEntrada()),
+                () -> assertSame(fechaHoraSolicitudFirmada, expediente.getFechaHoraPdfSolicitudFirmada()),
+                () -> assertSame(fechaHoraResguardo, expediente.getFechaHoraPdfJustificanteRegistroEntrada()),
                 () -> assertNull(expediente.getTextoSubsanacion()));
     }
 

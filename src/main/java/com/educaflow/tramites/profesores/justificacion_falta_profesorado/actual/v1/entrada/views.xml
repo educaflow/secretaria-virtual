@@ -8,8 +8,8 @@
          TRAMITADOR, así que es él quien adjunta la solicitud escaneada. -->
     <form state="PENDIENTE_DOCUMENTO_ESCANEADO" profile="TRAMITADOR">
         <include-panels>
-            -subsanacion
-            solicitud-escaneada-upload
+            -expedienteresoluble.subsanacion
+            presentadoenpapel.solicitud-escaneada-upload
         </include-panels>
 
         <panel name="avisoPendienteDocumentoEscaneadoTramitador" colSpan="12" showFrame="false">
@@ -27,8 +27,8 @@
     </form>
     <form state="PENDIENTE_DOCUMENTO_ESCANEADO">
         <include-panels>
-            -datos-profesor
-            -datos-falta-view
+            -datos-profesor-readonly
+            -datos-falta-readonly
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
@@ -48,8 +48,8 @@
     <!-- *********************************************************************************************  -->
     <form state="ENTRADA_DATOS" profile="CREADOR" >
         <include-panels>
-            -subsanacion
-            -datos-profesor
+            -expedienteresoluble.subsanacion
+            -datos-profesor-readonly
             datos-falta
             justificante-upload
         </include-panels>
@@ -68,11 +68,11 @@
          quien presenta telemáticamente (CREADOR) y este para quien registra el papel (TRAMITADOR). -->
     <form state="ENTRADA_DATOS" profile="TRAMITADOR" onLoad="subsysExpedientes-persona-interesada-onLoad-action">
         <include-panels>
-            -subsanacion
-            datos-profesor-editable
+            -expedienteresoluble.subsanacion
+            datos-profesor
             datos-falta
             justificante-upload
-            -solicitud-escaneada-view
+            -presentadoenpapel.solicitud-escaneada-readonly
         </include-panels>
 
         <panel name="avisoEntradaDatosTramitador" colSpan="12" showFrame="false">
@@ -94,10 +94,10 @@
     </form>
     <form state="ENTRADA_DATOS">
         <include-panels>
-            -subsanacion
-            -datos-profesor
-            -datos-falta-view
-            -justificante-view
+            -expedienteresoluble.subsanacion
+            -datos-profesor-readonly
+            -datos-falta-readonly
+            -justificante-readonly
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
@@ -117,8 +117,8 @@
     <!-- **********************************************************************************************  -->
     <form state="PENDIENTE_PRESENTACION" profile="CREADOR" onLoad="exp-JustificacionFaltaProfesoradoV1-PENDIENTE_PRESENTACION-onLoad-action">
         <include-panels>
-            -pdfSolicitud
-            firma-solicitud
+            -expedienteresoluble.ver-pdfSolicitud
+            firma.firma-solicitud
         </include-panels>
 
         <footer>
@@ -133,7 +133,7 @@
     </form>
     <form state="PENDIENTE_PRESENTACION">
         <include-panels>
-            -pdfSolicitud
+            -expedienteresoluble.ver-pdfSolicitud
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">

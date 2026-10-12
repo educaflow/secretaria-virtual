@@ -40,7 +40,7 @@ const TRAMITES_DEL_PROFESOR = ['Justificación de falta del profesorado', 'Trám
 // Identidad del director tal y como la carga `data-demo/input/usuarios-demo.xml`: es él
 // mismo quien presenta la solicitud (personaInteresada), así que sus propios datos
 // deben aparecer prerrellenados y en solo lectura en el panel "Datos del profesor
-// interesado" (comprobado pilotando la app real: `panel:datos-profesor`).
+// interesado" (comprobado pilotando la app real: `panel:datos-profesor-readonly`).
 const DIRECTOR_NOMBRE = 'Director';
 const DIRECTOR_APELLIDOS = 'CIPFP Mislata';
 const DIRECTOR_DNI = '98803877V';
@@ -61,17 +61,17 @@ const FASE_INICIAL = 'Entrada';
 const ESTADO_INICIAL = 'Entrada de datos';
 
 // Panel que la plantilla común pinta con `showIf="presentadoEnRepresentacion"`
-// (`persona-solicitante-editable` de `tramites/shared/common-template-views.xml`): su
+// (`persona-solicitante` de `tramites/shared/common-template-views.xml`): su
 // ausencia es la prueba en la UI de que el expediente NO es en representación de otra
 // persona (este trámite, de hecho, ni siquiera lo permite: `permitidoPresentarEnRepresentacion=false`
 // en su `TramiteInstance.xml`).
-const PANEL_PERSONA_SOLICITANTE = 'panel:persona-solicitante-editable';
+const PANEL_PERSONA_SOLICITANTE = 'panel:persona-solicitante';
 
-// Panel propio del trámite ("Datos del profesor interesado", `datos-profesor` de
+// Panel propio del trámite ("Datos del profesor interesado", `datos-profesor-readonly` de
 // `tramites/profesores/.../v1/views.xml`) que identifica al interesado (el propio
 // profesor). Nace PRERRELLENO y EN SOLO LECTURA con la identidad de quien ha iniciado
 // sesión: es la prueba de que el expediente es "para él mismo".
-const PANEL_PROFESOR = 'panel:datos-profesor';
+const PANEL_PROFESOR = 'panel:datos-profesor-readonly';
 
 // Título de la pestaña del expediente creado: <nº>/<año>-<códigoCentro>-<trámite> V1
 // (p. ej. `00092/2026-46019660-Justificación de falta del profesorado V1`).

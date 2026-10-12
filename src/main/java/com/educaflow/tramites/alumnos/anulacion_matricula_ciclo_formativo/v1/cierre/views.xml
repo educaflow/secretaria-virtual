@@ -8,13 +8,13 @@
         <include-panels>
             -datos-alumno
             -matricula
-            -presentacion-descarga-aceptada
-            -resolucion-firmada
-            -solicitud-firmada-descarga
+            -expedienteresoluble.descargar-pdfJustificanteRegistroEntrada
+            -expedienteresoluble.ver-pdfResolucionFirmadaRegistroSalida
+            -expedienteresoluble.descargar-pdfSolicitudFirmada
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
-            <help variant="info" colSpan="12">El expediente está cerrado: la anulación ha sido aceptada</help>
+            <help variant="info" colSpan="12">El expediente está cerrado: la anulación ha sido aceptada y surte efecto desde la fecha de presentación</help>
         </panel>
 
         <footer>
@@ -32,9 +32,10 @@
         <include-panels>
             -datos-alumno
             -matricula
-            -presentacion-descarga
-            -resolucion-firmada
-            -solicitud-firmada-descarga
+            -expedienteresoluble.descargar-pdfJustificanteRegistroEntrada
+            -motivo-rechazo-readonly
+            -expedienteresoluble.ver-pdfResolucionFirmadaRegistroSalida
+            -expedienteresoluble.descargar-pdfSolicitudFirmada
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">

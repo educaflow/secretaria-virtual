@@ -1,8 +1,9 @@
 package com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.verificacion;
 
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
+import com.educaflow.base.util.Convert;
 import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1;
-import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionJustificacionFaltaProfesoradoV1;
+import com.educaflow.subsystem.expedientes.db.ResultadoVerificacion;
 import com.educaflow.subsystem.expedientes.db.repo.JustificacionFaltaProfesoradoV1Repository;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.EventContext;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.OnEnterState;
@@ -14,6 +15,8 @@ import com.educaflow.tramites.util.verificacion.VerificacionHelper;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.LocalDate;
 
 
 public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaProfesoradoV1> {
@@ -40,7 +43,9 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
         // Lo que la dirección devolvió queda atendido con esta verificación, sea cual sea su resultado.
         justificacionFaltaProfesorado.setMotivoDevolucion(null);
 
-        ResultadoVerificacionJustificacionFaltaProfesoradoV1 resultadoVerificacion = justificacionFaltaProfesorado.getResultadoVerificacion();
+        justificacionFaltaProfesorado.setFechaVerificacion(LocalDate.now(Convert.defaultZoneId));
+
+        ResultadoVerificacion resultadoVerificacion = justificacionFaltaProfesorado.getResultadoVerificacion();
         switch (resultadoVerificacion) {
             case CORRECTO -> {
                 justificacionFaltaProfesorado.setTextoSubsanacion(null);

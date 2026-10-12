@@ -1,6 +1,7 @@
 package com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.entrada;
 
 import com.axelor.meta.db.MetaFile;
+import com.educaflow.base.util.Convert;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.*;
@@ -15,6 +16,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -70,6 +72,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
             eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
         } else {
             justificacionFaltaProfesorado.setPdfSolicitudFirmada(null);
+            justificacionFaltaProfesorado.setFechaHoraPdfSolicitudFirmada(null);
             eventContext.updateState(States.Entrada.PENDIENTE_PRESENTACION);
         }
     }
@@ -95,6 +98,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
         }
         MetaFile pdfSolicitud = MetaFileHelper.createMetaFile(solicitudPdf);
         justificacionFaltaProfesorado.setPdfSolicitud(pdfSolicitud);
+        justificacionFaltaProfesorado.setFechaHoraPdfSolicitud(LocalDateTime.now(Convert.defaultZoneId));
     }
 
     /**

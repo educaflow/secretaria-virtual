@@ -77,7 +77,7 @@ const AVISO_EN_PAPEL =
 // de la persona interesada. Lo incluyen los forms de ENTRADA_DATOS —donde nacería el
 // expediente por la vía telemática—, pero NO el de PENDIENTE_DOCUMENTO_ESCANEADO con
 // perfil TRAMITADOR: su ausencia es la otra cara de la misma comprobación.
-const PANEL_DATOS_PROFESOR = 'panel:datos-profesor';
+const PANEL_DATOS_PROFESOR = 'panel:datos-profesor-readonly';
 
 // Modelo JPA del tipo de expediente: lo necesita la lectura por REST del expediente ya
 // persistido (ver `leerExpedientePersistido`).
@@ -108,7 +108,7 @@ interface ExpedientePersistido {
  *
  * <p>Hace falta porque este tipo de expediente no enseña en NINGUNA de sus vistas si el
  * expediente es en representación o para uno mismo: el único panel de la UI que lo
- * delata es `persona-solicitante` (`showIf="presentadoEnRepresentacion"`) y no está en
+ * delata es `persona-solicitante-readonly` (`showIf="presentadoEnRepresentacion"`) y no está en
  * el `<include-panels>` de ningún form de «Justificación de falta del profesorado» —que
  * es una ALLOWLIST—, así que mirarlo aquí sería una comprobación VACUA: faltaría igual
  * con `presentadoEnRepresentacion = true`. Lo mismo pasa con el centro, que tampoco

@@ -79,8 +79,8 @@ Después: añadir la `<fase>` con sus `<state>` al `TipoExpedienteInstance.xml` 
 
 Es lo que hace **todo tipo nuevo** con las dos fases comunes `ENTRADA` y `VERIFICACION` (`SKILL.md` §1.2): copia de un tipo existente las carpetas `entrada/` y `verificacion/`. En ese caso:
 
-- Los paneles comunes **no** hay que llevárselos: ya están en `tramites/shared/common-template-views.xml` (`vistas.md` §3.2). Sí los propios del tipo origen que los forms incluyan (sus datos, su anexo), que se sustituyen por los del destino.
-- Los campos son los cinco comunes (`modelo.md` §4.1), más `CAMPOS_ENTRADA` y `borrarSubsanacion` en el `<Code>Util` del destino (`recetas/presentacion.md` §1.1).
+- Los paneles comunes **no** hay que llevárselos: ya están en los `common-template-views.xml` de `tramites/shared` (`vistas.md` §3.2). Sí los propios del tipo origen que los forms incluyan (sus datos, su anexo), que se sustituyen por los del destino.
+- Los campos son los cinco comunes (`modelo.md` §4.1; ya heredados si el destino extiende de `ExpedienteResoluble`), más `CAMPOS_ENTRADA` y `borrarSubsanacion` en el `<Code>Util` del destino (`recetas/presentacion.md` §1.1).
 - De cada `trigger*` y de cada `rules { }` se queda lo común y se cambia lo propio del tipo origen (sus campos de datos, sus guardas, sus anexos, el destino de `VERIFICAR`).
 
 ### 2.3 Ficheros EXTERNOS a la carpeta — fáciles de olvidar

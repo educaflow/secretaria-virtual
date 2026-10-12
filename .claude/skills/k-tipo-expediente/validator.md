@@ -139,7 +139,7 @@ Los campos comunes de las fases `ENTRADA` y `VERIFICACION` (`SKILL.md` §1.2) ll
 | `VERIFICAR` de `PENDIENTE_VERIFICACION` | `textoSubsanacion` | Solo si `resultadoVerificacion` es `SUBSANAR`: `Required()` + `MinLength(10)` + `MaxLength(1000)` |
 
 ```kotlin
-import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionMiTramiteV1 as ResultadoVerificacion
+import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionMiTramiteV1 as ResultadoVerificacion  // con ExpedienteResoluble: ...db.ResultadoVerificacion
 ...
 // entrada/StateEventValidatorImpl.kt
 @BeanValidationRulesForStateAndEvent

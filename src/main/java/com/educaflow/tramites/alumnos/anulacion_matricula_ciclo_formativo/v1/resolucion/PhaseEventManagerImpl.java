@@ -1,8 +1,10 @@
 package com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.resolucion;
 
+import java.time.LocalDateTime;
 import com.axelor.auth.db.User;
 import com.axelor.auth.service.UserService;
 import com.axelor.db.modelservice.ModelServiceFactory;
+import com.educaflow.base.util.Convert;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
@@ -68,9 +70,11 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
             expediente.setMotivoRechazo(null);
         }
         expediente.setPdfResolucionFirmada(null);
+        expediente.setFechaHoraPdfResolucionFirmada(null);
 
         DocumentoPdf resolucionPdf = expediente.getDocumentoPdf(AnulacionMatriculaCicloFormativoV1.TipoDocumentoPdf.RESOLUCION);
         expediente.setPdfResolucion(MetaFileHelper.createMetaFile(resolucionPdf));
+        expediente.setFechaHoraPdfResolucion(LocalDateTime.now(Convert.defaultZoneId));
 
         AnulacionMatriculaCicloFormativoV1Util.ponerResolucionAFirmar(expediente, secretario, AnulacionMatriculaCicloFormativoV1Util.CAMPO_FIRMA_SECRETARIO);
 

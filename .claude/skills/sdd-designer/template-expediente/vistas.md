@@ -53,7 +53,7 @@ Las vistas se escriben en **dos sitios**:
           model="com.educaflow.subsystem.expedientes.db.<Entidad>" groups="admins,users">
 
         <panel name="<panel>" title="…"> … </panel>
-        <panel name="<panel>-view" title="…"> … </panel>
+        <panel name="<panel>-readonly" title="…"> … </panel>
         …
     </form>
 </object-views>
@@ -84,6 +84,7 @@ Los forms de estado **heredan** los atributos del form plantilla (`model`, `widt
 - Búsqueda del panel — **tres escalones**, en este orden:
   1. Nombre que **empieza por `subsysExpedientes`** → solo el form `subsysExpedientes-system-templates-form` del `tramites/shared/system-template-views.xml`: los paneles globales del subsistema de expedientes (cabecera, footer, notas, historial de estados). **MUST NOT** venir cualificado con puntos (carpeta): el build falla.
   2. Nombre **punteado** `<carpeta>.….<panel>` → el form `subsysExpedientes-common-templates-form` del `common-template-views.xml` de ESA carpeta bajo `tramites/shared/`. Puede haber **varios** `common-template-views.xml`, uno por carpeta de `shared` (la raíz incluida). El form plantilla local **no** participa en los nombres punteados.
+     - **MUST**: si los paneles de esa carpeta usan campos de una entidad base (p. ej. los de `expedienteresoluble/` usan los de `ExpedienteResoluble`), la entidad del diseño **MUST** heredar de ella. Si no, el build no falla pero el panel pinta campos vacíos (`k-tipo-expediente/SKILL.md` §1.8).
   3. Nombre **simple** → primero el form plantilla del propio tipo; si no, el `common-template-views.xml` de la raíz de `tramites/shared/`. **MUST NOT** nombrarse un panel local igual que uno global salvo que se quiera **sobrescribirlo a propósito**: lo tapa **en silencio**.
 - Un panel del almacén que **ninguna** fase incluye es código muerto: **MUST NOT** declararse.
 
@@ -94,10 +95,10 @@ Un mismo grupo de campos suele necesitar dos presentaciones. Hay **dos recursos*
 | Recurso | Cuándo usarlo |
 |---|---|
 | **Prefijo `-`** en el `<include-panels>` (`-<panel>`) | El layout de lectura es **el mismo** que el de edición y basta con poner los campos a `readonly`. **PREFERENTE** |
-| **Panel gemelo `<panel>-view`** declarado aparte en la plantilla | La lectura pide **otro layout** (otros `colSpan`, otros `title`, campos que sobran). Se declara ya maquetado para lectura y con sus `<field>` a `readonly="true"` |
+| **Panel gemelo `<panel>-readonly`** declarado aparte en la plantilla | La lectura pide **otro layout** (otros `colSpan`, otros `title`, campos que sobran). Se declara ya maquetado para lectura y con sus `<field>` a `readonly="true"` |
 
-- Un gemelo `-view` se incluye normalmente **también con guion** (`-<panel>-view`), por si algún `<field>` se quedó sin el `readonly` explícito.
-- **MUST NOT** declararse un gemelo `-view` si el prefijo `-` basta: es duplicación a mantener a mano.
+- Un gemelo `-readonly` se incluye normalmente **también con guion** (`-<panel>-readonly`), por si algún `<field>` se quedó sin el `readonly` explícito.
+- **MUST NOT** declararse un gemelo `-readonly` si el prefijo `-` basta: es duplicación a mantener a mano.
 
 ### 2.5 Contenido Axelor normal dentro de los paneles
 
@@ -122,7 +123,7 @@ Antes de escribir cada `<panel>` del form plantilla (y cada panel de los forms d
 
 Particularidades de un tipo de expediente:
 
-- Un **gemelo `<panel>-view`** (§2.4) es otro layout: lleva su propio ASCII Layout. Un panel incluido con el prefijo `-` no: es el mismo dibujo con los campos a `readonly`.
+- Un **gemelo `<panel>-readonly`** (§2.4) es otro layout: lleva su propio ASCII Layout. Un panel incluido con el prefijo `-` no: es el mismo dibujo con los campos a `readonly`.
 - El **`<footer>`** queda **fuera**: sus botones no se maquetan (el preprocesador asigna el `colOffset` del primer botón de `<buttons-right>`, §3.4); lo único que se comprueba es que la suma de `colSpan` no pase de 12 (§4).
 - Un `<panel-related>` ocupa su fila completa; no hay nada que dibujar dentro.
 
@@ -325,7 +326,7 @@ Reglas:
 - `design/views.xml` → se copia verbatim a `<vN>/views.xml`.
 - `design/fases/<fase>/views.xml` → se copia verbatim a `<vN>/<fase>/views.xml`. **MUST** haber uno por **cada** fase declarada, con la carpeta en **minúsculas**.
 - Ambos **sobrescriben** la cáscara que dejó `CreateFilesTask`.
-- El `design.md` **MUST** llevar, en el paso correspondiente, un **resumen estructural** corto de cada `views.xml`: qué paneles declara la plantilla —con el **ASCII Layout** de cada panel no trivial y de cada gemelo `-view` (§2.7)— y, por fase, la lista de `(estado, perfil)` con sus paneles incluidos y sus botones. **MUST NOT** volcar el XML inline: el XML vive en su fichero.
+- El `design.md` **MUST** llevar, en el paso correspondiente, un **resumen estructural** corto de cada `views.xml`: qué paneles declara la plantilla —con el **ASCII Layout** de cada panel no trivial y de cada gemelo `-readonly` (§2.7)— y, por fase, la lista de `(estado, perfil)` con sus paneles incluidos y sus botones. **MUST NOT** volcar el XML inline: el XML vive en su fichero.
 - **MUST NOT** materializarse ningún `menus.xml`: un tipo de expediente **no** declara menús propios; se llega a él por el árbol de trámites del subsistema de expedientes.
 
 > **Ejemplo** (ilustrativo, NO normativo) de resumen estructural de una fase en el `design.md`:
@@ -333,7 +334,7 @@ Reglas:
 > | estado | profile | paneles incluidos | botones (izq / der) |
 > |---|---|---|---|
 > | `<ESTADO>` | `<PERFIL>` | `-<panelA>`, `<panelB>` | `DELETE` / `<EVENTO>` |
-> | `<ESTADO>` | — | `-<panelA>`, `-<panelB>-view` | — / `EXIT` |
+> | `<ESTADO>` | — | `-<panelA>`, `-<panelB>-readonly` | — / `EXIT` |
 
 ---
 
@@ -347,7 +348,7 @@ El diseñador lo aplica antes de dar el diseño por terminado (**MUST NOT** term
 - [ ] ¿El form plantilla declara `model="com.educaflow.subsystem.expedientes.db.<Entidad>"` y los atributos que se heredan (`width`, `groups`, `title`)?
 - [ ] ¿Contiene **todos** los paneles que alguna fase incluye, cada uno con `name` y como **hijo directo**?
 - [ ] ¿Ningún panel del almacén queda sin incluir por ninguna fase (código muerto)?
-- [ ] ¿Cada gemelo `-view` existe solo porque el layout de lectura es distinto, y no donde bastaba el prefijo `-`?
+- [ ] ¿Cada gemelo `-readonly` existe solo porque el layout de lectura es distinto, y no donde bastaba el prefijo `-`?
 - [ ] ¿Cada `<panel>` de la plantilla (y de los forms de hijos) está maquetado según el **ASCII Layout** de `k-vistas/forms.md` (§2.7) — dibujado **antes** del XML, campos agrupados por semántica, `colSpan` proporcional y no inflado, cada fila suma 12, bordes alineados, un dibujo por estado `showIf`, ningún panel anidado envolviendo un solo campo — y el `design.md` incluye el ASCII Layout de los paneles no triviales, coherente con los `colSpan`/`colOffset` del XML?
 - [ ] ¿Los `<panel-related>` de maestro-detalle tienen `name`, y los grids/forms del hijo están en la **raíz** con la convención `exp-<Entidad>-<EntidadHija>-grid` / `-form`?
 - [ ] ¿No hay ningún `<form state=…>` en el `views.xml` de la raíz?

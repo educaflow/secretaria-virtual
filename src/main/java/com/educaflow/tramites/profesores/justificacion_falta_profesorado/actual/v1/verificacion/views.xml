@@ -6,12 +6,12 @@
     <!-- **********************************************************************************************  -->
     <form state="PENDIENTE_VERIFICACION" profile="TRAMITADOR" >
         <include-panels>
-            -devolucion-view
-            -datos-profesor
-            -datos-falta-view
-            -justificante-view
-            -pdfSolicitudFirmada
-            verificacion
+            -devolucion-readonly
+            -datos-profesor-readonly
+            -datos-falta-readonly
+            -justificante-readonly
+            -expedienteresoluble.ver-pdfSolicitudFirmada
+            expedienteresoluble.verificacion
         </include-panels>
 
         <panel name="avisoPendienteVerificacionTramitador" colSpan="12" showFrame="false">
@@ -27,9 +27,9 @@
     </form>
     <form state="PENDIENTE_VERIFICACION">
         <include-panels>
-            -datos-profesor
-            -datos-falta-view
-            -pdfJustificanteRegistroEntrada
+            -datos-profesor-readonly
+            -datos-falta-readonly
+            -expedienteresoluble.ver-pdfJustificanteRegistroEntrada
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">

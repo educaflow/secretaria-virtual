@@ -3,6 +3,7 @@ package com.educaflow.tramites.util.entrada;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -19,6 +20,8 @@ import java.util.function.Function;
  * @param getPdfSolicitudFirmada             la solicitud que se registra: la firmada o, en papel, la escaneada
  * @param setPdfSolicitudFirmada             donde se deja la solicitud cuando se firma en el servidor
  * @param setPdfJustificanteRegistroEntrada  donde se deja el resguardo de la presentación
+ * @param setFechaHoraPdfSolicitudFirmada              cuándo quedó fijada la solicitud que se registra
+ * @param setFechaHoraPdfJustificanteRegistroEntrada   cuándo se creó el resguardo de la presentación
  * @param borrarSubsanacion                  vacía lo que el verificador pidió subsanar: ya se ha vuelto a presentar
  */
 public record CamposEntrada<T extends Expediente>(
@@ -26,6 +29,8 @@ public record CamposEntrada<T extends Expediente>(
         Function<T, MetaFile> getPdfSolicitudFirmada,
         BiConsumer<T, MetaFile> setPdfSolicitudFirmada,
         BiConsumer<T, MetaFile> setPdfJustificanteRegistroEntrada,
+        BiConsumer<T, LocalDateTime> setFechaHoraPdfSolicitudFirmada,
+        BiConsumer<T, LocalDateTime> setFechaHoraPdfJustificanteRegistroEntrada,
         Consumer<T> borrarSubsanacion) {
 
     public CamposEntrada {
@@ -33,6 +38,8 @@ public record CamposEntrada<T extends Expediente>(
         Objects.requireNonNull(getPdfSolicitudFirmada, "getPdfSolicitudFirmada no puede ser null");
         Objects.requireNonNull(setPdfSolicitudFirmada, "setPdfSolicitudFirmada no puede ser null");
         Objects.requireNonNull(setPdfJustificanteRegistroEntrada, "setPdfJustificanteRegistroEntrada no puede ser null");
+        Objects.requireNonNull(setFechaHoraPdfSolicitudFirmada, "setFechaHoraPdfSolicitudFirmada no puede ser null");
+        Objects.requireNonNull(setFechaHoraPdfJustificanteRegistroEntrada, "setFechaHoraPdfJustificanteRegistroEntrada no puede ser null");
         Objects.requireNonNull(borrarSubsanacion, "borrarSubsanacion no puede ser null");
     }
 }

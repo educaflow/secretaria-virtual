@@ -5,6 +5,7 @@ import com.axelor.auth.service.UserService;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.i18n.I18n;
 import com.axelor.meta.db.MetaFile;
+import com.educaflow.base.util.Convert;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.subsystem.common.db.CargoCodigo;
@@ -30,6 +31,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -91,6 +93,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
     @WhenEvent
     public void triggerRechazarFirma(AnulacionMatriculaCicloFormativoV1 expediente, AnulacionMatriculaCicloFormativoV1 original, EventContext eventContext) throws BusinessException {
         expediente.setPdfResolucion(null);
+        expediente.setFechaHoraPdfResolucion(null);
 
         eventContext.updateState(States.Resolucion.PENDIENTE_RESOLUCION);
     }
@@ -102,7 +105,9 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
         // El documento que llega es el de la tarea de firma del secretario, no del expediente: el director firma una
         // copia, que conserva vacío su hueco de firma.
         expediente.setPdfResolucion(MetaFileUtil.cloneMetaFile(expediente.getPdfResolucionFirmada()));
+        expediente.setFechaHoraPdfResolucion(LocalDateTime.now(Convert.defaultZoneId));
         expediente.setPdfResolucionFirmada(null);
+        expediente.setFechaHoraPdfResolucionFirmada(null);
 
         AnulacionMatriculaCicloFormativoV1Util.ponerResolucionAFirmar(expediente, director, AnulacionMatriculaCicloFormativoV1Util.CAMPO_FIRMA_DIRECTOR);
 
@@ -110,13 +115,18 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
     }
 
     private void registrarDeSalidaYCerrar(AnulacionMatriculaCicloFormativoV1 expediente, EventContext eventContext) throws BusinessException {
-        // El documento que llega es el de la tarea de firma, no del expediente: se registra de salida una copia.
+        // El documento que llega es el de la tarea de firma, no del expediente: el expediente se queda una copia,
+        // que es la que se registra de salida.
         MetaFile resolucionFirmada = MetaFileUtil.cloneMetaFile(expediente.getPdfResolucionFirmada());
         RegistroSalida registroSalida = eventContext.createRegistroSalida(resolucionFirmada, List.of());
-        expediente.setPdfResolucionFirmada(registroSalida.getDocumento());
+        expediente.setPdfResolucionFirmada(resolucionFirmada);
+        expediente.setFechaHoraPdfResolucionFirmada(registroSalida.getFecha());
+        expediente.setPdfResolucionFirmadaRegistroSalida(registroSalida.getDocumento());
+        expediente.setFechaHoraPdfResolucionFirmadaRegistroSalida(registroSalida.getFecha());
         avisoRegistroHelper.avisarDeRegistroSalida(expediente, registroSalida);
 
         expediente.setPdfResolucion(null);
+        expediente.setFechaHoraPdfResolucion(null);
 
         TipoResolucionAnulacionMatriculaCicloFormativoV1 tipoResolucion = expediente.getTipoResolucion();
         switch (tipoResolucion) {

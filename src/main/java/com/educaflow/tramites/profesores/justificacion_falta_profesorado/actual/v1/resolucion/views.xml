@@ -6,10 +6,11 @@
     <!-- **********************************************************************************************  -->
     <form state="PENDIENTE_RESOLUCION" profile="DIRECTOR" >
         <include-panels>
-            -datos-profesor
-            -datos-falta-view
-            -justificante-view
-            -pdfSolicitudFirmada
+            -datos-profesor-readonly
+            -datos-falta-readonly
+            -justificante-readonly
+            -expedienteresoluble.ver-pdfSolicitudFirmada
+            -expedienteresoluble.verificacion-readonly
             resolucion
         </include-panels>
         <footer>
@@ -22,9 +23,9 @@
 
     <form state="PENDIENTE_RESOLUCION">
         <include-panels>
-            -datos-profesor
-            -datos-falta-view
-            -pdfJustificanteRegistroEntrada
+            -datos-profesor-readonly
+            -datos-falta-readonly
+            -expedienteresoluble.ver-pdfJustificanteRegistroEntrada
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
@@ -45,10 +46,10 @@
     <!-- **********************************************************************  -->
     <form state="ACEPTADO">
         <include-panels>
-            -datos-profesor
-            -datos-falta-view
-            -pdfResolucion
-            -resolucion-view
+            -datos-profesor-readonly
+            -datos-falta-readonly
+            -expedienteresoluble.ver-pdfResolucionFirmadaRegistroSalida
+            -resolucion-readonly
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
@@ -69,10 +70,10 @@
     <!-- **********************************************************************  -->
     <form state="RECHAZADO">
         <include-panels>
-            -datos-profesor
-            -datos-falta-view
-            -pdfResolucion
-            -resolucion-view
+            -datos-profesor-readonly
+            -datos-falta-readonly
+            -expedienteresoluble.ver-pdfResolucionFirmadaRegistroSalida
+            -resolucion-readonly
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
