@@ -30,9 +30,7 @@ public class FirmaEnServidorService {
         final CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
 
         try {
-            AlmacenClave almacenClave = certificadoDigitalService.getAlmacenClaveByDni(dni, clave)
-                    .orElseThrow(() -> new IllegalStateException("El firmante con dni=" + DniUtil.enmascarar(dni) + " no tiene certificado digital con el que firmar en el servidor"));
-
+            AlmacenClave almacenClave = certificadoDigitalService.getAlmacenClaveByDni(dni, clave).orElseThrow(() -> new IllegalStateException("El firmante con dni=" + DniUtil.enmascarar(dni) + " no tiene certificado digital con el que firmar en el servidor"));
 
             SituacionFirma situacionFirma= certificadoDigitalService.getSituacionFirmaByDni(dni);
             if (situacionFirma.isFirmaEnServidor()==false) {
