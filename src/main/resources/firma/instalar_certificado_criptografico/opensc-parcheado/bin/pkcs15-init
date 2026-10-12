@@ -1,0 +1,5 @@
+#!/bin/bash
+# pkcs15-init de OpenSC 0.25.0 compilado con ../../epass2003-pad-d.patch (rellena el exponente privado d a la longitud del módulo).
+# Compilado en Ubuntu 24.04 x86_64; depende de las libpcsclite, libssl y zlib del sistema.
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LD_LIBRARY_PATH="$DIR/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" exec "$DIR/bin/pkcs15-init.bin" "$@"

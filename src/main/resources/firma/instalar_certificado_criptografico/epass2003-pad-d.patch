@@ -1,0 +1,27 @@
+--- a/src/libopensc/card-epass2003.c
++++ b/src/libopensc/card-epass2003.c	2026-10-12 19:18:32.000501782 +0200
+@@ -2871,7 +2871,23 @@
+ 
+ 	r = internal_write_rsa_key_factor(card, fid, 0x02, rsa->modulus);
+ 	LOG_TEST_RET(card->ctx, r, "write n failed");
+-	r = internal_write_rsa_key_factor(card, fid, 0x03, rsa->d);
++
++	/* The card expects d to be exactly as long as the modulus. OpenSSL strips leading zero bytes
++	 * from bignums, so a d shorter than n must be left-padded with zeros or the card answers 6A80. */
++	if (rsa->d.len < rsa->modulus.len) {
++		u8 padded[SC_MAX_EXT_APDU_BUFFER_SIZE] = { 0 };
++		sc_pkcs15_bignum_t d_padded;
++
++		if (rsa->modulus.len > sizeof(padded))
++			LOG_FUNC_RETURN(card->ctx, SC_ERROR_INVALID_ARGUMENTS);
++		memcpy(padded + (rsa->modulus.len - rsa->d.len), rsa->d.data, rsa->d.len);
++		d_padded.data = padded;
++		d_padded.len = rsa->modulus.len;
++		sc_log(card->ctx, "private exponent d padded from %zu to %zu bytes", rsa->d.len, rsa->modulus.len);
++		r = internal_write_rsa_key_factor(card, fid, 0x03, d_padded);
++	} else {
++		r = internal_write_rsa_key_factor(card, fid, 0x03, rsa->d);
++	}
+ 	LOG_TEST_RET(card->ctx, r, "write d failed");
+ 
+ 	LOG_FUNC_RETURN(card->ctx, SC_SUCCESS);

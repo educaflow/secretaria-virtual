@@ -20,8 +20,9 @@ CERTIFICADO_SECRETARIO=$(fichero_certificado_demo "secretario@mislata.es") || ex
 
 cd "$DIR_SCRIPT" || exit 1
 
-./inicializar_dispositivo.sh 123456 12345678
+# load_certificate.sh usa el pkcs15-init parcheado de opensc-parcheado/ (ver README.txt); el del sistema falla con algunas claves en el ePass2003
+./inicializar_dispositivo.sh 123456 12345678 || exit 1
 
-./load_certificate.sh 01 Director  123456 "$CERTIFICADO_DIRECTOR"
+./load_certificate.sh 01 Director   123456 "$CERTIFICADO_DIRECTOR"   || exit 1
 
-./load_certificate.sh 02 Secretario  123456 "$CERTIFICADO_SECRETARIO"
+./load_certificate.sh 02 Secretario 123456 "$CERTIFICADO_SECRETARIO" || exit 1
