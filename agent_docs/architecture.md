@@ -74,8 +74,8 @@ por ello siguen una **arquitectura diferente** al resto de la aplicación.
 > y **C24**, que dentro del tramitador prohíbe que el motor dependa de su servicio o de sus controladores.
 >
 > **Invariante normativa del motor.** `subsystem/tramitador` es **solo el motor de tramitación** y **MUST** mantenerse lo más pequeño posible: todo lo que se le añade lo heredan todos los tipos de expediente.
-> Lo que un expediente concreto necesita para implementarse **MUST NOT** ir ahí — va a `tramites/util/` si lo comparten varios tipos, o a su carpeta de versión si es de uno solo.
-> La regla completa (dónde va cada cosa, las señales de que una pieza no es del motor, la dirección de dependencias y cuándo sí es legítimo ampliarlo) está en [`src/main/java/com/educaflow/subsystem/tramitador/CLAUDE.md`](../src/main/java/com/educaflow/subsystem/tramitador/CLAUDE.md), qué entra en el dominio en [`src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md`](../src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md), y el criterio de entrada al común de trámites en [`src/main/java/com/educaflow/tramites/util/CLAUDE.md`](../src/main/java/com/educaflow/tramites/util/CLAUDE.md).
+> Lo que un expediente concreto necesita para implementarse **MUST NOT** ir ahí — va a `tramites/shared/` si lo comparten varios tipos, o a su carpeta de versión si es de uno solo.
+> La regla completa (dónde va cada cosa, las señales de que una pieza no es del motor, la dirección de dependencias y cuándo sí es legítimo ampliarlo) está en [`src/main/java/com/educaflow/subsystem/tramitador/CLAUDE.md`](../src/main/java/com/educaflow/subsystem/tramitador/CLAUDE.md), qué entra en el dominio en [`src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md`](../src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md), y el criterio de entrada al común de trámites en [`src/main/java/com/educaflow/tramites/shared/CLAUDE.md`](../src/main/java/com/educaflow/tramites/shared/CLAUDE.md).
 >
 > **Deuda pendiente**: el resto de la estructura interna de los dos subsistemas no la cubre ningún
 > skill. Al documentarla, **MUST NOT** enumerar clases ni paquetes concretos —eso se deriva del código—:

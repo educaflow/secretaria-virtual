@@ -1,4 +1,4 @@
-package com.educaflow.tramites.util.registro;
+package com.educaflow.tramites.shared.notificaciones;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -6,11 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.i18n.I18n;
 import com.axelor.meta.db.MetaFile;
@@ -28,7 +27,7 @@ import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
-class AvisoRegistroHelperTest {
+class NotificacionesExpedienteHelperTest {
 
     private static final String NUMERO_EXPEDIENTE = "00007/2026-46012345";
     private static final String NUMERO_REGISTRO_ENTRADA = "00031/2026-46012345";
@@ -59,13 +58,13 @@ class AvisoRegistroHelperTest {
     private SmsService smsService;
 
     @InjectMocks
-    private AvisoRegistroHelper avisoRegistroHelper;
+    private NotificacionesExpedienteHelper notificacionesExpedienteHelper;
 
     private MockedStatic<I18n> i18nMock;
 
     private final Centro centro = new Centro();
     private final PruebaV1 expediente = new PruebaV1();
-    private final HistorialEstado historialMasReciente = historialConFecha(T.minusHours(1));
+    private final HistorialEstado historialActual = historialConFecha(T.minusHours(1));
 
     @BeforeEach
     void preparar() {
@@ -84,12 +83,13 @@ class AvisoRegistroHelperTest {
         expediente.setNumeroExpediente(NUMERO_EXPEDIENTE);
         expediente.setName("Prueba V1");
         expediente.setHistorialEstados(new ArrayList<>(List.of(
-                historialConFecha(T.minusHours(2)), historialMasReciente, historialConFecha(T.minusHours(3)))));
+                historialConFecha(T.minusHours(3)), historialConFecha(T.minusHours(2)), historialActual)));
 
-        when(modelServiceFactory.resolve(Correo.class)).thenReturn(correoService);
-        when(modelServiceFactory.resolve(Sms.class)).thenReturn(smsService);
-        when(correoService.create()).thenAnswer(invocacion -> new Correo());
-        when(smsService.create()).thenAnswer(invocacion -> new Sms());
+        // lenient: el canal cuyo destinatario no tiene dato no llega a resolver su servicio
+        lenient().when(modelServiceFactory.resolve(Correo.class)).thenReturn(correoService);
+        lenient().when(modelServiceFactory.resolve(Sms.class)).thenReturn(smsService);
+        lenient().when(correoService.create()).thenAnswer(invocacion -> new Correo());
+        lenient().when(smsService.create()).thenAnswer(invocacion -> new Sms());
     }
 
     @AfterEach
@@ -98,14 +98,13 @@ class AvisoRegistroHelperTest {
     }
 
     @Test
-    void avisarDeRegistroEntrada_elSolicitanteTieneCorreoYMovil_leEnviaElResguardoPorCorreoYElNumeroPorSms() {
+    void notificarRegistroEntrada_elSolicitanteTieneCorreoYMovil_leEnviaElResguardoPorCorreoYElNumeroPorSms() {
         MetaFile resguardo = pdf("resguardo.pdf");
         RegistroEntrada registroEntrada = new RegistroEntrada();
         registroEntrada.setNumeroRegistro(NUMERO_REGISTRO_ENTRADA);
         registroEntrada.setDocumentoResguardoPresentacion(resguardo);
-        aceptarTodo();
 
-        avisoRegistroHelper.avisarDeRegistroEntrada(expediente, registroEntrada);
+        notificacionesExpedienteHelper.notificarRegistroEntrada(expediente, registroEntrada);
 
         Correo correo = correoInsertado();
         Sms sms = smsInsertado();
@@ -116,7 +115,7 @@ class AvisoRegistroHelperTest {
                 () -> assertEquals("Ana", correo.getNombre()),
                 () -> assertEquals("García López", correo.getApellidos()),
                 () -> assertSame(centro, correo.getCentro()),
-                () -> assertSame(historialMasReciente, correo.getHistorialEstado()),
+                () -> assertSame(historialActual, correo.getHistorialEstado()),
                 () -> assertTrue(correo.getName().contains(NUMERO_REGISTRO_ENTRADA)),
                 () -> assertTrue(correo.getAsunto().contains(NUMERO_REGISTRO_ENTRADA)),
                 () -> assertTrue(correo.getAsunto().contains(NUMERO_EXPEDIENTE)),
@@ -128,20 +127,19 @@ class AvisoRegistroHelperTest {
                 () -> assertEquals("600111222", sms.getTelefono()),
                 () -> assertEquals("93882914L", sms.getDniDestinatario()),
                 () -> assertSame(centro, sms.getCentro()),
-                () -> assertSame(historialMasReciente, sms.getHistorialEstado()),
+                () -> assertSame(historialActual, sms.getHistorialEstado()),
                 () -> assertTrue(sms.getMensaje().contains(NUMERO_REGISTRO_ENTRADA)),
                 () -> assertTrue(sms.getMensaje().contains(NUMERO_EXPEDIENTE)));
     }
 
     @Test
-    void avisarDeRegistroSalida_elSolicitanteTieneCorreoYMovil_leEnviaElDocumentoPorCorreoYElNumeroPorSms() {
+    void notificarRegistroSalida_elSolicitanteTieneCorreoYMovil_leEnviaElDocumentoPorCorreoYElNumeroPorSms() {
         MetaFile documento = pdf("resolucion.pdf");
         RegistroSalida registroSalida = new RegistroSalida();
         registroSalida.setNumeroRegistro(NUMERO_REGISTRO_SALIDA);
         registroSalida.setDocumento(documento);
-        aceptarTodo();
 
-        avisoRegistroHelper.avisarDeRegistroSalida(expediente, registroSalida);
+        notificacionesExpedienteHelper.notificarRegistroSalida(expediente, registroSalida);
 
         Correo correo = correoInsertado();
         Sms sms = smsInsertado();
@@ -153,32 +151,50 @@ class AvisoRegistroHelperTest {
     }
 
     @Test
-    void avisarDeRegistroEntrada_elCorreoNoSuperaLaValidacion_soloEnviaElSms() {
-        when(correoService.validateInsert(any(Correo.class)))
-                .thenReturn(Optional.of(BusinessMessages.single("Debe indicar al menos un destinatario en el «para»")));
-        when(smsService.validateInsert(any(Sms.class))).thenReturn(Optional.empty());
+    void notificarRegistroEntrada_elSolicitanteNoTieneCorreo_soloEnviaElSms() {
+        expediente.getPersonaSolicitante().setEmail(" ");
 
-        avisoRegistroHelper.avisarDeRegistroEntrada(expediente, registroEntrada());
+        notificacionesExpedienteHelper.notificarRegistroEntrada(expediente, registroEntrada());
 
         verify(correoService, never()).insert(any(Correo.class));
         verify(smsService).insert(any(Sms.class));
     }
 
     @Test
-    void avisarDeRegistroEntrada_elSmsNoSuperaLaValidacion_soloEnviaElCorreo() {
-        when(correoService.validateInsert(any(Correo.class))).thenReturn(Optional.empty());
-        when(smsService.validateInsert(any(Sms.class)))
-                .thenReturn(Optional.of(BusinessMessages.single("El teléfono es obligatorio")));
+    void notificarRegistroEntrada_elSolicitanteNoTieneMovil_soloEnviaElCorreo() {
+        expediente.getPersonaSolicitante().setTelefono(null);
 
-        avisoRegistroHelper.avisarDeRegistroEntrada(expediente, registroEntrada());
+        notificacionesExpedienteHelper.notificarRegistroEntrada(expediente, registroEntrada());
 
         verify(correoService).insert(any(Correo.class));
         verify(smsService, never()).insert(any(Sms.class));
     }
 
-    private void aceptarTodo() {
-        when(correoService.validateInsert(any(Correo.class))).thenReturn(Optional.empty());
-        when(smsService.validateInsert(any(Sms.class))).thenReturn(Optional.empty());
+    @Test
+    void notificarSubsanacion_elSolicitanteTieneCorreoYMovil_leEnviaLoQueTieneQueSubsanarPorCorreoYElAvisoPorSms() {
+        notificacionesExpedienteHelper.notificarSubsanacion(expediente, "Falta adjuntar el justificante médico");
+
+        Correo correo = correoInsertado();
+        Sms sms = smsInsertado();
+        assertAll(
+                () -> assertEquals("ana@example.com", correo.getPara()),
+                () -> assertSame(historialActual, correo.getHistorialEstado()),
+                () -> assertTrue(correo.getAsunto().contains(NUMERO_EXPEDIENTE)),
+                () -> assertTrue(correo.getCuerpo().contains("Falta adjuntar el justificante médico")),
+                () -> assertTrue(correo.getCuerpo().contains("Prueba V1")),
+                () -> assertTrue(correo.getAdjuntos() == null || correo.getAdjuntos().isEmpty()),
+                () -> assertEquals("600111222", sms.getTelefono()),
+                () -> assertTrue(sms.getMensaje().contains(NUMERO_EXPEDIENTE)));
+    }
+
+    @Test
+    void notificarSubsanacion_elSolicitanteNoTieneCorreo_soloEnviaElSms() {
+        expediente.getPersonaSolicitante().setEmail(null);
+
+        notificacionesExpedienteHelper.notificarSubsanacion(expediente, "Falta adjuntar el justificante médico");
+
+        verify(correoService, never()).insert(any(Correo.class));
+        verify(smsService).insert(any(Sms.class));
     }
 
     private RegistroEntrada registroEntrada() {

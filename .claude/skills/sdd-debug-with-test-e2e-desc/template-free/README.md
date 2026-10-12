@@ -158,5 +158,5 @@ Tras un `CORREGIDO`, el motor **para** (§4.4) y **arranca de nuevo** (§4.2 + �
 
 - Ningún rol carga skills «por defecto»: el **ejecutor** carga el de pilotaje que indique `execution.md`; el **corrector** decide en runtime según la parte de la aplicación que falla (`correction.md` §2).
 - El `design.md` de la iniciativa (`**Ubicación del código:**`, «Piezas») es la referencia del corrector sobre **dónde** está el código de la feature y **qué** se diseñó: lo lee, nunca lo escribe.
-- `CLAUDE.md` del proyecto y los de cada carpeta (`base/`, `subsystem/tramitador/`, `subsystem/expedientes/`, `tramites/util/`) cuando el fallo cae ahí.
+- `CLAUDE.md` del proyecto y los de cada carpeta (`base/`, `subsystem/tramitador/`, `subsystem/expedientes/`, `tramites/shared/`) cuando el fallo cae ahí.
 - Si la feature roza expedientes, el código de `tramites/` **sí** es referencia legítima (sigue `k-tipo-expediente`); si no, no hace falta mirarlo.

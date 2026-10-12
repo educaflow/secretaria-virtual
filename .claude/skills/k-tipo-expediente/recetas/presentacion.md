@@ -7,7 +7,7 @@ El registro de entrada asienta el documento **firmado por el usuario** (`Registr
 | Paso | Qué pasa | Dónde | Sección |
 |---|---|---|---|
 | 0 | Las dos fases comunes: tres estados de `ENTRADA` y uno de `VERIFICACION` | `TipoExpedienteInstance.xml` | §0 |
-| 1 | Los campos: los datos, los anexos y los cinco campos comunes; el descriptor `CAMPOS_ENTRADA` | `domains.xml`, `<Code>Util` | §1 |
+| 1 | Los campos: los datos, los anexos y los cinco campos comunes, heredados de `ExpedienteResoluble` | `domains.xml` | §1 |
 | 2 | El expediente nace con solicitante e interesado, que son los que van al registro, y en el estado que le toca | `InitialEventManagerImpl` | §2 |
 | 3 | El documento que se va a presentar, con hueco para la firma | `documentospdf/` | §3 |
 | 4 | El usuario teclea los datos; el trigger genera el PDF | estado `ENTRADA_DATOS` | §4 |
@@ -18,7 +18,7 @@ El registro de entrada asienta el documento **firmado por el usuario** (`Registr
 Dependencias:
 
 - El registro lo crea `EventContext` contra `subsystem/registroentradasalida` (`phaseeventmanager.md` §3); no hay que inyectar ni resolver nada del registro en el trámite.
-- Lo que hacen igual todos los tipos está en `tramites/util/entrada/` (`EntradaHelper`, `CamposEntrada`) y `tramites/util/verificacion/` (`VerificacionHelper`); los paneles, en los `common-template-views.xml` de `tramites/shared` (`vistas.md` §3.2).
+- Lo que hacen igual todos los tipos está en `tramites/shared/registro/` (`RegistroEntradaSalidaHelper`), `tramites/shared/firma/` (`FirmaExpedienteHelper`) y `tramites/shared/notificaciones/` (`NotificacionesExpedienteHelper`); los paneles, en los `common-template-views.xml` de `tramites/shared` (`vistas.md` §3.2).
 - **MUST NOT** copiar esa lógica a la carpeta del tipo: CPD rompe el build si dos trámites repiten código. El tipo solo escribe lo que se ve en esta receta, incluidas las reglas de validación, que van en su validador (`validator.md` §3.2).
 
 ## 0. La máquina de estados
@@ -49,7 +49,7 @@ Dependencias:
 ## 1. Modelo (`domains.xml`)
 
 ```xml
-<entity name="MiTramiteV1" extends="Expediente">
+<entity name="MiTramiteV1" extends="ExpedienteResoluble">
     <!-- 1. Los datos que el usuario teclea y que van al documento -->
     <string name="dias"/>
     <enum name="motivo" ref="MotivoMiTramiteV1"/>
@@ -58,61 +58,33 @@ Dependencias:
     <!-- 2. Lo que el usuario adjunta: va como anexo del registro -->
     <many-to-one name="justificante" title="Foto o PDF del justificante" ref="com.axelor.meta.db.MetaFile"/>
 
-    <!-- 3. El documento que presenta: original (lo genera GUARDAR_DATOS) y firmado (lo firma PRESENTAR; en papel, el escaneado) -->
-    <many-to-one name="pdfSolicitud"        title="PDF de la solicitud"         ref="com.axelor.meta.db.MetaFile"/>
-    <many-to-one name="pdfSolicitudFirmada" title="PDF de la solicitud firmada" ref="com.axelor.meta.db.MetaFile"/>
-
-    <!-- 4. El resguardo sellado que devuelve el registro de entrada -->
-    <many-to-one name="pdfJustificanteRegistroEntrada" title="Justificante del registro de entrada" ref="com.axelor.meta.db.MetaFile"/>
-
-    <!-- 5. La verificación -->
-    <enum name="resultadoVerificacion" title="Resultado de la verificación" ref="ResultadoVerificacionMiTramiteV1"/>
-    <string name="textoSubsanacion" title="Qué hay que subsanar" large="true"/>
+    <!-- 3, 4 y 5: pdfSolicitud, pdfSolicitudFirmada, pdfJustificanteRegistroEntrada, resultadoVerificacion y textoSubsanacion, heredados de ExpedienteResoluble -->
     ...
 </entity>
-
-<enum name="ResultadoVerificacionMiTramiteV1">
-    <item name="CORRECTO" title="La solicitud es correcta"/>
-    <item name="SUBSANAR" title="Pedir subsanación"/>
-</enum>
 ```
+
+Los campos, numerados como en el ejemplo:
 
 1. **Datos**: los campos que el usuario rellena y que el documento estampa con `self.<campo>` (§3).
 2. **Anexos**: un `MetaFile` por cada fichero que el usuario aporta. Pueden ser imágenes o PDF; el registro los admite todos como anexos.
-3. **Par original/firmado**: es el mismo par de `recetas/firma.md` §1.2. El original lo genera el trigger de `GUARDAR_DATOS`; el firmado lo produce `PRESENTAR` (en servidor), lo sube el usuario (AutoFirma) o, en papel, es el escaneado que adjunta el `TRAMITADOR`.
-4. **Resguardo**: el `MetaFile` que devuelve el registro de entrada; se guarda para enseñárselo al usuario (§6.1).
-5. **Verificación**: el resultado (enum con los ítems `CORRECTO` y `SUBSANAR`) y el texto de lo que hay que subsanar.
-- Los campos de 3, 4 y 5 son los **campos comunes**: **MUST** llamarse exactamente así, porque los paneles comunes los nombran (`vistas.md` §3.2). No están en `Expediente`: los hereda todo tipo que extienda de `ExpedienteResoluble` (con el enum compartido `ResultadoVerificacion`), y si no, los declara el tipo como en el ejemplo (`modelo.md` §4.1).
+3. **Par original/firmado** (`pdfSolicitud`/`pdfSolicitudFirmada`): es el mismo par de `recetas/firma.md` §1.2. El original lo genera el trigger de `GUARDAR_DATOS`; el firmado lo produce `PRESENTAR` (en servidor), lo sube el usuario (AutoFirma) o, en papel, es el escaneado que adjunta el `TRAMITADOR`.
+4. **Resguardo** (`pdfJustificanteRegistroEntrada`): el `MetaFile` que devuelve el registro de entrada; se guarda para enseñárselo al usuario (§6.1).
+5. **Verificación** (`resultadoVerificacion`/`textoSubsanacion`): el resultado (el enum compartido `ResultadoVerificacion`, con los ítems `CORRECTO` y `SUBSANAR`) y el texto de lo que hay que subsanar.
+- Los campos de 3, 4 y 5 son los **campos comunes**: no están en `Expediente` sino en `ExpedienteResoluble`, que los paneles comunes (`vistas.md` §3.2) y el código común (§1.1) nombran tal cual. **MUST NOT** redeclararlos (`modelo.md` §4.1).
 - `personaSolicitante`, `personaInteresada`, `numeroExpediente`, `centro` y `claveCertificado` ya están heredados de `Expediente` (`modelo.md` §2). **MUST NOT** redeclararlos: son justo los que `createRegistroEntrada` lee del expediente (§5.3).
 
-- ✅ CORRECTO: `<many-to-one name="pdfSolicitudFirmada" .../>`
-- ❌ INCORRECTO: `<many-to-one name="pdfSolicitudFirmado" .../>` o `solicitudFirmada` (los paneles comunes pintarían un campo vacío)
-- ❌ INCORRECTO: `<enum name="ResultadoVerificacion">` en el `domains.xml` de un tipo (ese nombre es el enum compartido de `ExpedienteResoluble`; el de un tipo lleva su sufijo, `modelo.md` §3)
+- ✅ CORRECTO: `<entity name="MiTramiteV1" extends="ExpedienteResoluble">` sin ninguno de los cinco campos comunes
+- ❌ INCORRECTO: `<entity name="MiTramiteV1" extends="Expediente">` (`RegistroEntradaSalidaHelper` y `FirmaExpedienteHelper` reciben un `ExpedienteResoluble`: el trigger no compila)
+- ❌ INCORRECTO: `<many-to-one name="pdfSolicitudFirmada" .../>` en el `domains.xml` del tipo (ya lo hereda de `ExpedienteResoluble`)
 
-### 1.1 `CAMPOS_ENTRADA` en `<Code>Util`
+### 1.1 El código común trabaja con `ExpedienteResoluble`
 
-El código común no puede nombrar los campos del tipo (son de **su** entidad, no de `Expediente`): los recibe en un descriptor `CamposEntrada<T>` con referencias a sus getters y setters. Cada tipo construye el suyo **una vez**, como constante de su `<Code>Util`, junto a la mutación que vacía la subsanación:
+`RegistroEntradaSalidaHelper` (`tramites/shared/registro/`) y `FirmaExpedienteHelper` (`tramites/shared/firma/`) reciben un `ExpedienteResoluble` y usan directamente sus getters y setters: el tipo no les pasa nada más.
 
-```java
-/** Los campos de este tipo con los que trabaja el código común de la fase ENTRADA (tramites/util/entrada). */
-public static final CamposEntrada<MiTramiteV1> CAMPOS_ENTRADA = new CamposEntrada<>(
-        MiTramiteV1::getPdfSolicitud,
-        MiTramiteV1::getPdfSolicitudFirmada,
-        MiTramiteV1::setPdfSolicitudFirmada,
-        MiTramiteV1::setPdfJustificanteRegistroEntrada,
-        MiTramiteV1::setFechaHoraPdfSolicitudFirmada,
-        MiTramiteV1::setFechaHoraPdfJustificanteRegistroEntrada,
-        MiTramiteV1Util::borrarSubsanacion);
-
-public static void borrarSubsanacion(MiTramiteV1 expediente) {
-    expediente.setResultadoVerificacion(null);
-    expediente.setTextoSubsanacion(null);
-}
-```
-
-- El orden de los siete argumentos es el del record: la solicitud generada, la que se registra, dónde se deja la firmada en servidor, dónde se deja el resguardo, dónde se dejan sus dos fechas y cómo se vacía la subsanación.
-- `EntradaHelper.presentar` pone en las dos fechas la del asiento (`registroEntrada.getFecha()`), sea cual sea el modo (firma en servidor, AutoFirma o escaneado en papel).
-- `borrarSubsanacion` la llama `EntradaHelper.presentar`: al volver a presentar, lo que el verificador pidió subsanar queda atendido.
+- Por eso el tipo **MUST** extender de `ExpedienteResoluble` (§1).
+- `RegistroEntradaSalidaHelper.registroEntradaSolicitud` pone en `fechaHoraPdfJustificanteRegistroEntrada` la fecha del asiento (`registroEntrada.getFecha()`), sea cual sea el modo.
+- `fechaHoraPdfSolicitudFirmada` **no** es la del asiento: telemáticamente es la de la última firma del propio PDF (`FirmaExpedienteHelper.actualizarFechaHoraPdfSolicitudFirmada`, §5.3) y en papel la de subida del escaneado (`getCreatedOn()` del `MetaFile`, §5.5).
+- `registroEntradaSolicitud` también vacía `resultadoVerificacion` y `textoSubsanacion`: al volver a presentar, lo que el verificador pidió subsanar queda atendido.
 
 ## 2. Evento inicial (`InitialEventManagerImpl`)
 
@@ -209,7 +181,7 @@ fun getForStateEntradaDatosInEventBack(): BeanValidationRules = rules { }
 
 ```java
 @Inject
-EntradaHelper entradaHelper;
+RegistroEntradaSalidaHelper registroEntradaSalidaHelper;
 
 @WhenEvent
 public void triggerGuardarDatos(MiTramiteV1 exp, MiTramiteV1 original, EventContext eventContext) throws BusinessException {
@@ -218,7 +190,7 @@ public void triggerGuardarDatos(MiTramiteV1 exp, MiTramiteV1 original, EventCont
 
     if (Boolean.TRUE.equals(original.getPresentadoEnPapel())) {
         // Papel (§5.5): ya la firmó a mano quien la entregó, así que se presenta con el escaneado
-        entradaHelper.presentar(exp, MiTramiteV1Util.CAMPOS_ENTRADA, List.of(exp.getJustificante()), eventContext);
+        registroEntradaSalidaHelper.registroEntradaSolicitud(exp, List.of(exp.getJustificante()), eventContext);
         eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
     } else {
         exp.setPdfSolicitudFirmada(null);
@@ -282,13 +254,14 @@ private static final String CAMPO_FIRMA_SOLICITUD = "firmaSolicitante";
 @WhenEvent
 public void triggerPresentar(MiTramiteV1 exp, MiTramiteV1 original, EventContext eventContext) throws BusinessException {
     try {
-        EntradaHelper.exigePresentadoEnPapel(original, false);
+        Preconditions.checkState(Boolean.TRUE.equals(original.getPresentadoEnPapel()) == false, "El expediente %s (presentadoEnPapel=%s) no puede disparar este evento desde el estado '%s/%s'.", original.getNumeroExpediente(), original.getPresentadoEnPapel(), original.getCodePhase(), original.getCodeState());
 
-        // 1. Firma (recetas/firma.md §1.5): solo firma si a quien presenta le corresponde firmar en servidor
-        entradaHelper.firmarSolicitudSiEsEnServidor(exp, MiTramiteV1Util.CAMPOS_ENTRADA, CAMPO_FIRMA_SOLICITUD);
+        // 1. Firma (recetas/firma.md §1.5): solo firma si a quien presenta le corresponde firmar en servidor, y fecha la firma con la del PDF
+        firmaExpedienteHelper.firmarSolicitudEnServidor(SecurityUtil.getUser().getDni(), exp, CAMPO_FIRMA_SOLICITUD);
+        FirmaExpedienteHelper.actualizarFechaHoraPdfSolicitudFirmada(exp);
 
         // 2. Registro de entrada del documento firmado + los anexos, resguardo y subsanación atendida
-        entradaHelper.presentar(exp, MiTramiteV1Util.CAMPOS_ENTRADA, List.of(exp.getJustificante()), eventContext);
+        registroEntradaSalidaHelper.registroEntradaSolicitud(exp, List.of(exp.getJustificante()), eventContext);
 
         // 3. Transición: siempre a la verificación
         eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
@@ -302,8 +275,8 @@ public void triggerPresentar(MiTramiteV1 exp, MiTramiteV1 original, EventContext
 public void triggerBack(MiTramiteV1 exp, MiTramiteV1 original, EventContext eventContext) throws BusinessException {
     exp.setClaveCertificado(null);
 
-    if (EntradaHelper.estaEn(original, States.Entrada.ENTRADA_DATOS)) {
-        EntradaHelper.exigePresentadoEnPapel(original, true);
+    if (RegistroEntradaSalidaHelper.estaEn(original, States.Entrada.ENTRADA_DATOS)) {
+        Preconditions.checkState(Boolean.TRUE.equals(original.getPresentadoEnPapel()), "El expediente %s (presentadoEnPapel=%s) no puede disparar este evento desde el estado '%s/%s'.", original.getNumeroExpediente(), original.getPresentadoEnPapel(), original.getCodePhase(), original.getCodeState());
         eventContext.updateState(States.Entrada.PENDIENTE_DOCUMENTO_ESCANEADO);
     } else {
         eventContext.updateState(States.Entrada.ENTRADA_DATOS);
@@ -311,25 +284,25 @@ public void triggerBack(MiTramiteV1 exp, MiTramiteV1 original, EventContext even
 }
 ```
 
-1. **Firma**: `firmarSolicitudSiEsEnServidor(expediente, campos, nombreCampoFirma)` recalcula la situación de firma del usuario autenticado y, si le corresponde firmar en servidor, firma `pdfSolicitud` y deja el resultado en `pdfSolicitudFirmada`. Con AutoFirma no hace nada: el `pdfSolicitudFirmada` ya llegó validado.
-2. **`presentar(expediente, campos, anexos, eventContext)`** hace tres cosas: `eventContext.createRegistroEntrada(pdfSolicitudFirmada, anexos)` (`phaseeventmanager.md` §3), guarda en `pdfJustificanteRegistroEntrada` el resguardo (`getDocumentoResguardoPresentacion()`) y llama a `borrarSubsanacion`. El asiento toma del expediente el solicitante, el interesado y el número de expediente, y devuelve un resguardo con número y fecha de registro seguido del documento firmado, emitido en el idioma del expediente (`documentos.md` §1.1).
+1. **Firma**: `firmaExpedienteHelper.firmarSolicitudEnServidor(dniFirmante, expediente, nombreCampoFirma)` recalcula la situación de firma del DNI (el del usuario autenticado, `SecurityUtil.getUser().getDni()`) y, si le corresponde firmar en servidor, firma `pdfSolicitud` y deja el resultado en `pdfSolicitudFirmada`. Con AutoFirma no hace nada: el `pdfSolicitudFirmada` ya llegó validado. Después `FirmaExpedienteHelper.actualizarFechaHoraPdfSolicitudFirmada(exp)` fecha la firma con la del propio PDF, en los dos casos.
+2. **`registroEntradaSolicitud(expediente, anexos, eventContext)`** hace tres cosas: `eventContext.createRegistroEntrada(pdfSolicitudFirmada, anexos)` (`phaseeventmanager.md` §3), guarda en `pdfJustificanteRegistroEntrada` el resguardo (`getDocumentoResguardoPresentacion()`) con la fecha del asiento, y vacía la subsanación (§1.1). El asiento toma del expediente el solicitante, el interesado y el número de expediente, y devuelve un resguardo con número y fecha de registro seguido del documento firmado, emitido en el idioma del expediente (`documentos.md` §1.1).
 3. **Transición** con el `States` del tipo: es lo único que el código común no puede hacer, porque cada tipo solo puede nombrar sus propios estados.
 4. `claveCertificado` a `null` en un `finally`, y también en `triggerBack` (`recetas/firma.md` §1.5).
-5. `EntradaHelper.exigePresentadoEnPapel(original, false)`: `PRESENTAR` es solo del camino telemático. Lanza `IllegalStateException` si llega en un expediente en papel (la vista no se lo ofrece, §5.5).
-6. `triggerBack` usa `EntradaHelper.estaEn(original, estado)` y **no** el `switch` sobre `States.INSTANCE.getState(...)`: ese bloque sería idéntico en todos los tipos y CPD rompería el build (`phaseeventmanager.md` §5).
-7. `EntradaHelper` se inyecta con `@Inject` de campo; `estaEn` y `exigePresentadoEnPapel` son estáticos.
+5. `Preconditions.checkState(... == false, ...)`: `PRESENTAR` es solo del camino telemático. Lanza `IllegalStateException` si llega en un expediente en papel (la vista no se lo ofrece, §5.5).
+6. `triggerBack` usa `RegistroEntradaSalidaHelper.estaEn(original, estado)` y **no** el `switch` sobre `States.INSTANCE.getState(...)` ni la comparación de fase y estado escrita en línea: los dos bloques serían idénticos en todos los tipos y CPD rompería el build (`phaseeventmanager.md` §5).
+7. `RegistroEntradaSalidaHelper` y `FirmaExpedienteHelper` se inyectan con `@Inject` de campo; `estaEn` y `actualizarFechaHoraPdf*Firmada` son estáticos. La guarda del modo de presentación se escribe en línea con `Preconditions.checkState` y **MUST NOT** extraerse a una función: no dice más que el propio código (`k-code-quality`, `metodos.md`).
 
-Restricciones de `createRegistroEntrada`, que es lo que `presentar` llama por dentro:
+Restricciones de `createRegistroEntrada`, que es lo que `registroEntradaSolicitud` llama por dentro:
 
 - **LIMIT**: **uno** por evento; la segunda llamada revienta con "Ya existe un registro de entrada definido". Si un evento registra dos documentos, se concatenan antes en un solo PDF (`DocumentoPdf.anyadirDocumentoPdf`, `phaseeventmanager.md` §6.1) o van como anexos.
 - El documento **MUST** ser un PDF no nulo (`IllegalArgumentException` si no lo es). Los anexos admiten cualquier tipo (una foto del justificante), pero cada uno **MUST** tener `fileName`; la lista puede ser `null` o vacía.
 - No hay `BusinessException` que capturar: sus fallos son de programación (solicitante sin rellenar, documento que no es PDF, doble llamada), no del usuario.
 
-- ✅ CORRECTO: `entradaHelper.presentar(exp, MiTramiteV1Util.CAMPOS_ENTRADA, List.of(exp.getJustificante()), eventContext)`
-- ✅ CORRECTO: `entradaHelper.presentar(exp, MiTramiteV1Util.CAMPOS_ENTRADA, List.of(), eventContext)` (sin anexos)
-- ❌ INCORRECTO: `eventContext.createRegistroEntrada(exp.getPdfSolicitudFirmada(), ...)` + `exp.setPdfJustificanteRegistroEntrada(...)` escritos a mano en el trigger (es lo que ya hace `presentar`; repetido en dos tipos, CPD rompe el build, y además se olvida `borrarSubsanacion`)
-- ❌ INCORRECTO: un `CamposEntrada` cuyo `getPdfSolicitudFirmada` devuelve `pdfSolicitud` (registra el original sin firmar; el asiento debe llevar lo que el usuario firmó)
-- ❌ INCORRECTO: `entradaHelper.presentar(...)` en la rama telemática de `triggerGuardarDatos` (aún no hay firma ni el usuario ha visto el documento)
+- ✅ CORRECTO: `registroEntradaSalidaHelper.registroEntradaSolicitud(exp, List.of(exp.getJustificante()), eventContext)`
+- ✅ CORRECTO: `registroEntradaSalidaHelper.registroEntradaSolicitud(exp, List.of(), eventContext)` (sin anexos)
+- ❌ INCORRECTO: `eventContext.createRegistroEntrada(exp.getPdfSolicitudFirmada(), ...)` + `exp.setPdfJustificanteRegistroEntrada(...)` escritos a mano en el trigger (es lo que ya hace `registroEntradaSolicitud`; repetido en dos tipos, CPD rompe el build, y además se olvida vaciar la subsanación)
+- ❌ INCORRECTO: dejar en `pdfSolicitudFirmada` el `pdfSolicitud` sin firmar antes de `registroEntradaSolicitud` (registra el original sin firmar; el asiento debe llevar lo que el usuario firmó)
+- ❌ INCORRECTO: `registroEntradaSalidaHelper.registroEntradaSolicitud(...)` en la rama telemática de `triggerGuardarDatos` (aún no hay firma ni el usuario ha visto el documento)
 - ❌ INCORRECTO: `eventContext.updateState(States.Resolucion.PENDIENTE_RESOLUCION)` tras presentar (se salta la fase común `VERIFICACION`)
 - ❌ INCORRECTO: resolver `RegistroEntradaService` con `modelServiceFactory` desde el trigger (ya lo hace `EventContext`, que además es quien rellena solicitante, interesado y asunto)
 
@@ -345,8 +318,8 @@ El `TRAMITADOR` registra una solicitud entregada en papel (`perfiles.md`): el do
 1. El `InitialEventManagerImpl` hace nacer el expediente en `PENDIENTE_DOCUMENTO_ESCANEADO` cuando `presentadoEnPapel` es `true` (§2).
 2. En ese estado el `TRAMITADOR` sube el escaneado con el panel común `presentadoenpapel.solicitud-escaneada-upload`; `CONTINUAR` exige que sea un PDF y pasa a `ENTRADA_DATOS`.
 3. En `ENTRADA_DATOS` copia los datos de la solicitud con el form `profile="TRAMITADOR"`, incluidas las personas, que en papel nacen vacías (`modelo.md` §2.1). Puede volver al escaneado con `BACK`.
-4. `GUARDAR_DATOS` registra directamente con `entradaHelper.presentar(...)` (§4.3): no pasa por `PENDIENTE_PRESENTACION` ni por la firma.
-5. Los `trigger*` que comparten los dos modos deciden con `original.getPresentadoEnPapel()`; los que son de un solo modo lo exigen con `EntradaHelper.exigePresentadoEnPapel(original, true|false)`.
+4. `GUARDAR_DATOS` registra directamente con `registroEntradaSalidaHelper.registroEntradaSolicitud(...)` (§4.3): no pasa por `PENDIENTE_PRESENTACION` ni por la firma.
+5. Los `trigger*` que comparten los dos modos deciden con `original.getPresentadoEnPapel()`; los que son de un solo modo lo exigen con `Preconditions.checkState(...)` en línea (§5.3).
 
 ```xml
 <!-- entrada/views.xml -->
@@ -412,12 +385,15 @@ fun getForStatePendienteDocumentoEscaneadoInEventContinuar(): BeanValidationRule
 /** Solo en papel: adjuntada la solicitud escaneada, se pasa a copiar sus datos. */
 @WhenEvent
 public void triggerContinuar(MiTramiteV1 exp, MiTramiteV1 original, EventContext eventContext) throws BusinessException {
-    EntradaHelper.exigePresentadoEnPapel(original, true);
+    Preconditions.checkState(Boolean.TRUE.equals(original.getPresentadoEnPapel()), "El expediente %s (presentadoEnPapel=%s) no puede disparar este evento desde el estado '%s/%s'.", original.getNumeroExpediente(), original.getPresentadoEnPapel(), original.getCodePhase(), original.getCodeState());
+    // El escaneado lo subió el usuario: la fecha de la solicitud firmada a mano es la de la subida.
+    exp.setFechaHoraPdfSolicitudFirmada(exp.getPdfSolicitudFirmada().getCreatedOn());
 
     eventContext.updateState(States.Entrada.ENTRADA_DATOS);
 }
 ```
 
+- El escaneado no lleva firma electrónica, así que `actualizarFechaHoraPdfSolicitudFirmada` no sirve (lanza `IllegalStateException` sin firmas): `fechaHoraPdfSolicitudFirmada` es el `getCreatedOn()` del `MetaFile`, cuándo se subió. Si el `TRAMITADOR` vuelve con `BACK` y lo resube, `CONTINUAR` la recalcula.
 - `PENDIENTE_DOCUMENTO_ESCANEADO` lleva además su form genérico (solo `EXIT` y `avisoEstadoExpediente`), como todo estado.
 - `CONTINUAR` es el **único** evento en el que `pdfSolicitudFirmada` entra en la whitelist sin pasar por `FirmaPdf`: lo sube el `TRAMITADOR`, y el validador exige que sea un PDF (obligatorio, `application/pdf`, 10 MB como máximo).
 - El mismo `GUARDAR_DATOS` lleva título distinto en cada form: «Siguiente» para el `CREADOR`, «Presentar la solicitud» con `prompt` para el `TRAMITADOR`, que es quien presenta con él.
@@ -470,7 +446,7 @@ Toda presentación acaba aquí. El `TRAMITADOR` comprueba la solicitud y dice un
 ### 6.2 Validator (`verificacion/StateEventValidatorImpl.kt`)
 
 ```kotlin
-import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionMiTramiteV1 as ResultadoVerificacion  // con ExpedienteResoluble: ...db.ResultadoVerificacion
+import com.educaflow.subsystem.expedientes.db.ResultadoVerificacion
 ...
 @BeanValidationRulesForStateAndEvent
 fun getForStatePendienteVerificacionInEventVerificar(): BeanValidationRules = rules {
@@ -493,18 +469,18 @@ fun getForStatePendienteVerificacionInEventVerificar(): BeanValidationRules = ru
 
 ```java
 @Inject
-VerificacionHelper verificacionHelper;
+NotificacionesExpedienteHelper notificacionesExpedienteHelper;
 
 @WhenEvent
 public void triggerVerificar(MiTramiteV1 exp, MiTramiteV1 original, EventContext eventContext) throws BusinessException {
-    ResultadoVerificacionMiTramiteV1 resultadoVerificacion = exp.getResultadoVerificacion();  // con ExpedienteResoluble: ResultadoVerificacion
+    ResultadoVerificacion resultadoVerificacion = exp.getResultadoVerificacion();
     switch (resultadoVerificacion) {
         case CORRECTO -> {
             exp.setTextoSubsanacion(null);
             eventContext.updateState(States.Resolucion.PENDIENTE_RESOLUCION);   // el primer estado de la fase propia
         }
         case SUBSANAR -> {
-            verificacionHelper.avisarDeSubsanacion(exp, exp.getTextoSubsanacion());
+            notificacionesExpedienteHelper.notificarSubsanacion(exp, exp.getTextoSubsanacion());
 
             // En papel la persona entregará una solicitud nueva: se vuelve a empezar por el escaneado
             if (Boolean.TRUE.equals(original.getPresentadoEnPapel())) {
@@ -518,8 +494,8 @@ public void triggerVerificar(MiTramiteV1 exp, MiTramiteV1 original, EventContext
 }
 ```
 
-- `avisarDeSubsanacion(expediente, textoSubsanacion)` avisa por correo al solicitante (`personaSolicitante`) de lo que tiene que subsanar. Es una cortesía: si no hay a quién escribir (p. ej. en papel no se indicó correo del solicitante) no envía nada, devuelve `false` y la verificación sigue. **MUST NOT** condicionar la transición a su resultado.
-- Con `SUBSANAR`, `resultadoVerificacion` y `textoSubsanacion` **se conservan**: el panel `-expedienteresoluble.subsanacion` de la fase `ENTRADA` enseña el texto, y los vacía `borrarSubsanacion` cuando se vuelve a presentar (§5.3).
+- `notificarSubsanacion(expediente, textoSubsanacion)` avisa al solicitante (`personaSolicitante`) de lo que tiene que subsanar: el texto por correo y un aviso corto por SMS. Es una cortesía: el canal del que no hay dato (p. ej. en papel no se indicó correo o móvil del solicitante) no se envía y la verificación sigue.
+- Con `SUBSANAR`, `resultadoVerificacion` y `textoSubsanacion` **se conservan**: el panel `-expedienteresoluble.subsanacion` de la fase `ENTRADA` enseña el texto, y los vacía `RegistroEntradaSalidaHelper.registroEntradaSolicitud` cuando se vuelve a presentar (§1.1).
 - Con `CORRECTO` se vacía el texto que hubiera quedado tecleado.
 - El switch **MUST** quedarse en cada tipo: el destino de `CORRECTO` es un estado de su fase propia, y solo él puede nombrar su `States`.
 - Lo que el tipo haga además (guardas de quién puede verificar, fecha y autor de la verificación) va al principio del trigger.
@@ -527,24 +503,23 @@ public void triggerVerificar(MiTramiteV1 exp, MiTramiteV1 original, EventContext
 ## 7. Checklist
 
 - [ ] Máquina: las dos fases comunes tal cual (`ENTRADA` con sus tres estados, `VERIFICACION` con `PENDIENTE_VERIFICACION`); presentar transita siempre a `VERIFICACION` / `PENDIENTE_VERIFICACION`.
-- [ ] Modelo: los campos de datos, los anexos y los cinco comunes con su nombre exacto (`pdfSolicitud`, `pdfSolicitudFirmada`, `pdfJustificanteRegistroEntrada`, `resultadoVerificacion`, `textoSubsanacion`); enum `ResultadoVerificacion<Code>` con `CORRECTO`/`SUBSANAR`; sin redeclarar `personaSolicitante`/`personaInteresada`/`claveCertificado`.
-- [ ] `<Code>Util`: `CAMPOS_ENTRADA` y `borrarSubsanacion`.
+- [ ] Modelo: `extends="ExpedienteResoluble"`, los campos de datos y los anexos; sin redeclarar los cinco comunes (`pdfSolicitud`, `pdfSolicitudFirmada`, `pdfJustificanteRegistroEntrada`, `resultadoVerificacion`, `textoSubsanacion`) ni `personaSolicitante`/`personaInteresada`/`claveCertificado`.
 - [ ] Evento inicial: fija el estado según `presentadoEnPapel` y **no** toca las personas; la entrada de datos pide y valida las que nacen vacías en el modo del trámite (`modelo.md` §2.1).
 - [ ] Documento: XML en `documentospdf/` con el hueco de la firma marcado con `campoFirma`; mismo nombre de campo de firma en la `<action-method>` y en el trigger.
-- [ ] `ENTRADA_DATOS`: forms `CREADOR`, `TRAMITADOR` y genérico, con `-expedienteresoluble.subsanacion`; validator con **todos** los campos tecleados y **ninguno** de los PDF; trigger que genera `pdfSolicitud` y, telemáticamente, vacía el firmado y transita sin registrar; en papel, `entradaHelper.presentar`.
-- [ ] `PENDIENTE_PRESENTACION`: vista con `-expedienteresoluble.ver-pdfSolicitud` y `firma.firma-solicitud`, validator de `recetas/firma.md` §1; trigger con `exigePresentadoEnPapel(original, false)`, `firmarSolicitudSiEsEnServidor`, `presentar`, transición y `finally` que vacía la clave; `triggerBack` vacía la clave y decide con `EntradaHelper.estaEn`.
-- [ ] `PENDIENTE_DOCUMENTO_ESCANEADO`: form `TRAMITADOR` con `presentadoenpapel.solicitud-escaneada-upload`, validator del PDF escaneado (`validator.md` §3.2), `triggerContinuar` con `exigePresentadoEnPapel(original, true)`.
-- [ ] `PENDIENTE_VERIFICACION`: el `TRAMITADOR` ve `-expedienteresoluble.ver-pdfSolicitudFirmada` y edita `expedienteresoluble.verificacion`; el genérico, `-expedienteresoluble.ver-pdfJustificanteRegistroEntrada`; validator de `resultadoVerificacion` y `textoSubsanacion` (`validator.md` §3.2); trigger con `avisarDeSubsanacion` y el destino según el resultado y el modo.
+- [ ] `ENTRADA_DATOS`: forms `CREADOR`, `TRAMITADOR` y genérico, con `-expedienteresoluble.subsanacion`; validator con **todos** los campos tecleados y **ninguno** de los PDF; trigger que genera `pdfSolicitud` y, telemáticamente, vacía el firmado y transita sin registrar; en papel, `registroEntradaSalidaHelper.registroEntradaSolicitud`.
+- [ ] `PENDIENTE_PRESENTACION`: vista con `-expedienteresoluble.ver-pdfSolicitud` y `firma.firma-solicitud`, validator de `recetas/firma.md` §1; trigger con el `checkState` del modo telemático, `firmarSolicitudEnServidor`, `actualizarFechaHoraPdfSolicitudFirmada`, `registroEntradaSolicitud`, transición y `finally` que vacía la clave; `triggerBack` vacía la clave y decide con `RegistroEntradaSalidaHelper.estaEn`.
+- [ ] `PENDIENTE_DOCUMENTO_ESCANEADO`: form `TRAMITADOR` con `presentadoenpapel.solicitud-escaneada-upload`, validator del PDF escaneado (`validator.md` §3.2), `triggerContinuar` con el `checkState` del modo en papel y el `getCreatedOn()` del escaneado en `fechaHoraPdfSolicitudFirmada`.
+- [ ] `PENDIENTE_VERIFICACION`: el `TRAMITADOR` ve `-expedienteresoluble.ver-pdfSolicitudFirmada` y edita `expedienteresoluble.verificacion`; el genérico, `-expedienteresoluble.ver-pdfJustificanteRegistroEntrada`; validator de `resultadoVerificacion` y `textoSubsanacion` (`validator.md` §3.2); trigger con `notificarSubsanacion` y el destino según el resultado y el modo.
 
 ## 8. Anti-patrones
 
 - **MUST NOT** registrar en la rama telemática de `GUARDAR_DATOS` ni registrar `pdfSolicitud`: el asiento lleva el documento **firmado**, y la firma ocurre en `PRESENTAR`.
 - **MUST NOT** dar `field(...)` en el validator a los PDF que rellena el servidor (`pdfSolicitud`, `pdfJustificanteRegistroEntrada`): abriría la puerta a que el cliente dicte qué se registra (`k-secure-coding`).
-- **MUST NOT** llamar dos veces a `createRegistroEntrada` (ni a `entradaHelper.presentar`) en el mismo evento; concatena o anexa.
+- **MUST NOT** llamar dos veces a `createRegistroEntrada` (ni a `registroEntradaSalidaHelper.registroEntradaSolicitud`) en el mismo evento; concatena o anexa.
 - **MUST NOT** presentar sin haber pedido y validado las personas que nacen vacías: el asiento saldría sin solicitante o sin interesado.
-- **MUST NOT** guardar `getDocumentoOriginalFirmado()` como resguardo: el resguardo es `getDocumentoResguardoPresentacion()`, y ya lo guarda `presentar`.
-- **MUST NOT** hablar con `subsystem/registroentradasalida` desde el trámite: la única puerta es `eventContext.createRegistroEntrada`, a través de `entradaHelper.presentar`.
+- **MUST NOT** guardar `getDocumentoOriginalFirmado()` como resguardo: el resguardo es `getDocumentoResguardoPresentacion()`, y ya lo guarda `registroEntradaSolicitud`.
+- **MUST NOT** hablar con `subsystem/registroentradasalida` desde el trámite: la única puerta es `eventContext.createRegistroEntrada`, a través de `registroEntradaSalidaHelper.registroEntradaSolicitud`.
 - **MUST NOT** saltarse la firma "porque este trámite no la necesita": el registro asienta un documento firmado, y firmar no cuesta nada al trámite (`recetas/firma.md` §1 decide en servidor o AutoFirma según el certificado del usuario). La única excepción es el papel (§5.5), donde la firma es la manuscrita del escaneado.
 - **MUST NOT** cambiar los nombres de las fases, estados, eventos o campos comunes, ni saltarse `VERIFICACION`: los paneles y el código común cuentan con ellos, y un tercer trámite los copia tal cual.
-- **MUST NOT** copiar a la carpeta del tipo lo que ya hacen `EntradaHelper`, `VerificacionHelper` o las reglas comunes: CPD rompe el build.
+- **MUST NOT** copiar a la carpeta del tipo lo que ya hacen `RegistroEntradaSalidaHelper`, `FirmaExpedienteHelper`, `NotificacionesExpedienteHelper` o las reglas comunes: CPD rompe el build.
 - **MUST NOT** aceptar ni rechazar la solicitud en `VERIFICAR`: solo dice si está correcta o hay que subsanarla.

@@ -195,5 +195,5 @@ Lo comprueban los tests (`SKILL.md` §3.3), **fase a fase**; el mensaje de fallo
 - **MUST NOT** dar reglas a campos que rellena el servidor (§1).
 - **MUST NOT** confiar en `readonly`/`showIf`/`hidden` de la vista como defensa: la única frontera real es esta whitelist (`k-secure-coding`).
 - **MUST NOT** factorizar los `getForState<Estado>InEvent<Evento>` comunes a una superclase compartida entre fases o versiones: solo se ven los declarados en la clase de la fase (§5).
-- **MUST NOT** crear una `ValidationRule` en la carpeta de la versión: función `boolean` en `<Code>Util` + `Lambda`/`ifLambda` (§3.1). Solo es una regla nueva si ninguna combinación de las existentes lo consigue (§3) y la comparten varios tipos, y entonces vive en `tramites/util/` (`tramites/util/CLAUDE.md`) o en el catálogo base.
+- **MUST NOT** crear una `ValidationRule` en la carpeta de la versión: función `boolean` en `<Code>Util` + `Lambda`/`ifLambda` (§3.1). Solo es una regla nueva si ninguna combinación de las existentes lo consigue (§3) y la comparten varios tipos, y entonces vive en `tramites/shared/` (`tramites/shared/CLAUDE.md`) o en el catálogo base.
 - **MUST NOT** usar `Lambda` para lo que ya hace una genérica (`Required`, `PastOrToday`, `GreaterThan`, `MinValue`…): ver la tabla de tentaciones de §3.

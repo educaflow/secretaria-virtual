@@ -80,7 +80,8 @@ Prefiere tipos pequeños y enfocados que se compongan entre sí, en lugar de ár
 
 Si un servicio tiene un método que describe un algoritmo cohesivo y autocontenido (más de ~10 líneas de descripción funcional, o que opera sobre un subconjunto de datos bien delimitado), valorar si merece una clase colaboradora propia.
 
-**Criterio:** si el algoritmo es claramente autocontenido y podría reutilizarse en otro contexto, sí merece clase colaboradora. Si es lógica puntual y específica del servicio, no.
+**Criterio:** si el algoritmo es claramente autocontenido y **ya** lo usa, o lo va a usar en la misma iniciativa, más de un llamador, sí merece clase colaboradora. Si es lógica puntual y específica del servicio, no.
+La reutilización se dimensiona por los llamadores reales, no por los que «podría» haber: un cálculo con un solo llamador se queda con él aunque solo lea datos de otra pieza (ver `disenyo.md`, «Dónde va un método»).
 
 **Cuando aplica:** mover el algoritmo a una nueva clase y que el servicio original delegue en ella. Aplicar también la regla «Utilidades sin estado» si la clase colaboradora no necesita inyección.
 
@@ -105,6 +106,22 @@ Un record o DTO se justifica cuando:
 
 **Corrección:** eliminar el DTO y sustituir su uso por los parámetros individuales en la firma del método.
 
+### Un record agrupa solo lo homogéneo
+
+Un record tiene **un solo objetivo**, y la prueba es el nombre: si cuesta nombrarlo, es que mezcla cosas (S de SOLID).
+Lo que es de otra naturaleza, o solo lo necesita **uno** de los receptores, **MUST** viajar como parámetro aparte: el coste de un parámetro más es mínimo y el record sigue diciendo lo que es.
+
+- ✅ CORRECTO: `record TextosInforme(String titulo, String cabecera, String pie, String resumen)` y el logotipo como `MetaFile` aparte en el único formato que lo pinta
+- ❌ INCORRECTO: `record Informe(String titulo, String cabecera, String pie, String resumen, MetaFile logotipo)` (textos y un fichero juntos: ya no hay nombre que lo describa, y el fichero solo lo usa un formato)
+
+### Nombrar los campos por su naturaleza, no por su consumidor
+
+El nombre de un campo de un record o DTO dice **qué es**, no **quién lo va a usar**: así lo puede usar cualquier otro receptor con la misma estructura.
+Un nombre genérico que ya existe (`titulo`, `cabecera`) se mantiene aunque hoy solo lo use un receptor.
+
+- ✅ CORRECTO: `resumen` (cualquier formato con poco espacio lo puede usar)
+- ❌ INCORRECTO: `textoTweet` (solo sirve a ese destino; un formato nuevo con la misma necesidad no querría usarlo)
+
 ---
 
 ## Utilidades sin estado
@@ -120,6 +137,14 @@ Una clase cuyas operaciones cumplen **todas** estas condiciones no debe ser un s
 **Correcto:** convertir la clase en una utilidad con métodos `static`, siguiendo el patrón de `DniUtil`, `XMLUtil`, `TextUtil` del paquete `base/util/`. Eliminar la interfaz si existe. Sustituir las referencias `@Inject` por llamadas estáticas en las clases que la usaban.
 
 Las utilidades se agrupan por propósito cohesivo, una clase por propósito (`DniUtil`, `XMLUtil`, `TextUtil`). **MUST NOT** crear clases `Utils` cajón de sastre donde acabe cualquier método suelto sin relación con los demás.
+
+### Los privados de una clase inyectable no se marcan `static`
+
+Esta regla es de **clases**, no de métodos: dentro de una clase que ya es inyectable (tiene `@Inject` o la construye Guice), los métodos privados **MUST NOT** marcarse `static` aunque hoy no usen ningún campo.
+El `static` distingue métodos por un detalle de implementación que al lector no le aporta nada, y ata el método si mañana necesita el colaborador inyectado.
+
+- ✅ CORRECTO: `private void rellenarCabecera(…)` en un helper con `@Inject ModelServiceFactory`
+- ❌ INCORRECTO: `private static void rellenarCabecera(…)` en ese mismo helper (ruido: señala que no usa campos, cosa que al lector no le importa)
 
 ---
 

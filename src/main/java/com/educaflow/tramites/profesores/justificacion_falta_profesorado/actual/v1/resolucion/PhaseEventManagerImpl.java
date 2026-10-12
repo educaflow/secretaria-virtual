@@ -21,8 +21,8 @@ import com.educaflow.subsystem.expedientes.db.repo.JustificacionFaltaProfesorado
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.States;
 
-import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
-import com.educaflow.tramites.util.registro.AvisoRegistroHelper;
+import com.educaflow.tramites.shared.firma.FirmaExpedienteHelper;
+import com.educaflow.tramites.shared.registro.RegistroEntradaSalidaExpedienteHelper;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,10 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
     ModelServiceFactory modelServiceFactory;
 
     @Inject
-    AvisoRegistroHelper avisoRegistroHelper;
+    RegistroEntradaSalidaExpedienteHelper registroEntradaSalidaExpedienteHelper;
+
+    @Inject
+    FirmaExpedienteHelper firmaExpedienteHelper;
 
     @Inject
     public PhaseEventManagerImpl(JustificacionFaltaProfesoradoV1Repository repository) {
@@ -88,7 +91,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
     }
 
     /** Genera la resolución, la firma con el certificado de la dirección del centro, la registra de salida y se la envía al solicitante. */
-    private void emitirResolucion(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, EventContext eventContext) {
+    private void emitirResolucion(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, EventContext eventContext) throws BusinessException {
         justificacionFaltaProfesorado.setMotivoDevolucion(null);
 
         DocumentoPdf resolucion = justificacionFaltaProfesorado.getDocumentoPdf(JustificacionFaltaProfesoradoV1.TipoDocumentoPdf.RESOLUCION);
@@ -97,12 +100,9 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
         DocumentoPdf resolucionFirmada = resolucion.firmar(almacenClaveDirector, new CampoFirma(CAMPO_FIRMA_RESOLUCION));
         MetaFile pdfResolucionFirmada = MetaFileHelper.createMetaFile(resolucionFirmada);
 
-        RegistroSalida registroSalida = eventContext.createRegistroSalida(pdfResolucionFirmada, List.of(justificacionFaltaProfesorado.getJustificante()));
         justificacionFaltaProfesorado.setPdfResolucionFirmada(pdfResolucionFirmada);
-        justificacionFaltaProfesorado.setFechaHoraPdfResolucionFirmada(registroSalida.getFecha());
-        justificacionFaltaProfesorado.setPdfResolucionFirmadaRegistroSalida(registroSalida.getDocumento());
-        justificacionFaltaProfesorado.setFechaHoraPdfResolucionFirmadaRegistroSalida(registroSalida.getFecha());
-        avisoRegistroHelper.avisarDeRegistroSalida(justificacionFaltaProfesorado, registroSalida);
+        firmaExpedienteHelper.actualizarFechaHoraPdfResolucionFirmada(justificacionFaltaProfesorado);
+        registroEntradaSalidaExpedienteHelper.registroSalidaResolucion(justificacionFaltaProfesorado, List.of(justificacionFaltaProfesorado.getJustificante()), eventContext);
     }
 
 

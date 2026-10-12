@@ -10,7 +10,7 @@ import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.OnEnterState;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.PhaseEventManager;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.WhenEvent;
 import com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.States;
-import com.educaflow.tramites.util.verificacion.VerificacionHelper;
+import com.educaflow.tramites.shared.notificaciones.NotificacionesExpedienteHelper;
 
 import com.google.inject.Inject;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     @Inject
-    VerificacionHelper verificacionHelper;
+    NotificacionesExpedienteHelper notificacionesExpedienteHelper;
 
     @Inject
     public PhaseEventManagerImpl(JustificacionFaltaProfesoradoV1Repository repository) {
@@ -52,7 +52,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
                 eventContext.updateState(States.Resolucion.PENDIENTE_RESOLUCION);
             }
             case SUBSANAR -> {
-                verificacionHelper.avisarDeSubsanacion(justificacionFaltaProfesorado, justificacionFaltaProfesorado.getTextoSubsanacion());
+                notificacionesExpedienteHelper.notificarSubsanacion(justificacionFaltaProfesorado, justificacionFaltaProfesorado.getTextoSubsanacion());
 
                 // En papel la persona entregará una solicitud nueva: se vuelve a empezar por el escaneado.
                 if (Boolean.TRUE.equals(original.getPresentadoEnPapel())) {

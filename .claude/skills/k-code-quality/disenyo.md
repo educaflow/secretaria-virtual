@@ -23,6 +23,35 @@ Una clasificación o una decisión (qué casos van por un camino y cuáles por o
 
 ---
 
+## Dónde va un método: cuatro preguntas, en este orden
+
+Dónde va un método **MUST** decidirlo **quién es dueño del concepto** que expresa o **quién toma la decisión** que encarna, nunca de qué objeto lee los datos ni dónde había ya un helper a mano.
+Antes de escribir la pieza se contestan estas cuatro preguntas, en orden; la primera que responde «sí» decide.
+
+1. **¿Ya existe?**
+   Se busca en el dueño del concepto antes de escribir nada (ver `metodos.md`, «¿Hace falta el método?»).
+2. **¿Es la identidad o una primitiva de un concepto que ya tiene dueño?**
+   Va con el dueño, aunque hoy solo la llame un trámite.
+   **Prueba:** cualquier llamador la querría exactamente igual; no cabe una variante.
+   «Estar en un estado» es del motor, porque la identidad de un estado la define `State` y la pareja `(codePhase, codeState)` la escribe `ExpedienteUtil`.
+3. **¿Es una decisión de un llamador?**
+   Va con el llamador, como método privado suyo, aunque solo lea datos de una pieza genérica.
+   **Prueba de la variante contraria:** si mañana hiciera falta la variante opuesta («la primera firma» en vez de «la última»), ¿crecería la clase genérica? Si sí, el método no es suyo.
+   Una pieza genérica (`base`, una interfaz o un `*Util` de `subsystem`) expone **primitivas** (la lista de firmas, el número de páginas) y **MUST NOT** crecer con la consulta de un llamador concreto: cada llamador le dejaría su caso de uso.
+4. **¿Aparece el segundo llamador?**
+   Sube a `tramites/shared/<propósito>/`, a la carpeta de su **propósito**; **MUST NOT** colgarse del helper que ya existía cerca por comodidad.
+   La ubicación física (motor, dominio, `shared`, carpeta de versión, otro subsistema, `base`) la fija la tabla «Dónde va cada cosa» del `CLAUDE.md` de `subsystem/tramitador`.
+
+- ❌ INCORRECTO: `DocumentoPdf.getFechaUltimaFirma()` o `DocumentoPdfUtil.getFechaUltimaFirma(doc)` (pregunta 3: la infraestructura carga con un caso de uso de expedientes)
+- ✅ CORRECTO: `FirmaExpedienteHelper` hace el `max` sobre `doc.getFirmasPdf()` en un privado suyo (la decisión y su cálculo, juntos donde se leen)
+- ❌ INCORRECTO: `RegistroEntradaSalidaExpedienteHelper.estaEn(expediente, estado)` (pregunta 2: es identidad del motor, y se colgó de `registro/` porque el helper ya existía, no por propósito)
+- ✅ CORRECTO: `ExpedienteUtil.getState(original) == States.Entrada.ENTRADA_DATOS` (pregunta 1: el motor ya lo tenía)
+
+**No confundir con la «envidia de datos»:** que un método lea solo datos de otro objeto **no** basta para moverlo a ese objeto.
+Solo se mueve si la consulta es intrínseca a él (pregunta 2), no si es la decisión de un llamador (pregunta 3).
+
+---
+
 ## Una regla que decide sola si aplica
 
 La **condición** de cuándo aplica una regla va en la **rama** que la envuelve, visible en el sitio donde se declaran las reglas. Una regla **MUST NOT** preguntar por dentro «¿estoy en el caso que me toca?» y callarse si no.
@@ -46,6 +75,23 @@ Una pieza **MUST** ser **total dentro de su rama**: para cada entrada que le lle
 
 - ❌ INCORRECTO: `if (dni.isNullOrBlank()) return null` dentro de `FirmaPdf` (delega en que alguien haya comprobado antes el DNI)
 - ✅ CORRECTO: `if (dni.isNullOrBlank()) return error("no se puede comprobar la firma sin DNI")` (total: sin DNI nunca puede dar válido)
+
+**No confundir con la guarda de cortesía** (`metodos.md`): un `return` temprano porque **el negocio decide** que sin ese dato la acción no se hace (sin destino configurado no hay envío) no es defensivo, es la regla escrita donde se lee.
+La diferencia: el retorno defensivo responde «válido» a algo que **no ha podido comprobar**; la guarda de cortesía responde «no aplica» a algo que **sí ha comprobado**.
+
+---
+
+## La validación del servicio no es control de flujo
+
+Los `validate*` de un `*Service` existen para la **pantalla**: devuelven los errores de negocio para que la persona que rellena el formulario los corrija.
+En código escrito por el programador (un `trigger*`, un helper, un proceso) nadie puede corregir nada en caliente, así que:
+
+- **MUST NOT** capturarse el `Optional<BusinessMessages>` de un `validate*` para loguear y seguir adelante: convierte un error de programación en un silencio.
+- Si el código sabe que en algún caso la acción **no procede**, la condición se escribe como guarda explícita sobre el dato (ver `metodos.md`, «La guarda de cortesía»), no como «si no valida, no lo hago».
+- Lo que pase la guarda **MUST** insertarse directamente; si entonces el servicio rechaza la entidad, es un error de datos o de programación y **MUST** propagarse como `RuntimeException` para que se vea.
+
+- ❌ INCORRECTO: `Optional<BusinessMessages> errores = service.validateInsert(entidad); if (errores.isPresent()) { log.info(…); return; } service.insert(entidad);` (la regla de cuándo no se inserta vive en otra clase y el fallo real se traga)
+- ✅ CORRECTO: `if (TextUtil.isNullOrBlank(destino)) { return; } … service.insert(entidad);` (la regla se lee aquí; cualquier otro fallo revienta)
 
 ---
 
@@ -80,7 +126,7 @@ Cuando un flujo se divide en ramas por una condición, las ramas **MUST** ser **
 
 Si la especificación pide algo que **ninguna receta ni patrón documentado cubre**, el diseño está creando un patrón nuevo, y eso es una decisión que **MUST** declararse, no improvisarse en silencio.
 
-**Correcto:** el diseño lo marca explícitamente como **patrón nuevo**, dice dónde va la pieza común (p. ej. `tramites/util/<propósito>/` si la compartirán varios tipos, o `base`/`subsystem` si es genérica), qué receta faltaría escribir, y por qué no encaja en las existentes. Así el humano lo ve antes de que se implemente.
+**Correcto:** el diseño lo marca explícitamente como **patrón nuevo**, dice dónde va la pieza común (p. ej. `tramites/shared/<propósito>/` si la compartirán varios tipos, o `base`/`subsystem` si es genérica), qué receta faltaría escribir, y por qué no encaja en las existentes. Así el humano lo ve antes de que se implemente.
 
 **Violación:** el diseño resuelve el caso nuevo con piezas ad hoc dentro del trámite, sin decir que es la primera vez que se hace ni dónde debería vivir.
 

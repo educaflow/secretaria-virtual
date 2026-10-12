@@ -87,11 +87,10 @@ La única excepción es el trámite de prueba (`tramites/prueba`), que conserva 
 
 **Qué es común y qué repite cada tipo.**
 
-- Común, en `tramites/util/` (`tramites/util/CLAUDE.md`): la lógica de `ENTRADA` en `entrada/` (`EntradaHelper`) y la de `VERIFICACION` en `verificacion/` (`VerificacionHelper`). Las reglas de validación de sus campos no: van escritas en el validador de cada tipo (`validator.md` §3.2).
+- Común, en `tramites/shared/` (`tramites/shared/CLAUDE.md`): la lógica de `ENTRADA` (`registro/RegistroEntradaSalidaHelper` para asentar en el registro y `firma/FirmaExpedienteHelper` para firmar en el servidor y fechar la firma), que recibe un `ExpedienteResoluble` y usa sus campos directamente, así que para usarla el tipo **MUST** extender de ella (`recetas/presentacion.md` §1.1). El aviso de subsanación de `VERIFICACION` es `NotificacionesExpedienteHelper.notificarSubsanacion` (`tramites/shared/notificaciones/`), que vale para cualquier `Expediente`. Las reglas de validación de sus campos no: van escritas en el validador de cada tipo (`validator.md` §3.2).
 - Común, en los `common-template-views.xml` de `tramites/shared` (§1.8): los paneles de las dos fases, repartidos entre `presentadoenpapel/`, `expedienteresoluble/` (verificación; solo para tipos con `extends="ExpedienteResoluble"`) y `firma/` (`vistas.md` §3.2). Los paneles **globales del subsistema** de expedientes (cabecera, footer, notas, historial de estados) viven en `tramites/shared/system-template-views.xml` (`vistas.md` §3–§4).
-- El código común no nombra los campos del tipo: los recibe en el descriptor `CamposEntrada<T>`, una constante `CAMPOS_ENTRADA` del `<Code>Util` de cada tipo, junto a la mutación `borrarSubsanacion` (`recetas/presentacion.md` §1.1).
 - Se queda en cada tipo, porque el motor y los tests lo exigen y no hay herencia ni includes entre tipos: las dos `<fase>` del `TipoExpedienteInstance.xml`, la declaración de los campos, los `trigger*` (finos: delegan en lo común y hacen su `updateState`, porque cada tipo solo puede nombrar su propio `States`), los `getForState…InEvent…`, y los `<form state>` con sus botones y sus acciones `exp-<Code>-…`.
-- **MUST NOT** copiar a un tipo la lógica que ya está en `tramites/util/entrada` o `tramites/util/verificacion`: CPD rompe el build si dos trámites repiten código (`CLAUDE.md` raíz).
+- **MUST NOT** copiar a un tipo la lógica que ya está en `tramites/shared/expedienteresoluble`: CPD rompe el build si dos trámites repiten código (`CLAUDE.md` raíz).
 - Un tipo nuevo **copia de un tipo existente** las dos carpetas de fase (`entrada/`, `verificacion/`) y las declaraciones de los campos (`recetas/versionado.md` §2.2.b); la lógica y los paneles los toma de lo común.
 
 ### 1.3 Contenido de la carpeta del tipo
@@ -105,7 +104,7 @@ En la **raíz de la versión** va lo que es de todo el tipo:
 | `domains.xml` | tú (esqueleto generado, §3.1) | `modelo.md` |
 | `views.xml` (solo el form plantilla `exp-<Code>-Templates` y forms/grids auxiliares) | tú (esqueleto generado) | `vistas.md` |
 | `InitialEventManagerImpl.java` | tú (esqueleto generado) | `phaseeventmanager.md` §2.1 |
-| `<Code>Util.java` (`MiTramiteV1Util.java`) | tú; sin esqueleto. Lleva al menos `CAMPOS_ENTRADA` y `borrarSubsanacion` (§1.2) | §1.7 |
+| `<Code>Util.java` (`MiTramiteV1Util.java`) | tú; sin esqueleto | §1.7 |
 | `documentospdf/` | tú | `documentos.md` |
 | `i18n_es.csv` / `i18n_ca.csv` | el build — **MUST NOT** crearlos a mano | `CLAUDE.md` (i18n) |
 
@@ -179,11 +178,9 @@ Tres familias de función:
 - **Guarda de negocio** para un `trigger*`: recibe el expediente y el mensaje, es `void` y lanza `BusinessException(I18n.get(mensaje))` si no se cumple.
 - **Mutación** compartida por varios eventos o fases: recibe el expediente, `void`.
 
-Además lleva la constante `CAMPOS_ENTRADA`, el descriptor con el que el código común de la fase `ENTRADA` llega a los campos del tipo (§1.2, `recetas/presentacion.md` §1.1).
-
 Reglas:
 
-- **MUST NOT** crear una `ValidationRule` propia del tipo: función `boolean` de `<Code>Util` + `+Lambda(...)`/`+ifLambda(...)`. Solo si la comparten **varios** tipos es una regla, y va a `tramites/util/<propósito>/` (`tramites/util/CLAUDE.md`) o al catálogo de `base/infrastructure/validation/rules`.
+- **MUST NOT** crear una `ValidationRule` propia del tipo: función `boolean` de `<Code>Util` + `+Lambda(...)`/`+ifLambda(...)`. Solo si la comparten **varios** tipos es una regla, y va a `tramites/shared/<propósito>/` (`tramites/shared/CLAUDE.md`) o al catálogo de `base/infrastructure/validation/rules`.
 - **MUST NOT** repartir las funciones en varias clases por tema: una sola `<Code>Util` por tipo, con bloques comentados si crece.
 - **Validación vs assert**: una función solo devuelve `false` o lanza `BusinessException` por algo que el usuario de la pantalla puede corregir. Lo que nunca debería darse (falta un dato que fija el servidor) es `IllegalStateException`, sin mensaje i18n.
 
@@ -202,12 +199,12 @@ Reglas:
   - `common-template-views.xml`: paneles comunes que se incluyen con nombre simple (`vistas.md` §3).
 - Las subcarpetas **no tienen estructura fija**: se agrupa por propósito y cada una lleva solo lo que necesite:
   - un `common-template-views.xml` con paneles, que se incluyen con nombre punteado `<carpeta>.<panel>` (`vistas.md` §3);
-  - un `domains.xml` con una **entidad base** de la que heredan los tipos (mismo `<module>` que `Expediente`: la clase se genera en `com.educaflow.subsystem.expedientes.db`, `modelo.md` §1).
+  - un `domains.xml` con una **entidad base** de la que heredan los tipos (mismo `<module>` que `Expediente`: la clase se genera en `com.educaflow.subsystem.expedientes.db`, `modelo.md` §1);
+  - el código Java/Kotlin común que trabaja con esos paneles y esa entidad (qué puede entrar: `tramites/shared/CLAUDE.md`).
 - **MUST**: si los paneles de una subcarpeta usan campos de una entidad base, el tipo que los incluya **MUST** heredar de esa entidad. Si no la hereda, el build no falla, pero el panel pinta campos vacíos.
 - Las subcarpetas actuales se ven listando `tramites/shared`. Dos casos que ilustran la regla:
-  - `expedienteresoluble/`: la entidad `ExpedienteResoluble` y los paneles que usan sus campos (visores de los PDF y verificación). Para incluir un panel `expedienteresoluble.*` el tipo **MUST** declarar `extends="ExpedienteResoluble"`.
-  - `firma/`: solo paneles, sin entidad. Cualquier tipo puede incluirlos.
-- La lógica Java común a varios tipos no va aquí sino en `tramites/util/<propósito>/` (`tramites/util/CLAUDE.md`).
+  - `expedienteresoluble/`: la entidad `ExpedienteResoluble` y los paneles que usan sus campos (visores de los PDF y verificación). El código que trabaja con ella está en `registro/` (`RegistroEntradaSalidaHelper`) y `firma/` (`FirmaExpedienteHelper`). Para incluir un panel `expedienteresoluble.*` o usar ese código el tipo **MUST** declarar `extends="ExpedienteResoluble"`.
+  - `firma/`: paneles y código de firma, sin entidad. Cualquier tipo puede usarlos.
 
 - ✅ CORRECTO: un tipo con `extends="ExpedienteResoluble"` que incluye `-expedienteresoluble.ver-pdfSolicitudFirmada`.
 - ✅ CORRECTO: un tipo con `extends="Expediente"` que incluye `firma.firma-solicitud`.
@@ -419,7 +416,7 @@ Los tests de `src/test/java/com/educaflow/tiposexpedientes` comprueban, **fase a
 2. **Carpeta**: crea `tramites/<tramite>/v1/` con `estados.puml` (§2.3) y `TipoExpedienteInstance.xml` (§2), los dos con las fases comunes `ENTRADA` y `VERIFICACION` tal cual (§1.2) y, detrás, las fases propias del tipo.
 3. **Fases comunes**: copia de un tipo existente las carpetas `entrada/` y `verificacion/` y sustituye el `<Code>` y el paquete (`recetas/versionado.md` §2.2.b). Después adapta lo que es del tipo (`recetas/presentacion.md`).
 4. **Esqueletos**: `./gradlew -q CreateFilesTask -Ptipo=src/main/java/com/educaflow/tramites/<tramite>/v1` (§3.1). No pisa las fases copiadas: genera la raíz y las fases propias.
-5. **Modelo**: añade los campos a `domains.xml`, incluidos los cinco comunes si no los hereda de `ExpedienteResoluble` (§1.2), y `CAMPOS_ENTRADA` + `borrarSubsanacion` a `<Code>Util` → `modelo.md`.
+5. **Modelo**: añade los campos a `domains.xml`, sin los cinco comunes, que hereda de `ExpedienteResoluble` (§1.2) → `modelo.md`.
 6. **Documentos**: crea `documentospdf/` → `documentos.md` (y `documentotexto.md` si es en prosa). Si hay más de un documento, **MUST** extraer cada sección idéntica a un fragmento `_<contenido>.xml`.
 7. **Evento inicial y fases**: rellena el `triggerInitialEvent` y, en cada fase, sus `trigger<Evento>` y `onEnter<Estado>` → `phaseeventmanager.md`. Lo compartido, en `<Code>Util` (§1.7).
 8. **Validadores**: rellena las `rules { }` de cada pareja (estado, evento) → `validator.md`.
@@ -438,7 +435,7 @@ Para **añadir una fase** a un tipo que ya existe: añade su `<fase>` al XML mov
 
 - Todo se deriva de la carpeta `tramites/<tramite>/<vN>/`: code = code del trámite + `VN`, entidad = code, paquete = ruta. Los nombres de clase son fijos: **MUST NOT** renombrarlos.
 - Fases obligatorias, una subcarpeta por fase con `PhaseEventManagerImpl`, `StateEventValidatorImpl` y `views.xml`. Su `title` lo ve el usuario.
-- Las dos primeras fases, `ENTRADA` y `VERIFICACION`, son las mismas en todos los tipos: se copian de un tipo existente, su lógica está en `tramites/util/entrada` y `tramites/util/verificacion` y sus paneles en los `common-template-views.xml` de `tramites/shared` (`vistas.md` §3.2).
+- Las dos primeras fases, `ENTRADA` y `VERIFICACION`, son las mismas en todos los tipos: se copian de un tipo existente, su lógica está en `tramites/shared/expedienteresoluble` y sus paneles en los `common-template-views.xml` de `tramites/shared` (`vistas.md` §3.2).
 - Un estado = la pareja (fase, estado); en código siempre `States.<Fase>.<ESTADO>`, con la fase en UpperCamelCase.
 - `events` obligatorio aunque vacío; `systemEvents` para los eventos que dispara el servidor (sin botón; sus datos llegan en el `requestData` de quien los dispara); sin `initial`: el estado inicial lo fija el `InitialEventManagerImpl`, uno por tipo.
 - El motor ya comprueba el perfil del estado, filtra los campos por la whitelist del validador, valida, guarda el historial y elige la vista. Tú escribes el `trigger*` que decide el destino.

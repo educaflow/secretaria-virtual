@@ -1,4 +1,4 @@
-package com.educaflow.tramites.util.firma;
+package com.educaflow.tramites.shared.firma;
 
 import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionResponse;

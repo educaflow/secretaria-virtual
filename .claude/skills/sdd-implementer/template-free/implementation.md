@@ -61,7 +61,7 @@ Si la tarea es de **pieza** y su `<texto del prompt>` nombra la **tarea de test*
   xmllint --noout --schema ../axelor-open-platform/axelor-core/src/main/resources/object-views.xsd \
     src/main/java/com/educaflow/secretariavirtual/menus/menus.xml
   ```
-- **Java/Kotlin** (cualquier carpeta: `base`, `system`, `subsystem`, `tramites/util`…): §2, y §3 si tiene test.
+- **Java/Kotlin** (cualquier carpeta: `base`, `system`, `subsystem`, `tramites/shared`…): §2, y §3 si tiene test.
 - **Recursos y configuración** (`axelor-config.properties`, plantillas, ficheros estáticos): editar/crear exactamente lo que la tarea dice; una propiedad nueva va en `axelor-config.properties` con su comentario; un **secreto** nunca va en un fichero versionado (→ `BLOCKED` indicando que debe ir al fichero privado).
 - **Tests unitarios**: `tests-code.md`.
 

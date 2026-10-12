@@ -95,6 +95,6 @@ src/main/…  src/test/java/…  src/main/resources/…   ← el código, donde 
 ## 4. Contexto del proyecto a cargar
 
 - Los skills los fija **cada tarea** en su `## Skills a usar` (salen de la columna `Skill` del diseño más `k-secure-coding` y `k-code-quality` para todo Java/Kotlin). Ningún rol carga skills «por defecto».
-- `CLAUDE.md` del proyecto y los `CLAUDE.md` de las carpetas que la tarea toca (`base/`, `subsystem/tramitador/`, `subsystem/expedientes/`, `tramites/util/` si aplica).
+- `CLAUDE.md` del proyecto y los `CLAUDE.md` de las carpetas que la tarea toca (`base/`, `subsystem/tramitador/`, `subsystem/expedientes/`, `tramites/shared/` si aplica).
 - `agent_docs/deploy.md` para los comandos de Gradle (compilar, ejecutar un test concreto).
 - **MUST NOT** usar como referencia `design.md` de otras iniciativas.

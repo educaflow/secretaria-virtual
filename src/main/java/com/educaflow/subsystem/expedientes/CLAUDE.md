@@ -28,4 +28,4 @@ Para llegar a la máquina de estados desde fuera está `ExpedienteUtil.getTipoEx
 | Algo que el `<extra-code-model>` de una entidad de expediente necesita llamar | **aquí** (o `base/`), nunca en el tramitador |
 | Algo común a todos los expedientes que no es tramitación: ni estados, ni eventos (p. ej. las notas: `util/ExpedienteNotasUtil` y `controller/`) | **aquí** |
 | La máquina de estados, los `EventManager`, el `Tramitador`, sus servicios o sus controladores | [`subsystem/tramitador`](../tramitador/CLAUDE.md) |
-| Lo que necesita un tipo de expediente concreto para implementarse | su carpeta de versión, o `tramites/util/` si lo comparten varios |
+| Lo que necesita un tipo de expediente concreto para implementarse | su carpeta de versión, o `tramites/shared/` si lo comparten varios |

@@ -16,7 +16,6 @@ import com.educaflow.subsystem.expedientes.util.ExpedienteNotasUtil;
 import com.educaflow.subsystem.firmas.db.EstadoTareaFirma;
 import com.educaflow.subsystem.firmas.db.TareaFirma;
 import com.educaflow.subsystem.firmas.service.TareaFirmaNotifier;
-import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
 import com.educaflow.subsystem.tramitador.service.TramitadorService;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.EventContext;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.OnEnterState;
@@ -26,7 +25,8 @@ import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.WhenEvent;
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.AnulacionMatriculaCicloFormativoV1Util;
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.States;
 
-import com.educaflow.tramites.util.registro.AvisoRegistroHelper;
+import com.educaflow.tramites.shared.firma.FirmaExpedienteHelper;
+import com.educaflow.tramites.shared.registro.RegistroEntradaSalidaExpedienteHelper;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +58,10 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
     TramitadorService tramitadorService;
 
     @Inject
-    AvisoRegistroHelper avisoRegistroHelper;
+    RegistroEntradaSalidaExpedienteHelper registroEntradaSalidaExpedienteHelper;
+
+    @Inject
+    FirmaExpedienteHelper firmaExpedienteHelper;
 
     @Inject
     public PhaseEventManagerImpl(AnulacionMatriculaCicloFormativoV1Repository repository) {
@@ -118,12 +121,9 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
         // El documento que llega es el de la tarea de firma, no del expediente: el expediente se queda una copia,
         // que es la que se registra de salida.
         MetaFile resolucionFirmada = MetaFileUtil.cloneMetaFile(expediente.getPdfResolucionFirmada());
-        RegistroSalida registroSalida = eventContext.createRegistroSalida(resolucionFirmada, List.of());
         expediente.setPdfResolucionFirmada(resolucionFirmada);
-        expediente.setFechaHoraPdfResolucionFirmada(registroSalida.getFecha());
-        expediente.setPdfResolucionFirmadaRegistroSalida(registroSalida.getDocumento());
-        expediente.setFechaHoraPdfResolucionFirmadaRegistroSalida(registroSalida.getFecha());
-        avisoRegistroHelper.avisarDeRegistroSalida(expediente, registroSalida);
+        firmaExpedienteHelper.actualizarFechaHoraPdfResolucionFirmada(expediente);
+        registroEntradaSalidaExpedienteHelper.registroSalidaResolucion(expediente, List.of(), eventContext);
 
         expediente.setPdfResolucion(null);
         expediente.setFechaHoraPdfResolucion(null);

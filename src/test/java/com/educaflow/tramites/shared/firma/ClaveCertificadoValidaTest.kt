@@ -1,4 +1,4 @@
-package com.educaflow.tramites.util.firma
+package com.educaflow.tramites.shared.firma
 
 import com.axelor.auth.db.User
 import com.axelor.db.modelservice.BusinessMessages

@@ -19,8 +19,8 @@ import com.educaflow.base.infrastructure.validation.rules.Required
 import com.educaflow.base.infrastructure.validation.rules.SizeUnit
 import com.educaflow.subsystem.common.db.Persona
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.AnulacionMatriculaCicloFormativoV1Util as util
-import com.educaflow.tramites.util.firma.ClaveCertificadoValida
-import com.educaflow.tramites.util.firma.ifSituacionFirma
+import com.educaflow.tramites.shared.firma.ClaveCertificadoValida
+import com.educaflow.tramites.shared.firma.ifSituacionFirma
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1 as model
 
 class StateEventValidatorImpl: StateEventValidator {

@@ -15,6 +15,43 @@ Nombres incorrectos: `paso1`, `procesarPaso2`, `helper`, `ejecutarLogica`.
 
 Un paso que ya es **una única llamada con nombre** (a un servicio, a un colaborador, a una utilidad) ya está extraído y no cuenta para esta regla: **MUST NOT** envolverse en un método privado (ver «Extraer solo lo que aporta»).
 
+### El método público cuenta la historia entera
+
+Quien lee el método público **MUST** ver todos los pasos sin bajar a ningún privado: cada línea es un paso con nombre.
+**MUST NOT** haber un privado intermedio de orquestación que esconda parte de la historia (un «publicar» que por dentro hace dos exportaciones): los pasos que ese intermedio esconde se llaman desde el público.
+
+### Trocear por cosa, no por fase
+
+Cuando el método hace lo mismo para varias **cosas** (varios formatos, varios documentos, varios destinos), se extrae **un privado por cosa**, y cada privado hace su trabajo de principio a fin (crear, rellenar, guardar).
+**MUST NOT** trocearse por **fase** (un `crearX` para cada cosa y un `guardar` común) solo para poder meter un método compartido en medio: obliga a leer dos sitios para entender una cosa.
+
+### Pocos casos: un método lineal por caso
+
+Antes de abstraer, cuenta cuántos casos puede haber **en el dominio real**, no en teoría.
+Si son pocos (**LIMIT**: hasta ~4), un método lineal por caso con algo de repetición es la forma correcta: se lee de arriba abajo y un LLM no se salta ninguno al cambiarlos.
+**MUST NOT** introducirse un genérico, una interfaz ni un bucle sobre una lista de casos para evitar repetir dos o tres líneas.
+
+- ✅ CORRECTO: `exportarPdf(...)` y `exportarCsv(...)`, cada uno con su create → rellenar → insert, llamados uno tras otro desde el público
+- ❌ INCORRECTO: `publicar(...)` que llama a `crearPdf` y `crearCsv` y pasa los dos a un `insertarSiEsValido<T extends Documento>(...)` (fase en vez de cosa, y un genérico para ahorrar una línea)
+
+---
+
+## ¿Hace falta el método?
+
+Antes de escribir un método, **MUST** preguntarse si el **dueño del concepto** ya lo expone, aunque con otro nombre: la clase que define ese concepto (el motor para los estados, `DocumentoPdf` para las firmas de un PDF) es donde se busca primero.
+Escribir uno nuevo cuando el dueño ya lo tiene deja dos formas de hacer lo mismo y el lector no sabe cuál es la buena.
+
+**MUST NOT** crearse un método para que CPD no rompa el build.
+Si CPD marca una repetición, es una de estas dos cosas, y ninguna se arregla con un método en un helper:
+
+- Una **decisión repetida** de verdad: se extrae a su dueño (ver `disenyo.md`, «Dónde va un método»).
+- Un **idioma del proyecto** (una guarda, una comparación que se escribe igual en todas partes): se deja en línea y la repetición se declara deliberada con `// CPD-OFF` … `// CPD-ON`.
+
+Un javadoc que diga «escrito en línea CPD rompería el build» es la señal de que el método no debía existir.
+
+- ❌ INCORRECTO: `static boolean estaEn(Expediente expediente, State estado)` en un helper de `tramites/shared`, cuando el motor ya tenía `ExpedienteUtil.getState(expediente)`
+- ✅ CORRECTO: `ExpedienteUtil.getState(original) == States.Entrada.ENTRADA_DATOS` en línea en el `triggerBack`
+
 ---
 
 ## Extraer solo lo que aporta
@@ -31,12 +68,17 @@ Se extrae cuando el método nuevo cumple al menos una:
 
 - Un método cuyo cuerpo es una única llamada que solo reenvía sus parámetros: no nombra nada nuevo y obliga a saltar para leerlo.
 - Una expresión que es un **idioma del proyecto**: la que se escribe igual en todo el código y cualquier desarrollador reconoce. Se escribe en línea, como en el resto del proyecto; que se repita no la convierte en duplicación.
+- Una condición o guarda de **una línea** cuyo nombre no dice más que el propio código, aunque se repita en varios métodos o clases: el nombre solo obliga a saltar para ver qué compara o qué lanza.
+- Un método genérico (`<T extends …>`) o un parámetro de tipo función cuyo único fin es no repetir una llamada de una o dos líneas en dos o tres sitios (ver «Pocos casos: un método lineal por caso»).
+- Un método que envuelve una consulta que el dueño del concepto ya ofrece con otro nombre (ver «¿Hace falta el método?»).
 
 **MUST** comprobar cómo resuelven lo mismo las clases hermanas antes de dar a un código una forma distinta: la coherencia con el resto del proyecto gana a la preferencia genérica de estilo.
 
 - ✅ CORRECTO: `final MiEntidadService miEntidadService = (MiEntidadService) modelServiceFactory.resolve(MiEntidad.class);` al principio del método, y debajo `miEntidadService.validateDescargar(csv)` y `miEntidadService.descargar(csv)` en línea
 - ❌ INCORRECTO: `private MiEntidadService getMiEntidadService() { return (MiEntidadService) modelServiceFactory.resolve(MiEntidad.class); }` (envuelve un idioma del proyecto: solo lo renombra)
 - ❌ INCORRECTO: `private Optional<BusinessMessages> validateDescargar(String csv) { return getMiEntidadService().validateDescargar(csv); }` (solo reenvía: el servicio ya le dio nombre)
+- ✅ CORRECTO: `Preconditions.checkState(Boolean.TRUE.equals(original.getPresentadoEnPapel()), "El expediente %s (presentadoEnPapel=%s) no puede disparar este evento desde el estado '%s/%s'.", ...);` en línea en cada `trigger*` que es de un solo modo
+- ❌ INCORRECTO: `static void exigePresentadoEnPapel(Expediente expediente, boolean presentadoEnPapel) { if (...) throw new IllegalStateException(...); }` en un helper común (guarda de una línea: el nombre no dice más que el código)
 
 ---
 
@@ -112,9 +154,31 @@ API relevante: `filter`, `map`, `flatMap`, `collect`, `findFirst`, `anyMatch`, `
 
 **Violación:** "recorre la lista", "itera sobre Y y acumula los que cumplen Z", "busca el elemento que…" sin usar streams.
 
+Si la colección ya tiene un método directo para lo que se quiere (`getFirst`, `getLast`, `contains`, `isEmpty`, `size`), se llama a ese método: un stream no es señal de calidad.
+Y si lo que el stream recalcula es una propiedad que la colección debería tener siempre (un orden), la propiedad va al modelo (ver `proyecto.md`, «Las invariantes del modelo se declaran en el modelo»).
+
+- ✅ CORRECTO: `movimientos.getLast()` sobre una colección con `orderBy` en el `domains.xml`
+- ❌ INCORRECTO: `movimientos.stream().max(Comparator.comparing(Movimiento::getFecha)).orElseThrow()` (recalcula en cada uso un orden que es del modelo)
+
 | Bucle imperativo | Equivalente con streams |
 |------------------|-------------------------|
 | `for` con acumulación en lista temporal | `stream().filter(...).collect(toList())` |
 | `for` buscando el primero que cumple | `stream().filter(...).findFirst()` |
 | Contador de coincidencias | `stream().filter(...).count()` |
 | Transformación de elementos | `stream().map(...).collect(toList())` |
+
+---
+
+## La guarda de cortesía
+
+Cuando una acción es una **cortesía** que no se hace si falta un dato (no hay destino configurado, no hay nada que adjuntar), la decisión de no hacerla es una **condición explícita sobre ese dato**, al principio del método, con `return` temprano.
+Así la regla de negocio se lee donde se declara y no hay que ir a otra clase a averiguar cuándo no se envía.
+
+- **MUST** leer el dato **una vez** a una variable local y reutilizarla en la guarda y en el uso: **MUST NOT** repetir la misma cadena de getters dos veces.
+- **MUST** comprobar un `String` con `TextUtil.isNullOrBlank` (ver `java-idioms.md`).
+- **MUST NOT** loguear el camino de la guarda: que el dato falte es un caso normal del negocio, no un incidente.
+- **MUST NOT** sustituir la guarda por capturar el resultado de `validate*` del servicio (ver `disenyo.md`, «La validación del servicio no es control de flujo»).
+
+- ✅ CORRECTO: `String urlWebhook = integracion.getUrlWebhook(); if (TextUtil.isNullOrBlank(urlWebhook)) { return; } … peticion.setUrl(urlWebhook);`
+- ❌ INCORRECTO: `if (TextUtil.isNullOrBlank(integracion.getUrlWebhook())) { return; } … peticion.setUrl(integracion.getUrlWebhook());` (lee el dato dos veces)
+- ❌ INCORRECTO: `if (…) { log.info("No se llama al webhook…"); return; }` (loguea un camino normal del negocio)

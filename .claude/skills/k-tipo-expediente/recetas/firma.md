@@ -10,7 +10,7 @@ Las tres formas de que un documento de un expediente acabe firmado, cada una con
 
 Dónde cae la firma dentro del PDF es lo mismo en las tres: §4.
 
-Dependencias: §1 y §2 firman con `subsystem/criptografia` (a través de `tramites/util/firma` en §1). **MUST NOT** depender de `subsystem/firmas` para firmar en §1 ni en §2: ese subsistema es la bandeja tipo portafirmas de §3 y podría desaparecer.
+Dependencias: §1 y §2 firman con `subsystem/criptografia` (a través de `tramites/shared/firma` en §1). **MUST NOT** depender de `subsystem/firmas` para firmar en §1 ni en §2: ese subsistema es la bandeja tipo portafirmas de §3 y podría desaparecer.
 
 ## 1. El usuario firma al presentar (en servidor o con AutoFirma)
 
@@ -20,9 +20,9 @@ Dependencias: §1 y §2 firman con `subsystem/criptografia` (a través de `trami
 - Si firma **en el servidor** (tiene un certificado custodiado) o **con AutoFirma** (lo firma en su equipo y sube el PDF) lo decide su `SituacionFirma` (`subsystem/criptografia`), **no el trámite**. El servidor la recalcula del DNI cada vez que la necesita con `CertificadoDigitalService.getSituacionFirmaByDni(dni)`.
 - `SituacionFirma.isFirmaEnServidor()` es **la** definición de «corresponde firmar en servidor». **MUST NOT** enumerar valores del enum en ningún sitio (validator, vista, trigger): una situación nueva se decide en el enum y todo lo demás la sigue.
 - Con firma en servidor, el usuario teclea la clave de su certificado (PIN del dispositivo o contraseña del fichero) en `claveCertificado`, y el trigger firma con ella. Con AutoFirma, el usuario sube el PDF firmado y el validator comprueba la firma.
-- El código común vive en `tramites/util/firma/`: `FirmaServidorRules.kt` (reglas del validator) y `FirmaServidorHelper` (firmar en el trigger).
+- El código común vive en `tramites/shared/firma/`: `FirmaServidorRules.kt` (reglas del validator) y `FirmaExpedienteHelper` (firmar en el servidor la solicitud o la resolución de un `ExpedienteResoluble`, y fechar la firma con la del propio PDF). Por dentro firma con `FirmaEnServidorService.firmar` de `subsystem/criptografia`.
   Lo que la vista pregunta en el `onLoad` no es de los trámites: lo da `CertificadoDigitalController` del subsistema `criptografia`.
-- La firma de **la solicitud** en la fase común `ENTRADA` (`recetas/presentacion.md` §5) ya la tiene montada lo común: el panel `firma.firma-solicitud` de `tramites/shared/firma/common-template-views.xml` (§1.3) y `EntradaHelper.firmarSolicitudSiEsEnServidor` (§1.5). Esta sección explica cómo funciona por dentro y qué escribe cada tipo.
+- La firma de **la solicitud** en la fase común `ENTRADA` (`recetas/presentacion.md` §5) ya la tiene montada lo común: el panel `firma.firma-solicitud` de `tramites/shared/firma/common-template-views.xml` (§1.3) y `FirmaExpedienteHelper.firmarSolicitudEnServidor` (§1.5). Esta sección explica cómo funciona por dentro y qué escribe cada tipo.
 
 ### 1.2 Documento y modelo (`documentospdf/` y `domains.xml`)
 
@@ -76,7 +76,7 @@ Los paneles son comunes: el visor `expedienteresoluble.ver-pdfSolicitud` de `tra
 </action-record>
 
 <action-method name="exp-MiTramiteV1-firmarDocumentacionParaPresentar-action">
-    <call class="com.educaflow.tramites.util.firma.FirmaClienteController"
+    <call class="com.educaflow.tramites.shared.firma.FirmaClienteController"
           method='firmarDocumentoEnCampo(id,"pdfSolicitud","pdfSolicitudFirmada","firmaSolicitante")'/>
 </action-method>
 
@@ -110,8 +110,8 @@ Los paneles son comunes: el visor `expedienteresoluble.ver-pdfSolicitud` de `tra
 El evento que presenta declara **siempre las dos ramas**, una por campo:
 
 ```kotlin
-import com.educaflow.tramites.util.firma.ClaveCertificadoValida
-import com.educaflow.tramites.util.firma.ifSituacionFirma
+import com.educaflow.tramites.shared.firma.ClaveCertificadoValida
+import com.educaflow.tramites.shared.firma.ifSituacionFirma
 ...
 @BeanValidationRulesForStateAndEvent
 fun getForStatePendientePresentacionInEventPresentar(): BeanValidationRules = rules {
@@ -134,7 +134,7 @@ fun getForStatePendientePresentacionInEventPresentar(): BeanValidationRules = ru
 - `ClaveCertificadoValida` va **solo** dentro de la rama de servidor: si la situación pide PIN o contraseña exige que venga, y en todo caso comprueba que la clave abre el almacén del certificado. Fuera de esa rama revienta con `IllegalStateException` (error de programación, no del usuario).
 - `FirmaPdf(original)` va **solo** dentro de la rama de AutoFirma, junto con `Required()`. Comprueba: exactamente una firma nueva, certificado en la lista de confiables, que no es sello de tiempo, texto plano del PDF idéntico al original y DNI del certificado igual al del usuario autenticado. Si el usuario no tiene DNI válido **falla** aunque el campo venga vacío.
 - Las reglas **no** vuelven a preguntar la situación por dentro para decidir si actúan: eso lo hace la rama. **MUST NOT** escribir una regla de firma que «se calle» según la situación confiando en que otra tape el caso.
-- Fuente de verdad: `tramites/util/firma/FirmaServidorRules.kt` (su cabecera trae este mismo ejemplo) y `FirmaPdf` en `base/.../validation/rules/PdfRules.kt`.
+- Fuente de verdad: `tramites/shared/firma/FirmaServidorRules.kt` (su cabecera trae este mismo ejemplo) y `FirmaPdf` en `base/.../validation/rules/PdfRules.kt`.
 
 - ✅ CORRECTO: `+ifSituacionFirma({ it.isFirmaEnServidor() }) { +ClaveCertificadoValida() }`
 - ❌ INCORRECTO: `+ifSituacionFirma({ it == SituacionFirma.SIN_CERTIFICADO }) { +Required(); +FirmaPdf(...) }` (enumera un valor del enum y deja sin rama a `SIN_DNI`)
@@ -150,15 +150,19 @@ fun getForStatePendientePresentacionInEventPresentar(): BeanValidationRules = ru
 private static final String CAMPO_FIRMA_SOLICITUD = "firmaSolicitante";
 
 @Inject
-EntradaHelper entradaHelper;
+RegistroEntradaSalidaHelper registroEntradaSalidaHelper;
+
+@Inject
+FirmaExpedienteHelper firmaExpedienteHelper;
 
 @WhenEvent
 public void triggerPresentar(MiTramiteV1 exp, MiTramiteV1 original, EventContext eventContext) throws BusinessException {
     try {
-        EntradaHelper.exigePresentadoEnPapel(original, false);
-        entradaHelper.firmarSolicitudSiEsEnServidor(exp, MiTramiteV1Util.CAMPOS_ENTRADA, CAMPO_FIRMA_SOLICITUD);
+        Preconditions.checkState(Boolean.TRUE.equals(original.getPresentadoEnPapel()) == false, "El expediente %s (presentadoEnPapel=%s) no puede disparar este evento desde el estado '%s/%s'.", original.getNumeroExpediente(), original.getPresentadoEnPapel(), original.getCodePhase(), original.getCodeState());
+        firmaExpedienteHelper.firmarSolicitudEnServidor(SecurityUtil.getUser().getDni(), exp, CAMPO_FIRMA_SOLICITUD);
+        FirmaExpedienteHelper.actualizarFechaHoraPdfSolicitudFirmada(exp);
 
-        entradaHelper.presentar(exp, MiTramiteV1Util.CAMPOS_ENTRADA, List.of(exp.getJustificante()), eventContext);
+        registroEntradaSalidaHelper.registroEntradaSolicitud(exp, List.of(exp.getJustificante()), eventContext);
         eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
     } finally {
         exp.setClaveCertificado(null);
@@ -172,17 +176,18 @@ public void triggerBack(MiTramiteV1 exp, MiTramiteV1 original, EventContext even
 }
 ```
 
-1. `EntradaHelper.firmarSolicitudSiEsEnServidor(expediente, CAMPOS_ENTRADA, nombreCampoFirma)` (`tramites/util/entrada`) hace por dentro lo que haría el trigger a mano:
-   - Recalcula la situación del DNI del usuario autenticado (`SecurityUtil.getUser().getDni()` + `CertificadoDigitalService.getSituacionFirmaByDni`), igual que el validator. **MUST NOT** intentar leerla del formulario: no existe como campo.
-   - Si `isFirmaEnServidor()`, firma con `FirmaServidorHelper.firmarEnServidor(dni, situacion, clave, original, nombreCampoFirma)` y deja el `MetaFile` firmado en `pdfSolicitudFirmada`. Si la clave no abre el almacén lanza `BusinessException` con el motivo; el validator ya lo comprobó, así que aquí es red de seguridad.
+1. `FirmaExpedienteHelper.firmarSolicitudEnServidor(dniFirmante, expediente, nombreCampoFirma)` (`tramites/shared/firma`) hace por dentro lo que haría el trigger a mano:
+   - Recalcula la situación de firma del DNI que recibe (`CertificadoDigitalService.getSituacionFirmaByDni`), igual que el validator. El trigger le pasa el del usuario autenticado, `SecurityUtil.getUser().getDni()` (nunca `AuthUtils`). **MUST NOT** intentar leerla del formulario: no existe como campo.
+   - Si `isFirmaEnServidor()`, firma con `FirmaEnServidorService.firmar(dni, clave, MetaFileHelper.getDocumentoPdf(original), new CampoFirma(nombreCampoFirma))` y deja en `pdfSolicitudFirmada` el `MetaFile` que crea `MetaFileHelper.createMetaFile`. Si la clave no abre el almacén, el servicio lanza `CredentialsFailureException` y se propaga: el validator ya comprobó la clave, así que llegar aquí con una errónea es un error de programación.
    - Con AutoFirma **no hace nada**: el campo firmado ya llegó validado.
+   - Después, `FirmaExpedienteHelper.actualizarFechaHoraPdfSolicitudFirmada(exp)` (estático) pone en `fechaHoraPdfSolicitudFirmada` la fecha de la última firma del propio PDF, se haya firmado en el servidor o con AutoFirma. **MUST NOT** fecharla con `LocalDateTime.now()` ni con la del asiento.
 2. El resto del trigger (registro de entrada, transición) es igual en los dos casos: `recetas/presentacion.md` §5.3.
 3. `claveCertificado` **MUST** ponerse a `null` en un `finally`, para que no sobreviva en el objeto si algo falla después. **MUST** hacerlo también el `triggerBack` que deshace la presentación, porque el cliente puede haberla enviado.
-4. `EntradaHelper` se inyecta con `@Inject` de campo (`phaseeventmanager.md` §1). Qué es `CAMPOS_ENTRADA`: `recetas/presentacion.md` §1.1.
-5. Para firmar así **otro** documento que no sea la solicitud, el trigger usa directamente `FirmaServidorHelper` (inyectado) dentro de un `if (situacionFirma.isFirmaEnServidor())`, con esos mismos pasos.
+4. `FirmaExpedienteHelper` se inyecta con `@Inject` de campo (`phaseeventmanager.md` §1). Recibe un `ExpedienteResoluble`: `recetas/presentacion.md` §1.1.
+5. Para firmar así la **resolución** está `firmarResolucionEnServidor` (de `pdfResolucion` a `pdfResolucionFirmada`) y `actualizarFechaHoraPdfResolucionFirmada`. Para **otro** documento, el trigger llama directamente a `FirmaEnServidorService.firmar` (inyectado) dentro de un `if (situacionFirma.isFirmaEnServidor())`, con esos mismos pasos.
 
-- ✅ CORRECTO: `entradaHelper.firmarSolicitudSiEsEnServidor(exp, MiTramiteV1Util.CAMPOS_ENTRADA, CAMPO_FIRMA_SOLICITUD)`
-- ❌ INCORRECTO: `if (situacionFirma.isFirmaEnServidor()) { exp.setPdfSolicitudFirmada(firmaServidorHelper.firmarEnServidor(...)); }` escrito a mano en el `triggerPresentar` de la fase `ENTRADA` (es lo que ya hace el helper; repetido en dos tipos, CPD rompe el build)
+- ✅ CORRECTO: `firmaExpedienteHelper.firmarSolicitudEnServidor(SecurityUtil.getUser().getDni(), exp, CAMPO_FIRMA_SOLICITUD)`
+- ❌ INCORRECTO: `if (situacionFirma.isFirmaEnServidor()) { exp.setPdfSolicitudFirmada(MetaFileHelper.createMetaFile(firmaEnServidorService.firmar(...))); }` escrito a mano en el `triggerPresentar` de la fase `ENTRADA` (es lo que ya hace el helper; repetido en dos tipos, CPD rompe el build)
 
 ### 1.6 Checklist
 
@@ -190,7 +195,7 @@ public void triggerBack(MiTramiteV1 exp, MiTramiteV1 original, EventContext even
 - [ ] Modelo: par `MetaFile` original/firmado (`pdfSolicitud`/`pdfSolicitudFirmada`); sin redeclarar `claveCertificado`; sin `situacionFirma` en el `domains.xml`.
 - [ ] Vista: `-expedienteresoluble.ver-pdfSolicitud` y `firma.firma-solicitud` (sin guion); `onLoad` con la `action-record` de `situacionFirma`/`firmaEnServidor`; dos botones `PRESENTAR` con `showIf` excluyentes; `action-record` que vacía la clave tras el evento de servidor.
 - [ ] Validator: dos `field(...)`, dos ramas complementarias sobre `isFirmaEnServidor()`.
-- [ ] Trigger: `entradaHelper.firmarSolicitudSiEsEnServidor(...)`, mismo nombre de campo de firma que la `action-method`, `finally` que vacía la clave, y `triggerBack` que también la vacía.
+- [ ] Trigger: `firmaExpedienteHelper.firmarSolicitudEnServidor(...)` y `FirmaExpedienteHelper.actualizarFechaHoraPdfSolicitudFirmada(...)`, mismo nombre de campo de firma que la `action-method`, `finally` que vacía la clave, y `triggerBack` que también la vacía.
 
 ## 2. El centro firma un documento que emite (sello: director, secretario…)
 
@@ -350,9 +355,12 @@ private static State getEstado(MiTramiteV1 expediente) {
 @WhenEvent
 public void triggerFirmar(MiTramiteV1 expediente, MiTramiteV1 original, EventContext eventContext) throws BusinessException {
     MetaFile resolucionFirmada = MetaFileUtil.cloneMetaFile(expediente.getPdfResolucionFirmada());
-    RegistroSalida registroSalida = eventContext.createRegistroSalida(resolucionFirmada, List.of());
-    expediente.setPdfResolucionFirmada(registroSalida.getDocumento());
+    expediente.setPdfResolucionFirmada(resolucionFirmada);
+    FirmaExpedienteHelper.actualizarFechaHoraPdfResolucionFirmada(expediente);
+    registroEntradaSalidaHelper.registroSalidaResolucion(expediente, List.of(), eventContext);
+
     expediente.setPdfResolucion(null);
+    expediente.setFechaHoraPdfResolucion(null);
 
     switch (expediente.getTipoResolucion()) {
         case ACEPTAR -> eventContext.updateState(States.Resolucion.ACEPTADO);

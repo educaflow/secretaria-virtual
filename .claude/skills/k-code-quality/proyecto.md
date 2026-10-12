@@ -112,6 +112,18 @@ Los `AxelorModule` los descubre y carga Axelor automáticamente al arrancar. Nun
 
 ---
 
+## Las invariantes del modelo se declaran en el modelo
+
+Una propiedad que el código necesita siempre de una colección o de un campo (un orden, una unicidad, un valor por defecto) **MUST** garantizarla el `domains.xml`, y el código la da por hecha.
+**MUST NOT** recalcularla en cada punto de uso: cada copia es una decisión con varios dueños (ver `disenyo.md`) y añade complejidad donde no hace falta.
+
+La prueba: si **nunca** se quiere la colección sin esa propiedad, la propiedad es del modelo.
+
+- ✅ CORRECTO: `<one-to-many name="movimientos" ... orderBy="fecha"/>` en el `domains.xml` y `cuenta.getMovimientos().getLast()` en el código
+- ❌ INCORRECTO: `cuenta.getMovimientos().stream().max(Comparator.comparing(Movimiento::getFecha)).orElseThrow()` en cada sitio que necesita el último (recalcula en el código un orden que el modelo puede garantizar una vez)
+
+---
+
 ## Zona horaria
 
 Toda conversión entre un instante y una fecha/hora local, y todo «ahora», **MUST** usar la zona de la aplicación `Convert.defaultZoneId` (`com.educaflow.base.util.Convert`), en Java y en Kotlin.

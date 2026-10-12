@@ -35,7 +35,7 @@ Es incremental por fecha: omite el PNG que sea más reciente que su fuente, así
 El código duplicado lo detecta la tarea `./gradlew -q cpdCheck` (CPD de PMD, embebido) sobre el Java y el Kotlin de `src/main/java`.
 Va enganchada a `check`, así que **`./run.sh` falla si hay duplicados**: el error lista cada uno como `ruta:líneas` y el detalle con los fragmentos está en `build/reports/cpd/cpd.md`.
 No cuenta lo repetido entre versiones (`vN`) del mismo trámite, que se copian a propósito.
-Un duplicado se arregla **extrayendo el código común** en su sitio (ver [Arquitectura](#arquitectura): lo compartido por trámites va a `tramites/util`, no al motor); los comentarios `// CPD-OFF` … `// CPD-ON` son solo para una duplicación deliberada.
+Un duplicado se arregla **extrayendo el código común** en su sitio (ver [Arquitectura](#arquitectura): lo compartido por trámites va a `tramites/shared`, no al motor); los comentarios `// CPD-OFF` … `// CPD-ON` son solo para una duplicación deliberada.
 
 Las líneas del proyecto las muestra la tarea `./gradlew -q countLines` al acabar el build (va enganchada a `build` con `finalizedBy`, así que **`./run.sh` ya la ejecuta**).
 Da, para `src/main`, `src/test` y el total, las líneas de código (Java, Kotlin y TypeScript de los E2E), de XML y la suma, sin contar blancos ni comentarios.
@@ -110,8 +110,8 @@ La dependencia va `tramites → subsystem/tramitador → subsystem/expedientes` 
 Ojo con la puerta por la que ese ciclo entra sin avisar: las entidades de **todos** los tipos de expediente se generan en `subsystem.expedientes.db`, así que un `<extra-code-model>` de cualquier `domains.xml` que llame al motor acopla el dominio entero.
 
 **`subsystem/tramitador` MUST mantenerse lo más pequeño posible**, porque todo lo que se le añade lo heredan todos los tipos de expediente.
-Lo que un expediente concreto necesita para implementarse **MUST NOT** ir ahí: va a `tramites/util/<propósito>/` si lo comparten varios tipos, o a su carpeta de versión si es de uno solo.
-Esta decisión se toma **al diseñar**, no al implementar: antes de colocar cualquier pieza nueva en el motor lee [`src/main/java/com/educaflow/subsystem/tramitador/CLAUDE.md`](src/main/java/com/educaflow/subsystem/tramitador/CLAUDE.md) (dónde va cada cosa), [`src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md`](src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md) (qué entra en el dominio) y [`src/main/java/com/educaflow/tramites/util/CLAUDE.md`](src/main/java/com/educaflow/tramites/util/CLAUDE.md) (qué puede entrar en el común de trámites).
+Lo que un expediente concreto necesita para implementarse **MUST NOT** ir ahí: va a `tramites/shared/<propósito>/` si lo comparten varios tipos, o a su carpeta de versión si es de uno solo.
+Esta decisión se toma **al diseñar**, no al implementar: antes de colocar cualquier pieza nueva en el motor lee [`src/main/java/com/educaflow/subsystem/tramitador/CLAUDE.md`](src/main/java/com/educaflow/subsystem/tramitador/CLAUDE.md) (dónde va cada cosa), [`src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md`](src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md) (qué entra en el dominio) y [`src/main/java/com/educaflow/tramites/shared/CLAUDE.md`](src/main/java/com/educaflow/tramites/shared/CLAUDE.md) (qué puede entrar en el común de trámites).
 
 ## Vistas
 

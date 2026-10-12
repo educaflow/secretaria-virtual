@@ -19,7 +19,6 @@ import com.educaflow.subsystem.firmas.service.TareaFirmaService;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.State;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.firma.PhaseEventManagerImpl;
-import com.educaflow.tramites.util.entrada.CamposEntrada;
 
 import java.util.List;
 import java.util.Objects;
@@ -29,25 +28,6 @@ import java.util.Set;
 public final class AnulacionMatriculaCicloFormativoV1Util {
 
     private AnulacionMatriculaCicloFormativoV1Util() {
-    }
-
-    /* ------------------------------------------------------------------ */
-    /* Fases comunes                                                      */
-    /* ------------------------------------------------------------------ */
-
-    /** Los campos de este tipo con los que trabaja el código común de la fase ENTRADA (tramites/util/entrada). */
-    public static final CamposEntrada<AnulacionMatriculaCicloFormativoV1> CAMPOS_ENTRADA = new CamposEntrada<>(
-            AnulacionMatriculaCicloFormativoV1::getPdfSolicitud,
-            AnulacionMatriculaCicloFormativoV1::getPdfSolicitudFirmada,
-            AnulacionMatriculaCicloFormativoV1::setPdfSolicitudFirmada,
-            AnulacionMatriculaCicloFormativoV1::setPdfJustificanteRegistroEntrada,
-            AnulacionMatriculaCicloFormativoV1::setFechaHoraPdfSolicitudFirmada,
-            AnulacionMatriculaCicloFormativoV1::setFechaHoraPdfJustificanteRegistroEntrada,
-            AnulacionMatriculaCicloFormativoV1Util::borrarSubsanacion);
-
-    public static void borrarSubsanacion(AnulacionMatriculaCicloFormativoV1 expediente) {
-        expediente.setResultadoVerificacion(null);
-        expediente.setTextoSubsanacion(null);
     }
 
     /* ------------------------------------------------------------------ */

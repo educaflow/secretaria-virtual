@@ -192,7 +192,7 @@
     <!-- firmaSolicitante: el campoFirma de documentospdf/solicitud.xml, el mismo que CAMPO_FIRMA_SOLICITUD
          del PhaseEventManagerImpl de esta fase. MUST NOT cambiarse aquí sin cambiarlo allí. -->
     <action-method name="exp-AnulacionMatriculaCicloFormativoV1-firmarSolicitud-action">
-        <call class="com.educaflow.tramites.util.firma.FirmaClienteController" method='firmarDocumentoEnCampo(id,"pdfSolicitud","pdfSolicitudFirmada","firmaSolicitante")'/>
+        <call class="com.educaflow.tramites.shared.firma.FirmaClienteController" method='firmarDocumentoEnCampo(id,"pdfSolicitud","pdfSolicitudFirmada","firmaSolicitante")'/>
     </action-method>
 
     <action-record name="exp-AnulacionMatriculaCicloFormativoV1-set-claveCertificado-null-action" model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1">

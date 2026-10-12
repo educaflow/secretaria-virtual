@@ -291,7 +291,7 @@ La pieza 2:
 
 ```xml
 <action-method name="exp-<Entidad>-<accion>-action">
-    <call class="com.educaflow.tramites.util.firma.FirmaClienteController"
+    <call class="com.educaflow.tramites.shared.firma.FirmaClienteController"
           method='firmarDocumentoEnCampo(id,"<campoOrigen>","<campoDestino>","<campoFirma>")'/>
 </action-method>
 

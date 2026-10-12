@@ -3,6 +3,7 @@ package com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.en
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
+import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.base.util.Convert;
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
 import com.educaflow.subsystem.expedientes.db.repo.AnulacionMatriculaCicloFormativoV1Repository;
@@ -12,8 +13,11 @@ import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.PhaseEventMan
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.WhenEvent;
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.AnulacionMatriculaCicloFormativoV1Util;
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.States;
-import com.educaflow.tramites.util.entrada.EntradaHelper;
+import com.educaflow.tramites.shared.firma.FirmaExpedienteHelper;
+import com.educaflow.subsystem.tramitador.tramitacion.util.ExpedienteUtil;
+import com.educaflow.tramites.shared.registro.RegistroEntradaSalidaExpedienteHelper;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +36,10 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     @Inject
-    EntradaHelper entradaHelper;
+    RegistroEntradaSalidaExpedienteHelper registroEntradaSalidaExpedienteHelper;
+
+    @Inject
+    FirmaExpedienteHelper firmaExpedienteHelper;
 
     @Inject
     public PhaseEventManagerImpl(AnulacionMatriculaCicloFormativoV1Repository repository) {
@@ -50,7 +57,9 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
     @WhenEvent
     public void triggerContinuar(AnulacionMatriculaCicloFormativoV1 expediente, AnulacionMatriculaCicloFormativoV1 original, EventContext eventContext) throws BusinessException {
         AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, "Solo puede modificar sus propias solicitudes");
-        EntradaHelper.exigePresentadoEnPapel(original, true);
+        Preconditions.checkState(Boolean.TRUE.equals(original.getPresentadoEnPapel()), "El expediente %s (presentadoEnPapel=%s) no puede disparar este evento desde el estado '%s/%s'.", original.getNumeroExpediente(), original.getPresentadoEnPapel(), original.getCodePhase(), original.getCodeState());
+        // El escaneado lo subió el usuario: la fecha de la solicitud firmada a mano es la de la subida.
+        expediente.setFechaHoraPdfSolicitudFirmada(expediente.getPdfSolicitudFirmada().getCreatedOn());
 
         eventContext.updateState(States.Entrada.ENTRADA_DATOS);
     }
@@ -68,7 +77,8 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
         expediente.setFechaHoraPdfSolicitud(LocalDateTime.now(Convert.defaultZoneId));
 
         if (Boolean.TRUE.equals(original.getPresentadoEnPapel())) {
-            presentar(expediente, eventContext);
+            registroEntradaSalidaExpedienteHelper.registroEntradaSolicitud(expediente, List.of(), eventContext);
+            eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
         } else {
             expediente.setPdfSolicitudFirmada(null);
             expediente.setFechaHoraPdfSolicitudFirmada(null);
@@ -86,8 +96,8 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
 
         AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, "Solo puede volver atrás en sus propias solicitudes");
 
-        if (EntradaHelper.estaEn(original, States.Entrada.ENTRADA_DATOS)) {
-            EntradaHelper.exigePresentadoEnPapel(original, true);
+        if (ExpedienteUtil.getState(original) == States.Entrada.ENTRADA_DATOS) {
+            Preconditions.checkState(Boolean.TRUE.equals(original.getPresentadoEnPapel()), "El expediente %s (presentadoEnPapel=%s) no puede disparar este evento desde el estado '%s/%s'.", original.getNumeroExpediente(), original.getPresentadoEnPapel(), original.getCodePhase(), original.getCodeState());
             eventContext.updateState(States.Entrada.PENDIENTE_DOCUMENTO_ESCANEADO);
         } else {
             eventContext.updateState(States.Entrada.ENTRADA_DATOS);
@@ -99,26 +109,16 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
     public void triggerPresentar(AnulacionMatriculaCicloFormativoV1 expediente, AnulacionMatriculaCicloFormativoV1 original, EventContext eventContext) throws BusinessException {
         try {
             AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, "Solo puede presentar sus propias solicitudes");
-            EntradaHelper.exigePresentadoEnPapel(original, false);
-            entradaHelper.firmarSolicitudSiEsEnServidor(expediente, AnulacionMatriculaCicloFormativoV1Util.CAMPOS_ENTRADA, CAMPO_FIRMA_SOLICITUD);
-
-            presentar(expediente, eventContext);
+            Preconditions.checkState(Boolean.TRUE.equals(original.getPresentadoEnPapel()) == false, "El expediente %s (presentadoEnPapel=%s) no puede disparar este evento desde el estado '%s/%s'.", original.getNumeroExpediente(), original.getPresentadoEnPapel(), original.getCodePhase(), original.getCodeState());
+            firmaExpedienteHelper.firmarSolicitudEnServidor(SecurityUtil.getUser().getDni(), expediente, CAMPO_FIRMA_SOLICITUD);
+            firmaExpedienteHelper.actualizarFechaHoraPdfSolicitudFirmada(expediente);
+            registroEntradaSalidaExpedienteHelper.registroEntradaSolicitud(expediente, List.of(), eventContext);
+            eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
         } finally {
             expediente.setClaveCertificado(null);
         }
     }
 
-    /**
-     * Registra la entrada de la solicitud que hay en pdfSolicitudFirmada (la firmada por el alumno o, en papel, la
-     * escaneada) y la pasa a verificación.
-     */
-    private void presentar(AnulacionMatriculaCicloFormativoV1 expediente, EventContext eventContext) {
-        // Deja en fechaHoraPdfJustificanteRegistroEntrada la fecha de presentación: la anulación surte efecto desde
-        // ella, y la resolución la imprime.
-        entradaHelper.presentar(expediente, AnulacionMatriculaCicloFormativoV1Util.CAMPOS_ENTRADA, List.of(), eventContext);
-
-        eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
-    }
 
 /***************************************************************************************/
 /*************************************** Estados ***************************************/

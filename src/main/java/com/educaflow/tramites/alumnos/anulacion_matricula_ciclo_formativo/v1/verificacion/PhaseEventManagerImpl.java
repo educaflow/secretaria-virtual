@@ -11,7 +11,7 @@ import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.PhaseEventMan
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.WhenEvent;
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.AnulacionMatriculaCicloFormativoV1Util;
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.States;
-import com.educaflow.tramites.util.verificacion.VerificacionHelper;
+import com.educaflow.tramites.shared.notificaciones.NotificacionesExpedienteHelper;
 
 import com.google.inject.Inject;
 import org.slf4j.Logger;
@@ -26,7 +26,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     @Inject
-    VerificacionHelper verificacionHelper;
+    NotificacionesExpedienteHelper notificacionesExpedienteHelper;
 
     @Inject
     public PhaseEventManagerImpl(AnulacionMatriculaCicloFormativoV1Repository repository) {
@@ -53,7 +53,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
                 eventContext.updateState(States.Resolucion.PENDIENTE_RESOLUCION);
             }
             case SUBSANAR -> {
-                verificacionHelper.avisarDeSubsanacion(expediente, expediente.getTextoSubsanacion());
+                notificacionesExpedienteHelper.notificarSubsanacion(expediente, expediente.getTextoSubsanacion());
 
                 // En papel la persona entregará una solicitud nueva: se vuelve a empezar por el escaneado.
                 if (Boolean.TRUE.equals(original.getPresentadoEnPapel())) {

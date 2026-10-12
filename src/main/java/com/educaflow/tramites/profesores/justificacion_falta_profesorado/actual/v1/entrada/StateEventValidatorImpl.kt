@@ -23,8 +23,8 @@ import com.educaflow.base.infrastructure.validation.rules.SizeUnit
 import com.educaflow.base.util.Convert
 import java.time.LocalDate
 import com.educaflow.subsystem.common.db.Persona
-import com.educaflow.tramites.util.firma.ClaveCertificadoValida
-import com.educaflow.tramites.util.firma.ifSituacionFirma
+import com.educaflow.tramites.shared.firma.ClaveCertificadoValida
+import com.educaflow.tramites.shared.firma.ifSituacionFirma
 import com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.JustificacionFaltaProfesoradoV1Util as util
 import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1 as model
 

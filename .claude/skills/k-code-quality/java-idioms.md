@@ -30,6 +30,17 @@ Son asserts de la aplicación: lo que "nunca debería darse".
 
 ---
 
+## TextUtil.isNullOrBlank para las guardas
+
+Cuando un `String` que falta **no** es un error sino un caso del negocio (una guarda de cortesía, ver `metodos.md`), se comprueba con `TextUtil.isNullOrBlank(texto)` (`com.educaflow.base.util`).
+**MUST NOT** escribirse a mano `texto == null || texto.isBlank()`: son dos ramas de CC y un idioma que el proyecto ya tiene.
+
+- ✅ CORRECTO: `if (TextUtil.isNullOrBlank(email)) { return; }`
+- ❌ INCORRECTO: `if (email == null || email.isBlank()) { return; }` (reimplementa `isNullOrBlank` y suma CC)
+- ❌ INCORRECTO: `if (email == null) { return; }` (deja pasar `""` y `" "`)
+
+---
+
 ## Streams para colecciones
 
 Ver `metodos.md` — sección "Operaciones sobre colecciones".

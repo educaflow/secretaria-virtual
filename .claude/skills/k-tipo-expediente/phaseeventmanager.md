@@ -24,7 +24,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<MiTramiteV1> {
     AlmacenClaveResolver almacenClaveResolver;      // firma con el certificado del centro (§6.4)
     @Inject
     private ModelServiceFactory modelServiceFactory; // servicios de otros subsistemas (§6.6)
-    // en las fases comunes: @Inject EntradaHelper entradaHelper; / @Inject VerificacionHelper verificacionHelper;
+    // en las fases comunes: @Inject RegistroEntradaSalidaHelper registroEntradaSalidaHelper; / @Inject FirmaExpedienteHelper firmaExpedienteHelper; / @Inject NotificacionesExpedienteHelper notificacionesExpedienteHelper;
 
     @Inject
     public PhaseEventManagerImpl(MiTramiteV1Repository repository) {
@@ -97,7 +97,7 @@ Lo que **se repite en varios `trigger*`** (del mismo o de distinto `PhaseEventMa
 
 - **Quién puede disparar el evento**, más allá del perfil del estado que ya exige el motor (que es el creador, que pertenece al centro del expediente…): una función `exige<Condicion>(expediente, mensaje)` que lanza `BusinessException(I18n.get(mensaje))`. Se llama en la primera línea del `trigger*`, con un mensaje propio de cada evento.
 - **Limpiar campos que dejan de tener sentido** al cambiar de rama (el motivo de rechazo al aceptar, el texto de subsanación al presentar de nuevo): en el `trigger*` del evento, no en la vista. Si varios eventos limpian lo mismo, una mutación de `<Code>Util`.
-- **Lo que hacen igual todos los tipos** en las fases comunes **no** va a `<Code>Util` ni se copia: ya está en `EntradaHelper` y `VerificacionHelper` (`recetas/presentacion.md`). El `trigger*` de una fase común delega en ellos y solo añade lo propio del tipo y su `updateState`.
+- **Lo que hacen igual todos los tipos** en las fases comunes **no** va a `<Code>Util` ni se copia: ya está en `RegistroEntradaSalidaHelper`, `FirmaExpedienteHelper` y `NotificacionesExpedienteHelper` (`recetas/presentacion.md`). El `trigger*` de una fase común delega en ellos y solo añade lo propio del tipo y su `updateState`.
 
 ```java
 @WhenEvent
@@ -166,11 +166,11 @@ switch (origen) {
 - El `default` es obligatorio: `State` no es `sealed`.
 - Si el evento solo sale de **un** estado, no hace falta: llama directamente a `updateState`.
 - Si el mismo evento sale de estados de **fases distintas**, cada fase lleva su propio `trigger<Evento>` y cubre solo los estados de la suya.
-- Este `switch` es para las **fases propias** del tipo. En la fase común `ENTRADA` **MUST NOT** usarse: el bloque sería idéntico en todos los tipos y CPD rompería el build. Ahí el `BACK` (que sale de `ENTRADA_DATOS` y de `PENDIENTE_PRESENTACION`) pregunta con `EntradaHelper.estaEn(original, estado)`:
+- Este `switch` es para las **fases propias** del tipo. En la fase común `ENTRADA` **MUST NOT** usarse: el bloque sería idéntico en todos los tipos y CPD rompería el build. Ahí el `BACK` (que sale de `ENTRADA_DATOS` y de `PENDIENTE_PRESENTACION`) pregunta con `RegistroEntradaSalidaHelper.estaEn(original, estado)`:
 
 ```java
-if (EntradaHelper.estaEn(original, States.Entrada.ENTRADA_DATOS)) {
-    EntradaHelper.exigePresentadoEnPapel(original, true);
+if (RegistroEntradaSalidaHelper.estaEn(original, States.Entrada.ENTRADA_DATOS)) {
+    Preconditions.checkState(Boolean.TRUE.equals(original.getPresentadoEnPapel()), "El expediente %s (presentadoEnPapel=%s) no puede disparar este evento desde el estado '%s/%s'.", original.getNumeroExpediente(), original.getPresentadoEnPapel(), original.getCodePhase(), original.getCodeState());
     eventContext.updateState(States.Entrada.PENDIENTE_DOCUMENTO_ESCANEADO);
 } else {
     eventContext.updateState(States.Entrada.ENTRADA_DATOS);
@@ -260,19 +260,20 @@ expediente.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumentoResguar
 
 El registro devuelve el **resguardo de presentación** sellado, que se guarda en la entidad para mostrarlo.
 
-**MUST NOT** escribir esas dos líneas para presentar la solicitud en la fase `ENTRADA`: ya las hace `EntradaHelper.presentar(expediente, CAMPOS_ENTRADA, anexos, eventContext)`, que además envía el resguardo al solicitante por correo y SMS y borra la subsanación atendida. El camino entero está en la receta `recetas/presentacion.md`.
+**MUST NOT** escribir esas dos líneas para presentar la solicitud en la fase `ENTRADA`: ya las hace `RegistroEntradaSalidaHelper.registroEntradaSolicitud(expediente, anexos, eventContext)`, que además guarda la fecha del asiento, envía el resguardo al solicitante por correo y SMS y borra la subsanación atendida. El camino entero está en la receta `recetas/presentacion.md`.
 
 ### 6.3 Registro de salida (la administración emite un documento)
 
 ```java
-RegistroSalida registroSalida = eventContext.createRegistroSalida(pdfResolucionFirmada, List.of());
-expediente.setPdfResolucion(registroSalida.getDocumento());
-avisoRegistroHelper.avisarDeRegistroSalida(expediente, registroSalida);
+expediente.setPdfResolucionFirmada(pdfResolucionFirmada);
+FirmaExpedienteHelper.actualizarFechaHoraPdfResolucionFirmada(expediente);
+registroEntradaSalidaHelper.registroSalidaResolucion(expediente, List.of(), eventContext);
 ```
 
-El registro devuelve el **documento registrado** (`getDocumento()`), que es el que se guarda y se muestra al usuario.
+`registroSalidaResolucion` (`tramites/shared/registro`, inyectado con `@Inject`) llama a `eventContext.createRegistroSalida(pdfResolucionFirmada, anexos)`, guarda el **documento registrado** (`getDocumento()`) en `pdfResolucionFirmadaRegistroSalida` con la fecha del asiento, y avisa al solicitante con `NotificacionesExpedienteHelper.notificarRegistroSalida`.
+La fecha de la firma (`fechaHoraPdfResolucionFirmada`) la pone antes el tipo, del propio PDF, con `FirmaExpedienteHelper.actualizarFechaHoraPdfResolucionFirmada` (`recetas/firma.md` §3.4).
 
-**MUST** avisar al solicitante de todo registro de salida con `AvisoRegistroHelper.avisarDeRegistroSalida` (`tramites/util/registro`, inyectado con `@Inject`): le envía el documento por correo y el número por SMS, y si le falta el correo o el móvil omite ese canal sin abortar el evento.
+**MUST** avisar al solicitante de todo registro de salida: lo hace `registroSalidaResolucion`; un `trigger*` que llame a `createRegistroSalida` directamente **MUST** llamar justo después a `NotificacionesExpedienteHelper.notificarRegistroSalida` (`tramites/shared/notificaciones`, inyectado con `@Inject`), que le envía el documento por correo y el número por SMS, y si le falta el correo o el móvil omite ese canal sin abortar el evento.
 
 ### 6.4 Firmar documentos
 
@@ -280,7 +281,7 @@ Todo está en la receta `recetas/firma.md`: el usuario firma al presentar (§1),
 
 ### 6.5 Enviar correos (subsistema Correos)
 
-Se inserta un `Correo` con su servicio; el alta ya programa el envío. Uso real: `VerificacionHelper.avisarDeSubsanacion` (`tramites/util/verificacion`), el aviso al solicitante de la fase común `VERIFICACION`.
+Se inserta un `Correo` con su servicio; el alta ya programa el envío. Los avisos al solicitante ya están en `NotificacionesExpedienteHelper` (`tramites/shared/notificaciones`): este patrón es solo para un correo que no sea uno de ellos.
 
 ```java
 CorreoService correoService = (CorreoService) modelServiceFactory.resolve(Correo.class);
@@ -302,7 +303,7 @@ correoService.insert(correo);
 
 - `insert` lanza si el correo no supera `validateInsert`, que exige entre otras cosas un `dniDestinatario` válido y al menos una dirección válida en `para`. Cuando el correo es **una cortesía y no parte del trámite**, pregunta antes con `validateInsert` y no lo envíes si no se puede: en papel, por ejemplo, puede no haberse indicado correo del solicitante. **MUST NOT** dejar que un aviso aborte el evento.
 - El correo no se puede modificar ni borrar después de crearlo.
-- Para avisar de una subsanación **MUST** usarse `verificacionHelper.avisarDeSubsanacion(expediente, textoSubsanacion)`, no una copia de este patrón (`recetas/presentacion.md` §6.3).
+- Para avisar de una subsanación **MUST** usarse `notificacionesExpedienteHelper.notificarSubsanacion(expediente, expediente.getTextoSubsanacion())`, no una copia de este patrón (`recetas/presentacion.md` §6.3).
 
 ### 6.6 Acceder a servicios de otros subsistemas
 
@@ -332,6 +333,6 @@ Al ejecutar los tests (`SKILL.md` §3.3) el mensaje de fallo trae el código del
 - **MUST NOT** editar ni versionar la clase `States`.
 - **MUST NOT** poner el `trigger`/`onEnter` de un estado en la clase de otra fase.
 - **MUST NOT** inicializar el expediente en un `PhaseEventManagerImpl`: va en el `InitialEventManagerImpl` (§2.1).
-- **MUST NOT** factorizar los `trigger`/`onEnter` comunes a una superclase compartida: deja el método declarado en cada fase y que delegue en `<Code>Util` (o, en las fases comunes, en `EntradaHelper`/`VerificacionHelper`).
-- **MUST NOT** copiar de otro tipo la lógica de `ENTRADA`/`VERIFICACION`: está en `tramites/util/entrada` y `tramites/util/verificacion`, y CPD rompe el build si se repite.
+- **MUST NOT** factorizar los `trigger`/`onEnter` comunes a una superclase compartida: deja el método declarado en cada fase y que delegue en `<Code>Util` (o, en las fases comunes, en `RegistroEntradaSalidaHelper`/`FirmaExpedienteHelper`/`NotificacionesExpedienteHelper`).
+- **MUST NOT** copiar de otro tipo la lógica de `ENTRADA`/`VERIFICACION`: está en `tramites/shared/expedienteresoluble`, y CPD rompe el build si se repite.
 - **MUST NOT** guardar en el expediente una referencia a lo que dispara un evento de sistema: sus datos llegan en el `requestData` (§5.1).

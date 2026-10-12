@@ -26,7 +26,7 @@ presentadoEnPapel == false  ⟺  actúa el CREADOR     (presenta el expediente t
 2. Un estado de perfil `CREADOR` por el que también pasa el papel (`ENTRADA_DATOS`) **MUST** tener además un `<form state="X" profile="TRAMITADOR">`: si no, quien registra el papel cae en la vista de solo lectura y el expediente se atasca.
 3. En papel el `CREADOR` no interviene, así que el form `profile="CREADOR"` de ese estado **MUST NOT** llevar botones ni avisos para el caso en papel.
 4. Ese form `profile="TRAMITADOR"` lo ve también el `TRAMITADOR` que abre un expediente **telemático** en ese estado (p. ej. tras pedir una subsanación), donde el turno no es suyo: sus botones y su aviso de papel **MUST** llevar `showIf="presentadoEnPapel"`, y el form **MUST** llevar otro aviso con `showIf="!presentadoEnPapel"` que diga de quién está pendiente la solicitud.
-5. El camino en papel y el telemático comparten estados pero no eventos. Un `trigger*` que es de un solo modo lo exige con `EntradaHelper.exigePresentadoEnPapel(original, true|false)`; el que sirve a los dos decide con `original.getPresentadoEnPapel()`. El camino entero: `recetas/presentacion.md` §5.5.
+5. El camino en papel y el telemático comparten estados pero no eventos. Un `trigger*` que es de un solo modo lo exige con un `Preconditions.checkState(...)` en línea sobre `original.getPresentadoEnPapel()`; el que sirve a los dos decide con `original.getPresentadoEnPapel()`. El camino entero: `recetas/presentacion.md` §5.5.
 
 - ✅ CORRECTO: `initialEventContext.updateState(Boolean.TRUE.equals(expediente.getPresentadoEnPapel()) ? States.Entrada.PENDIENTE_DOCUMENTO_ESCANEADO : States.Entrada.ENTRADA_DATOS)`
 - ❌ INCORRECTO: `initialEventContext.getProfile()` (no existe; en el alta se lee del expediente)

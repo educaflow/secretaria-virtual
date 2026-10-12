@@ -71,7 +71,7 @@ Cinco a diez líneas: qué se construye y cómo encaja en la aplicación, en té
 ### `## 2. Dónde vive el código y por qué`
 
 **REQUIRED — es la sección que distingue un diseño libre bueno de uno improvisado.**
-Para cada carpeta de `**Ubicación del código:**`: qué va ahí y **por qué ahí y no en las alternativas** (otra capa, un sistema nuevo, `base`, `tramites/util`).
+Para cada carpeta de `**Ubicación del código:**`: qué va ahí y **por qué ahí y no en las alternativas** (otra capa, un sistema nuevo, `base`, `tramites/shared`).
 **MUST** citar la regla de `agent_docs/architecture.md` / `architecture-rules.md` o el `CLAUDE.md` de carpeta que respalda la decisión.
 Si crea un sistema o subsistema nuevo, **MUST** justificar por qué no se usó la plantilla de sistema (normalmente: porque es solo una parte pequeña de una feature más amplia).
 

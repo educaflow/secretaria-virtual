@@ -8,10 +8,14 @@ import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.*;
 import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1;
 import com.educaflow.subsystem.expedientes.db.repo.JustificacionFaltaProfesoradoV1Repository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
+import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.JustificacionFaltaProfesoradoV1Util;
 import com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.States;
-import com.educaflow.tramites.util.entrada.EntradaHelper;
+import com.educaflow.tramites.shared.firma.FirmaExpedienteHelper;
+import com.educaflow.subsystem.tramitador.tramitacion.util.ExpedienteUtil;
+import com.educaflow.tramites.shared.registro.RegistroEntradaSalidaExpedienteHelper;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +37,10 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     @Inject
-    EntradaHelper entradaHelper;
+    RegistroEntradaSalidaExpedienteHelper registroEntradaSalidaExpedienteHelper;
+
+    @Inject
+    FirmaExpedienteHelper firmaExpedienteHelper;
 
     @Inject
     public PhaseEventManagerImpl(JustificacionFaltaProfesoradoV1Repository repository) {
@@ -51,7 +58,9 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
     /** Solo en papel: adjuntada la solicitud escaneada, se pasa a copiar sus datos. */
     @WhenEvent
     public void triggerContinuar(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
-        EntradaHelper.exigePresentadoEnPapel(original, true);
+        Preconditions.checkState(Boolean.TRUE.equals(original.getPresentadoEnPapel()), "El expediente %s (presentadoEnPapel=%s) no puede disparar este evento desde el estado '%s/%s'.", original.getNumeroExpediente(), original.getPresentadoEnPapel(), original.getCodePhase(), original.getCodeState());
+        // El escaneado lo subió el usuario: la fecha de la solicitud firmada a mano es la de la subida.
+        justificacionFaltaProfesorado.setFechaHoraPdfSolicitudFirmada(justificacionFaltaProfesorado.getPdfSolicitudFirmada().getCreatedOn());
 
         eventContext.updateState(States.Entrada.ENTRADA_DATOS);
     }
@@ -68,7 +77,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
         generarSolicitud(justificacionFaltaProfesorado);
 
         if (Boolean.TRUE.equals(original.getPresentadoEnPapel())) {
-            entradaHelper.presentar(justificacionFaltaProfesorado, JustificacionFaltaProfesoradoV1Util.CAMPOS_ENTRADA, List.of(justificacionFaltaProfesorado.getJustificante()), eventContext);
+            registroEntradaSalidaExpedienteHelper.registroEntradaSolicitud(justificacionFaltaProfesorado, List.of(justificacionFaltaProfesorado.getJustificante()), eventContext);
             eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
         } else {
             justificacionFaltaProfesorado.setPdfSolicitudFirmada(null);
@@ -111,8 +120,8 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
 
         JustificacionFaltaProfesoradoV1Util.exigeSerElCreador(justificacionFaltaProfesorado, "Solo puede volver atrás en sus propias solicitudes");
 
-        if (EntradaHelper.estaEn(original, States.Entrada.ENTRADA_DATOS)) {
-            EntradaHelper.exigePresentadoEnPapel(original, true);
+        if (ExpedienteUtil.getState(original) == States.Entrada.ENTRADA_DATOS) {
+            Preconditions.checkState(Boolean.TRUE.equals(original.getPresentadoEnPapel()), "El expediente %s (presentadoEnPapel=%s) no puede disparar este evento desde el estado '%s/%s'.", original.getNumeroExpediente(), original.getPresentadoEnPapel(), original.getCodePhase(), original.getCodeState());
             eventContext.updateState(States.Entrada.PENDIENTE_DOCUMENTO_ESCANEADO);
         } else {
             eventContext.updateState(States.Entrada.ENTRADA_DATOS);
@@ -124,10 +133,11 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
     public void triggerPresentar(JustificacionFaltaProfesoradoV1 exp, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
         try {
             JustificacionFaltaProfesoradoV1Util.exigeSerElCreador(exp, "Solo puede presentar sus propias solicitudes");
-            EntradaHelper.exigePresentadoEnPapel(original, false);
-            entradaHelper.firmarSolicitudSiEsEnServidor(exp, JustificacionFaltaProfesoradoV1Util.CAMPOS_ENTRADA, CAMPO_FIRMA_SOLICITUD);
+            Preconditions.checkState(Boolean.TRUE.equals(original.getPresentadoEnPapel()) == false, "El expediente %s (presentadoEnPapel=%s) no puede disparar este evento desde el estado '%s/%s'.", original.getNumeroExpediente(), original.getPresentadoEnPapel(), original.getCodePhase(), original.getCodeState());
+            firmaExpedienteHelper.firmarSolicitudEnServidor(SecurityUtil.getUser().getDni(), exp, CAMPO_FIRMA_SOLICITUD);
+            firmaExpedienteHelper.actualizarFechaHoraPdfSolicitudFirmada(exp);
 
-            entradaHelper.presentar(exp, JustificacionFaltaProfesoradoV1Util.CAMPOS_ENTRADA, List.of(exp.getJustificante()), eventContext);
+            registroEntradaSalidaExpedienteHelper.registroEntradaSolicitud(exp, List.of(exp.getJustificante()), eventContext);
             eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
         } finally {
             exp.setClaveCertificado(null);

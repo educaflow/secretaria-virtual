@@ -55,7 +55,7 @@ class RegistroServiceImplTest {
 
         ValidationException ex = assertThrows(ValidationException.class, () -> spy.findEmailByDni(DNI));
 
-        assertEquals(mensajes.toString(), ex.getMessage());
+        assertEquals(mensajes.toUserString(), ex.getMessage());
         verifyNoInteractions(userRepository);
     }
 
