@@ -8,10 +8,7 @@ Enumerar los pasos como puntos numerados en el comentario del método público n
 
 **Violación:** el método describe varios pasos pero no hay métodos privados correspondientes.
 
-**Correcto:** un método privado por cada paso, con nombre de verbo de acción del dominio.
-
-Nombres correctos: `validarContraXSD`, `parsearDocumento`, `extraerAtributosCentro`, `construirResultado`.
-Nombres incorrectos: `paso1`, `procesarPaso2`, `helper`, `ejecutarLogica`.
+**Correcto:** un método privado por cada paso, con nombre de verbo de acción del dominio (ver «Nombrado de métodos»).
 
 Un paso que ya es **una única llamada con nombre** (a un servicio, a un colaborador, a una utilidad) ya está extraído y no cuenta para esta regla: **MUST NOT** envolverse en un método privado (ver «Extraer solo lo que aporta»).
 
@@ -88,8 +85,9 @@ Un método público no debe mezclar acciones que pertenezcan a capas o entidades
 
 Mezclar en un mismo método "valida el fichero", "persiste la tarea" y "actualiza usuarios registrados" es una violación si no hay delegación explícita.
 
-- Si la mezcla es entre entidades distintas → método privado de orquestación o clase colaboradora.
+- Si la mezcla es entre entidades distintas → clase colaboradora, o un paso con nombre por entidad llamado desde el público.
 - Si es dentro de la misma entidad → métodos privados.
+- En los dos casos el público sigue llamando a cada paso: **MUST NOT** aparecer un privado de orquestación (ver «El método público cuenta la historia entera»).
 
 ---
 
@@ -114,8 +112,9 @@ Las integraciones externas (firma, correo, PDF, importación de ficheros) viven 
 
 Los métodos deben tener nombres que describan **qué hacen** en el dominio del problema, no cómo están organizados internamente ni cuál es su posición en el flujo.
 
-**Correcto:** `calcularTotal`, `validarFirma`, `generarPDF`, `resolverCentroDelExpediente`, `procesarDnis`.
-**Incorrecto:** `procesarPaso2`, `doWork`, `ejecutarLogica`, `manejar`, `helper1`, `metodo`.
+- ✅ CORRECTO: `validarContraXSD`, `extraerAtributosCentro`, `resolverCentroDelExpediente`, `generarPDF`
+- ❌ INCORRECTO: `procesarPaso2`, `paso1` (posición en el flujo, no qué hace)
+- ❌ INCORRECTO: `doWork`, `ejecutarLogica`, `manejar`, `helper`, `metodo` (no dicen nada del dominio)
 
 Los métodos deben tener **un único nivel de abstracción** en su interior. Si un método mezcla orquestación de alto nivel con lógica de detalle (manipulación de strings, bucles sobre bytes), extraer los detalles a métodos privados.
 
@@ -136,8 +135,7 @@ No usar parámetros booleanos que cambien el comportamiento del método: dos boo
 
 ## Complejidad ciclomática y CRAP
 
-**CRITICAL**: el build **falla** si algún método supera la constante `crapUmbral` del `build.gradle` (tarea `crapCheck`, enganchada a `check`; ver `CLAUDE.md`).
-`CRAP = CC² × (1 − cobertura)³ + CC`, con la cobertura de los tests unitarios, así que un método con mucha CC y sin tests rompe el build aunque funcione.
+**CRITICAL**: por la tarea `crapCheck` (ver `CLAUDE.md`), un método con mucha CC y sin tests unitarios rompe el build aunque funcione.
 
 - **MUST** diseñar e implementar cada método con una CC baja: cada `if`, `else if`, `case`, `&&`, `||`, `?:`, `catch` y bucle suma 1.
 - **MUST** acompañar de tests unitarios todo método con ramas: con cobertura total `CRAP = CC`.
@@ -156,9 +154,6 @@ API relevante: `filter`, `map`, `flatMap`, `collect`, `findFirst`, `anyMatch`, `
 
 Si la colección ya tiene un método directo para lo que se quiere (`getFirst`, `getLast`, `contains`, `isEmpty`, `size`), se llama a ese método: un stream no es señal de calidad.
 Y si lo que el stream recalcula es una propiedad que la colección debería tener siempre (un orden), la propiedad va al modelo (ver `proyecto.md`, «Las invariantes del modelo se declaran en el modelo»).
-
-- ✅ CORRECTO: `movimientos.getLast()` sobre una colección con `orderBy` en el `domains.xml`
-- ❌ INCORRECTO: `movimientos.stream().max(Comparator.comparing(Movimiento::getFecha)).orElseThrow()` (recalcula en cada uso un orden que es del modelo)
 
 | Bucle imperativo | Equivalente con streams |
 |------------------|-------------------------|

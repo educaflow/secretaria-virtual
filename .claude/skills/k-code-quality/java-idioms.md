@@ -41,12 +41,6 @@ Cuando un `String` que falta **no** es un error sino un caso del negocio (una gu
 
 ---
 
-## Streams para colecciones
-
-Ver `metodos.md` — sección "Operaciones sobre colecciones".
-
----
-
 ## Records para datos inmutables
 
 Cuando se necesita un objeto que transporta datos sin comportamiento (DTO de entrada, resultado compuesto, parámetros agrupados), usar un `record` Java.
@@ -61,69 +55,9 @@ No usar records para: entidades JPA (que extienden `Model`), objetos con estado 
 
 ---
 
-## Pattern matching para instanceof
+## Pattern matching, switch expressions, var y colecciones inmutables
 
-Usar pattern matching en lugar del cast explícito:
-
-```java
-// Incorrecto
-if (obj instanceof String) {
-    String s = (String) obj;
-    // ...
-}
-
-// Correcto
-if (obj instanceof String s) {
-    // ...
-}
-```
-
----
-
-## Switch expressions
-
-Usar switch expressions en lugar de switch statements cuando el resultado es un valor:
-
-```java
-// Incorrecto
-String label;
-switch (estado) {
-    case PENDIENTE: label = "Pendiente"; break;
-    case FIRMADO:   label = "Firmado";   break;
-    default:        label = "Otro";
-}
-
-// Correcto
-String label = switch (estado) {
-    case PENDIENTE -> "Pendiente";
-    case FIRMADO   -> "Firmado";
-    default        -> "Otro";
-};
-```
-
----
-
-## var
-
-Usar `var` cuando el tipo es obvio por la expresión de la derecha y escribirlo explícitamente no aporta información adicional:
-
-```java
-var service = Beans.get(TareaFirmaService.class);  // OK: el tipo se lee directamente
-var lista   = new ArrayList<MetaFile>();            // OK: tipo evidente
-```
-
-No usar `var` cuando el tipo no es inmediatamente obvio al leer la línea, ni como campo de instancia.
-
----
-
-## Colecciones inmutables
-
-Preferir colecciones inmutables cuando la colección no va a modificarse tras crearse:
-
-```java
-List.of(a, b, c)      // en lugar de new ArrayList<>(Arrays.asList(a, b, c))
-Map.of(k1, v1, k2, v2) // en lugar de new HashMap<>() + put
-Set.of(a, b, c)        // en lugar de new HashSet<>()
-```
-
-Si la colección necesita modificarse después de crearse, usar `new ArrayList<>(List.of(...))` para obtener una copia mutable.
+- **MUST** usar pattern matching en `instanceof` (`if (obj instanceof String s)`), nunca el cast explícito.
+- **MUST** usar switch expression (`case X -> …`) cuando el resultado del `switch` es un valor.
+- `var` solo cuando el tipo se lee en la propia línea (`var lista = new ArrayList<MetaFile>();`); **MUST NOT** usarse como campo de instancia ni cuando el tipo no es obvio.
+- Colección que no se modifica tras crearse → `List.of`/`Map.of`/`Set.of`; si hay que modificarla, `new ArrayList<>(List.of(...))`.

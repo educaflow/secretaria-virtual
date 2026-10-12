@@ -5,7 +5,7 @@ description: Reglas de calidad técnica para el código Java/Kotlin y XML (domai
 
 # k-code-quality
 
-Este skill documenta las reglas de calidad que aplican al código Java/Kotlin implementado. No es un skill activo — es una referencia que cargan otros skills como `developer-code-reviewer`.
+Este skill documenta las reglas de calidad del código Java/Kotlin y XML del proyecto, de sus tests y del diseño antes de que haya código. No es un skill activo — es una referencia que cargan otros skills como `developer-code-reviewer` y `sdd-designer`.
 
 ## Objetivos, por orden de prioridad
 
@@ -32,7 +32,7 @@ Consecuencias, que desarrollan los ficheros de abajo:
 |---------|-----------|
 | `metodos.md` | Descomposición (el método público cuenta la historia entera; trocear por cosa, no por fase; pocos casos → un método lineal por caso), ¿hace falta el método? (buscar primero en el dueño del concepto; CPD no justifica un método), cuándo **no** extraer un método (envoltorios que solo reenvían, idiomas del proyecto, genéricos para ahorrar dos líneas), responsabilidad única, cálculo puro y efectos secundarios, nombrado, tamaño, complejidad ciclomática y CRAP (el build falla por encima de `crapUmbral`), operaciones sobre colecciones y la guarda de cortesía (leer el dato una vez, `return` temprano, sin log) |
 | `clases.md` | SOLID, composición frente a herencia, clases colaboradoras, coherencia interfaz/implementación, DTOs y records (solo lo homogéneo; nombrar por naturaleza, no por consumidor), utilidades estáticas y por qué los privados de una clase inyectable no se marcan `static` |
-| `java-idioms.md` | Optional, `Objects.requireNonNull`/`TextUtil.requireNonBlank`, `TextUtil.isNullOrBlank` en las guardas, streams, records, pattern matching, switch expressions, var y colecciones inmutables |
+| `java-idioms.md` | Optional, `Objects.requireNonNull`/`TextUtil.requireNonBlank`, `TextUtil.isNullOrBlank` en las guardas, records, y los idiomas modernos obligatorios (pattern matching, switch expressions, var, colecciones inmutables) |
 | `proyecto.md` | Convenciones Axelor: formato de código (una unidad sintáctica por línea, en XML y en Java/Kotlin), controladores, fronteras entre subsistemas, capa de servicio (JPQL en el repositorio), DI/Guice, las invariantes del modelo se declaran en el `domains.xml` (`orderBy`…), zona horaria (siempre `Convert.defaultZoneId`) y Error Prone |
 | `comentarios.md` | Cuándo se comenta y cuándo no: el código se explica solo, el único comentario que se escribe (el *por qué* que leer el código no revela) y los separadores de bloque, que sí se mantienen |
 | `tests.md` | Cómo se escribe un test: no copia los valores del código que prueba (constantes, medidas, umbrales), los toma de producción y comprueba relaciones; qué valores sí van literales |
@@ -48,4 +48,10 @@ Este skill se pasa como argumento de conocimiento a `developer-code-reviewer`:
 
 `developer-code-reviewer` carga este skill y aplica las reglas de los siete ficheros como criterio de revisión y corrección.
 
-`sdd-designer` lo usa como rasero de diseño: el diseñador carga el skill entero (lo ordena el `README.md` de su plantilla) y además `disenyo.md` para elegir entre alternativas antes de escribir; el juez carga `disenyo.md` más `clases.md` y `metodos.md` como rasero de calidad entre diseños que cubren la spec; el enriquecedor carga **solo `disenyo.md`**, para descartar ventajas que añadan un olor; y el crítico de la lente que la plantilla dedique a la calidad de clases carga el skill entero y reporta cada olor y cada violación de SOLID como crítica. El verificador ya **no** lo carga: solo comprueba cumplimiento.
+`sdd-designer` lo usa como rasero de diseño (lo ordena el `README.md` de su plantilla); qué carga cada rol:
+
+- **Diseñador**: el skill entero, y `disenyo.md` para elegir entre alternativas antes de escribir.
+- **Juez**: `disenyo.md`, `clases.md` y `metodos.md`, como rasero de calidad entre diseños que cubren la spec.
+- **Enriquecedor**: **solo `disenyo.md`**, para descartar ventajas que añadan un olor.
+- **Crítico** de la lente de calidad de clases: el skill entero; reporta cada olor y cada violación de SOLID como crítica.
+- **Verificador**: **no** lo carga; solo comprueba cumplimiento.

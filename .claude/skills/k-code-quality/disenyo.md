@@ -45,7 +45,6 @@ Antes de escribir la pieza se contestan estas cuatro preguntas, en orden; la pri
 - ❌ INCORRECTO: `DocumentoPdf.getFechaUltimaFirma()` o `DocumentoPdfUtil.getFechaUltimaFirma(doc)` (pregunta 3: la infraestructura carga con un caso de uso de expedientes)
 - ✅ CORRECTO: `FirmaExpedienteHelper` hace el `max` sobre `doc.getFirmasPdf()` en un privado suyo (la decisión y su cálculo, juntos donde se leen)
 - ❌ INCORRECTO: `RegistroEntradaSalidaExpedienteHelper.estaEn(expediente, estado)` (pregunta 2: es identidad del motor, y se colgó de `registro/` porque el helper ya existía, no por propósito)
-- ✅ CORRECTO: `ExpedienteUtil.getState(original) == States.Entrada.ENTRADA_DATOS` (pregunta 1: el motor ya lo tenía)
 
 **No confundir con la «envidia de datos»:** que un método lea solo datos de otro objeto **no** basta para moverlo a ese objeto.
 Solo se mueve si la consulta es intrínseca a él (pregunta 2), no si es la decisión de un llamador (pregunta 3).
@@ -126,7 +125,12 @@ Cuando un flujo se divide en ramas por una condición, las ramas **MUST** ser **
 
 Si la especificación pide algo que **ninguna receta ni patrón documentado cubre**, el diseño está creando un patrón nuevo, y eso es una decisión que **MUST** declararse, no improvisarse en silencio.
 
-**Correcto:** el diseño lo marca explícitamente como **patrón nuevo**, dice dónde va la pieza común (p. ej. `tramites/shared/<propósito>/` si la compartirán varios tipos, o `base`/`subsystem` si es genérica), qué receta faltaría escribir, y por qué no encaja en las existentes. Así el humano lo ve antes de que se implemente.
+**Correcto:** el diseño declara, para que el humano lo vea antes de que se implemente:
+
+- que es un **patrón nuevo**, marcado explícitamente;
+- dónde va la pieza común (p. ej. `tramites/shared/<propósito>/` si la compartirán varios tipos, o `base`/`subsystem` si es genérica);
+- qué receta faltaría escribir;
+- por qué no encaja en las existentes.
 
 **Violación:** el diseño resuelve el caso nuevo con piezas ad hoc dentro del trámite, sin decir que es la primera vez que se hace ni dónde debería vivir.
 
