@@ -36,3 +36,7 @@ Y además que cuando se notifique por correo o sms, etc que no se genere la noti
 
 Al subir el pdf de la solicitud en un tramite entregado en papel. se necesita la fechaHoraPdfSolicitudFirmada y esa no se puede saber ya que realmente es la fecha en la que se presentó el papel y no la fecha en la que se sube el PDF.
 Por lo que  al entregar en papel tiene que poder el usuario (será un administrativo) establecer el valor de  fechaHoraPdfSolicitudFirmada
+
+Pra firmar el registro de entrada y salida ,ahora lo hace el secretario.
+Pero en el futuro igual tenemos un sello de tiempo así que hay que suponer que no siempre es el secretario.
+ Así que hay que añadir una funcionalidad para firmar el registro de entrada y salida con el sello de tiempo aunque temporalmente ahora firme el secretario
